@@ -103,9 +103,19 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .sax{width:auto;height:34px;padding:0 12px !important;white-space:nowrap;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:13px;font-weight:700;cursor:pointer;padding:0}
 .ar.u{color:#ff2330;text-shadow:0 0 8px rgba(255,35,48,.55)}.ar.d{color:#2a72ff;text-shadow:0 0 8px rgba(42,114,255,.55)}.ar.off{opacity:.2;text-shadow:none}
 .svh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-.sas h4.svt{margin:0;font-size:20px;font-weight:800;color:var(--acc);white-space:nowrap}
-.svt .svd{font-size:15px;padding:3px 12px;margin-left:8px}
-.svt .svd.g{background:#ff2330;color:#fff}.svt .svd.w{background:#2a72ff;color:#fff}
+.sas h4.svt{margin:0 0 6px;font-size:20px;font-weight:800;color:var(--acc);white-space:nowrap}
+.svb{display:inline-flex;align-items:center;gap:8px;padding:6px 16px 6px 12px;border-radius:14px;color:#fff;font-weight:900}
+.svb .svi{font-size:30px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}.svb b{font-size:22px;letter-spacing:-.5px}
+.svb.l1{background:linear-gradient(135deg,#0a3ed8,#1e5bff);box-shadow:0 0 18px rgba(30,91,255,.6)}
+.svb.l2{background:linear-gradient(135deg,#2a72ff,#5b9bff);box-shadow:0 0 14px rgba(42,114,255,.45)}
+.svb.l3{background:linear-gradient(135deg,#6b7893,#8b98b3);color:#0b1220}
+.svb.l4{background:linear-gradient(135deg,#ff3340,#ff6a72);box-shadow:0 0 14px rgba(255,51,64,.5)}
+.svb.l5{background:linear-gradient(135deg,#e5001a,#ff2a38);box-shadow:0 0 22px rgba(255,35,48,.7)}
+.svg{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:2px 0 10px}
+.svg div{border-radius:9px;padding:5px 0 4px;text-align:center;opacity:.28;border:1px solid transparent}
+.svg div i{display:block;font-style:normal;font-size:16px;line-height:1.2}.svg div span{display:block;font-size:10.5px;font-weight:700;margin-top:1px}
+.svg .l1{background:#1e5bff;color:#fff}.svg .l2{background:#4a8bff;color:#fff}.svg .l3{background:#8b98b3;color:#0b1220}.svg .l4{background:#ff4d58;color:#fff}.svg .l5{background:#ff1f2d;color:#fff}
+.svg div.on{opacity:1;transform:translateY(-2px) scale(1.06);border-color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.5)}
 .sstar{display:flex;flex-direction:column;gap:2px;margin:0}.sstar div{display:flex;align-items:center;gap:4px;font-size:17px;letter-spacing:1px;justify-content:flex-end}.sstar b{width:auto;font-size:12px;letter-spacing:0;color:var(--mut);margin-right:2px}.sstar em{font-style:normal;font-size:11.5px;letter-spacing:0;color:var(--mut);margin-left:3px}
 .sar{display:flex;gap:8px}
 .sar input{flex:1;min-width:0;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);padding:11px 12px}
@@ -709,14 +719,14 @@ function saRender(code,nm,bs,ig,nw,errs,us){
   var m=saMkt(),S=saSignals(c,m);
   var rank={warn:0,good:1,info:2};S=S.map(function(x,i){x.i=i;return x}).sort(function(a,b){return rank[a.t]-rank[b.t]||a.i-b.i});
   var g=S.filter(function(x){return x.t==='good'}).length,w=S.filter(function(x){return x.t==='warn'}).length;
-  var vd=g-w>=2?['우호','g']:w-g>=2?['주의','w']:['중립','n'];
+  var nt=g-w,LV=[[1,'🚨','위험'],[2,'⚠️','주의'],[3,'⚖️','중립'],[4,'📈','우호'],[5,'🚀','강력 우호']],vl=nt>=3?5:nt>=2?4:nt<=-3?1:nt<=-2?2:3,vd=LV[vl-1];
   var cl=!isFinite(rt)||rt===0?'flat':rt>0?'up':'dn',ic={good:'<span class="ar u">▲</span>',warn:'<span class="ar d">▼</span>',info:'➖'};
   function stars(n,ch,cl){n=Math.min(5,n);var o='';for(var i=0;i<5;i++)o+='<span class="ar '+cl+(i<n?'':' off')+'">'+ch+'</span>';return o}
   function sigs(a){return a.map(function(x){return '<div class="sig"><i>'+ic[x.t]+'</i><p><b>'+esc(x.h)+'</b>'+esc(x.b)+'</p></div>'}).join('')}
   var h='<div class="sas"><div class="sat"><b><a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(name)+'</a></b><span>'+esc(mkt)+(mkt?' · ':'')+esc(code)+'</span></div>'
     +'<div class="spx '+cl+'">'+saF(price,us?2:0)+(us?'<small style="margin-right:4px">USD</small>':'')+'<small>'+(isFinite(chg)?arrow(cl)+saF(Math.abs(chg),us?2:0):'')+' '+(isFinite(rt)?'('+saSp(rt)+'%)':'')+'</small></div>'
     +'<div style="font-size:11.5px;color:var(--mut);margin-top:2px">'+esc(saD(bs&&bs.localTradedAt))+' '+(us?'(미국 현지) ':'')+(bs&&String(bs.marketStatus||'').toUpperCase()==='OPEN'?'장중':'종가 기준')+(us&&bs&&bs.overMarketPriceInfo&&bs.overMarketPriceInfo.overPrice?' · 시간외 '+esc(bs.overMarketPriceInfo.overPrice)+' ('+esc(saSp(saN(bs.overMarketPriceInfo.fluctuationsRatio)))+'%)':'')+'</div></div>';
-  h+='<div class="sas"><div class="svh"><h4 class="svt">종합 판단 <span class="svd '+vd[1]+'">'+vd[0]+'</span></h4><div class="sstar"><div><b>우호</b>'+stars(g,'▲','u')+'<em>'+Math.min(5,g)+'/5</em></div><div><b>주의</b>'+stars(w,'▼','d')+'<em>'+Math.min(5,w)+'/5</em></div></div></div>'
+  h+='<div class="sas"><div class="svh"><div><h4 class="svt">종합 판단</h4><div class="svb l'+vl+'"><span class="svi">'+vd[1]+'</span><b>'+vd[2]+'</b></div></div><div class="sstar"><div><b>우호</b>'+stars(g,'▲','u')+'<em>'+Math.min(5,g)+'/5</em></div><div><b>주의</b>'+stars(w,'▼','d')+'<em>'+Math.min(5,w)+'/5</em></div></div></div><div class="svg">'+LV.map(function(x){return '<div class="l'+x[0]+(x[0]===vl?' on':'')+'"><i>'+x[1]+'</i><span>'+x[2]+'</span></div>'}).join('')+'</div>'
     +'<div style="font-size:12px;color:var(--mut);margin-bottom:8px">오늘 시황 + 네이버 종목 정보를 규칙으로 조합한 참고 체크입니다 (종가매수 → 익일시가매도 관점).</div>'
     +'<b style="font-size:12.5px">핵심 3가지</b><div style="margin-top:6px">'+sigs(S.slice(0,3))+'</div>'
     +(S.length>3?'<b style="font-size:12.5px">추가 체크</b><div style="margin-top:6px">'+sigs(S.slice(3))+'</div>':'')+'</div>';
