@@ -1,0 +1,23 @@
+name: probe
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          python3 - <<'PY' > out.txt
+          import urllib.request as u,json
+          H={"User-Agent":"Mozilla/5.0"}
+          B="https://api.stock.naver.com"
+          c=[B+"/stock/NVDA.O/basic",B+"/stock/NVDA.O/integration",B+"/news/stock/NVDA.O?pageSize=3&page=1",B+"/stock/NVDA.O/news?pageSize=3&page=1",B+"/news/worldstock/NVDA.O?pageSize=3&page=1","https://m.stock.naver.com/api/news/stock/NVDA.O?pageSize=3&page=1",B+"/stock/NVDA.O/analystReport",B+"/stock/NVDA.O/price?pageSize=5&page=1"]
+          for x in c:
+            try:
+              r=u.urlopen(u.Request(x,headers=H),timeout=20).read().decode()
+              print("OK",x,len(r));print(r[:2500].replace("\n"," "));print()
+            except Exception as e: print("ERR",x,e)
+          PY
+          git config user.name b; git config user.email b@b
+          git checkout -q --orphan probe; git rm -rfq . ; mv out.txt probe.txt; git add probe.txt; git commit -qm p; git push -qf origin probe
