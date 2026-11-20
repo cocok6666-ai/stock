@@ -1,0 +1,19 @@
+20 api/stock/005930/price 20
+20 com/stock/NVDA.O/price 20
+30 api/stock/005930/price 30
+30 com/stock/NVDA.O/price 30
+40 api/stock/005930/price 40
+40 com/stock/NVDA.O/price 40
+50 api/stock/005930/price 50
+50 com/stock/NVDA.O/price 50
+60 api/stock/005930/price 60
+60 com/stock/NVDA.O/price 60
+ERR https://m.stock.naver.com/api/stock/005930/price?pageSize=100&page=1 HTTP Error 400: 400
+100 api/stock/005930/price None
+ERR https://api.stock.naver.com/stock/NVDA.O/price?pageSize=100&page=1 HTTP Error 400: Bad Request
+100 com/stock/NVDA.O/price None
+[{"localTradedAt": "2026-11-20", "closePrice": "180,900", "compareToPreviousClosePrice": "-16,000", "compareToPreviousPrice": {"code": "5", "text": "하락", "name": "FALLING"}, "fluctuationsRatio": "-8.13", "openPrice": "190,800", "highPrice": "190,800", "lowPrice": "180,100", "accumulatedTradingVolume": 28650450}, {"localTradedAt": "2026-11-19", "closePrice": "197,400", "compareToPreviousClosePrice": "2,700", "compareToPreviousPrice": {"code": "2", "text": "상승", "name": "RISING"}, "fluctuationsRatio": "1.39", "openPrice": "196,000", "highPrice": "197,600", "lowPrice": "189,800", "accumulatedTradingVolume": 12836690}, {"localTradedAt": "2026-11-18", "closePrice": "196,400", "compareToPreviousCl
+[{"stockExchangeType": {"code": "NSQ", "zoneId": "EST5EDT", "nationType": "USA", "delayTime": 0, "startTime": "0930", "endTime": "1600", "closePriceSendTime": "2031", "nameKor": "나스닥 증권거래소", "nameEng": "NASDAQ Stock Exchange", "nationCode": "USA", "nationName": "미국", "stockType": "worldstock", "name
+om/api/stock/005930/finance/annual ['매출액', '영업이익', '당기순이익', '지배주주순이익', '비지배주주순이익', '영업이익률', '순이익률', 'ROE', '부채비율', '당좌비율', '유보율', 'EPS', 'PER', 'BPS', 'PBR', '주당배당금']
+er.com/stock/NVDA.O/finance/annual ['매출액', 'PER', 'PBR', 'EBITDA', 'EBIT', '세전손익', '세후손익', '당기순이익', '배당수익률', 'ROA']
+r.com/stock/NVDA.O/finance/quarter ['매출액', 'PBR', 'EBITDA', 'EBIT', '세전손익', '세후손익', '당기순이익', 'ROA']
