@@ -143,7 +143,7 @@ function build(){
   B.market=STRUCT.market.map(function(g){return {g:g.g,items:g.items.map(function(a){var x=q(a[1]);return {n:a[0],v:x.v||'',p:x.p||'',t:x.t||''}})}});
   B.kr=STRUCT.kr.map(function(a){var x=q(a[2]);return {n:a[0],s:(x.t?a[1]+' · '+x.t:a[1]),v:x.v||'—',p:x.p||'',d:x.d||'',x:x.x||''}});
   B.us=STRUCT.us.map(function(a){var x=q(a[1]);return {n:a[0],s:a[1]+(x.t?' · '+x.t:''),v:x.v||'—',p:x.p||'',d:x.d||''}});
-  B.krAsof=Q&&Q.updated?'시세 '+Q.updated.slice(11,16)+' 갱신':'시세 없음';
+  B.krAsof=Q&&Q.updated?'시세 '+Q.updated.slice(11,19)+' 갱신':'시세 없음';
   B.usAsof=B.krAsof;
   return B;
 }
@@ -151,7 +151,7 @@ function setStat(t,c){var e=document.getElementById('stat');e.innerHTML=t;e.clas
 function ageMin(){if(!Q||!Q.updated)return null;return (Date.now()-new Date(Q.updated).getTime())/60000}
 function paint(){
   var B=build();render(B);
-  document.getElementById('sub').textContent=(Q&&Q.updated?Q.updated.slice(5,10).replace('-','/')+' '+Q.updated.slice(11,16)+' 시세 · ':'시세 없음 · ')+(BR.asof||'');
+  document.getElementById('sub').textContent=(Q&&Q.updated?Q.updated.slice(5,10).replace('-','/')+' '+Q.updated.slice(11,19)+' 시세 · ':'시세 없음 · ')+(BR.asof||'');
   var a=ageMin();
   if(a==null)setStat('⚠️ 시세 데이터를 아직 받지 못했습니다.','err');
   else if(a>20)setStat('⚠️ 시세가 '+Math.round(a)+'분 전 데이터입니다. 자동 수집이 지연 중일 수 있어요.','err');

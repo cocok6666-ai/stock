@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: 시세 수집 (장 시간에는 25초 간격으로 ~4.5분 반복)
+      - name: 시세 수집 (장 시간에는 수집 후 5초 쉬고 반복(약 12~15초 주기), ~4.5분 동안)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -40,6 +40,6 @@ jobs:
             [ -s /tmp/quotes.json ] && publish
             in_window || exit 0
             [ "$SECONDS" -ge "$LIMIT" ] && break
-            sleep 25
+            sleep 5
           done
           gh workflow run quotes.yml --ref main || true
