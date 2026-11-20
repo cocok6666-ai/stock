@@ -14,10 +14,10 @@ jobs:
           b=json.loads(u.urlopen(u.Request("https://api.stock.naver.com/stock/NVDA.O/basic",headers=H),timeout=20).read())
           for k,v in b.items():
             if k in("imageCharts","imageChartUrlInfo","stockExchangeType","overMarketPriceInfo"): continue
-            print(k,"=",json.dumps(v,ensure_ascii=False)[:400])
+            print(k,"=",json.dumps(v,ensure_ascii=False)[:3000])
           j=json.loads(u.urlopen(u.Request("https://api.stock.naver.com/stock/NVDA.O/integration",headers=H),timeout=20).read())
           print(json.dumps(j.get("summaries"),ensure_ascii=False)[:500])
-          print(json.dumps(j.get("corporateOverview"),ensure_ascii=False)[:400])
+          print(json.dumps(j.get("corporateOverview"),ensure_ascii=False)[:3000])
           PY
           git config user.name b; git config user.email b@b
           git checkout -q --orphan probe; git rm -rfq . ; mv out.txt probe.txt; git add probe.txt; git commit -qm p; git push -qf origin probe
