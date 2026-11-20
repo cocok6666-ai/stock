@@ -1,8 +1,11 @@
-import urllib.request, re, html, json
-H={"User-Agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1","Accept-Language":"ko-KR,ko;q=0.9"}
-b=urllib.request.urlopen(urllib.request.Request("https://m.search.naver.com/search.naver?query=%EC%BD%94%EC%8A%A4%ED%94%BC200+%EC%95%BC%EA%B0%84%EC%84%A0%EB%AC%BC",headers=H),timeout=20).read().decode("utf-8","ignore")
-for key in ["야간 시세","KIS 코스피 200 야간선물"]:
-    for m in list(re.finditer(re.escape(key),b))[:2]:
-        s=b[max(0,m.start()-1500):m.start()+1800]
-        s=re.sub(r"\s+"," ",s)
-        print("##### ",key,m.start()); print(s)
+import urllib.request, re, html
+H={"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/124 Safari/537.36","Accept-Language":"ko-KR,ko;q=0.9"}
+for n,u in [("prekospi","https://www.prekospi.com/kospi200-night"),("chartlog","https://chartlog.net/stats/market-index/kospi-night-futures/")]:
+    try:
+        r=urllib.request.urlopen(urllib.request.Request(u,headers=H),timeout=25); b=r.read().decode("utf-8","ignore"); print("=====",n,r.status,len(b))
+    except Exception as e:
+        print("=====",n,"ERR",e); continue
+    t=re.sub(r"<script.*?</script>|<style.*?</style>","",b,flags=re.S); t=html.unescape(re.sub(r"<[^>]+>"," ",t)); t=re.sub(r"\s+"," ",t)
+    print(t[:1800])
+    for m in list(re.finditer(r"__NEXT_DATA__|application/json|\"close\"|마감",b))[:5]:
+        print("  RAW:",re.sub(r"\s+"," ",b[max(0,m.start()-100):m.start()+400]))
