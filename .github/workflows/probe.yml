@@ -1,0 +1,30 @@
+name: probe
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          python3 - <<'PY' > out.txt
+          import urllib.request as u,urllib.parse as p,re,html
+          def get(x,hd=None,n=0):
+            h={"User-Agent":"Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36"};h.update(hd or {})
+            try:
+              r=u.urlopen(u.Request(x,headers=h),timeout=25).read().decode("utf-8","replace");print("OK",x,len(r));return r
+            except Exception as e: print("ERR",x,e);return ""
+          q=p.quote("코스피200 야간선물")
+          r=get("https://www.bing.com/news/search?q="+q+"&format=rss&setlang=ko&cc=KR")
+          for m in re.finditer(r"<item>.*?<title>(.*?)</title>.*?<pubDate>(.*?)</pubDate>",r,re.S): print(" bing",m.group(2),"|",html.unescape(m.group(1)))
+          r=get("https://search.naver.com/search.naver?where=news&query="+q+"&sort=1&pd=4&ds=2026.11.20&de=2026.11.21")
+          t=re.findall(r'<a[^>]+class="[^"]*news_tit[^"]*"[^>]*title="([^"]+)"',r);print("naver titles",len(t))
+          for x in t[:12]: print(" naver",html.unescape(x))
+          t=re.findall(r'fds-comps-right-image-text-title[^>]*>\\s*<span[^>]*>(.*?)</span>',r,re.S);print("naver2",len(t))
+          for x in re.findall(r'<span class="sds-comps-text[^"]*sds-comps-text-type-headline1[^"]*">(.*?)</span>',r,re.S)[:12]: print(" n2",html.unescape(re.sub("<[^>]+>","",x)))
+          for x in ["https://kr.investing.com/indices/korea-200-futures","https://scanner.tradingview.com/futures/scan"]:
+            get(x)
+          PY
+          git config user.name b; git config user.email b@b
+          git checkout -q --orphan probe; git rm -rfq . ; mv out.txt probe.txt; git add probe.txt; git commit -qm p; git push -qf origin probe

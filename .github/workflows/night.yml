@@ -20,7 +20,7 @@ jobs:
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add night.json
+          git add night.json 2>/dev/null || { echo "기록할 값 없음"; exit 0; }
           if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
           git commit -qm "night.json 갱신(야간선물 마감 자동수집)"
           git pull -q --rebase origin main
