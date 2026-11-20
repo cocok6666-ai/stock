@@ -270,11 +270,12 @@ function stocks(arr,vol){
 }
 function render(B){
   document.title=titleText();
-  document.getElementById('sub').textContent=(B.date||'')+' · '+(B.asof||'');
+  document.getElementById('sub').textContent=isWeekend()?'주말 · 시황분석 없음':(B.date||'')+' · '+(B.asof||'');
   var h='';
   var g=B.gap||{};
-  h+='<div class="card csum"><div class="sum"><div class="hl">'+esc(B.headline||'')+'</div>'
-    +(g.dir?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'')
+  var WK=isWeekend();
+  h+='<div class="card csum"><div class="sum"><div class="hl">'+(WK?'📅 토·일요일은 시황분석을 하지 않습니다':esc(B.headline||''))+'</div>'
+    +(WK?'<div class="gap flat"><b>휴장</b>월요일 오전 7시 브리핑부터 새 분석이 게시됩니다. 아래 시세는 직전 거래일(금요일) 종가 기준입니다.</div>':g.dir?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'')
     +'</div></div>';
   h+='<div class="card c1"><h2><i>1</i>시장지표</h2>';
   (B.market||[]).forEach(function(grp,gi){
@@ -289,6 +290,7 @@ function render(B){
   h+='</div>';
   h+=pkCard('kr',B)+pkCard('us',B);
   h+='<div class="card c4"><h2><i>4</i>오늘의 시황 브리핑</h2><div class="memo">';
+  if(WK){h+='<div class="fact" style="border:0"><i>📅</i><p><b>토·일요일은 시황분석을 하지 않습니다.</b>주말에는 새 자료가 없어 지난 금요일 분석을 보여드리지 않습니다. 월요일 오전 7시 브리핑부터 다시 게시됩니다. (시장지표의 시세는 금요일 종가입니다.)</p></div></div></div>';}else{
   h+='<h3>핵심 3가지</h3>';
   (B.facts||[]).slice(0,3).forEach(function(f,i){h+='<div class="fact"><i>'+(i+1)+'</i><p><b>'+esc(f.h)+'</b>'+esc(f.b)+'</p></div>'});
   h+='<h3>반도체 · 미국↔국내 연동</h3><p style="margin:0">'+esc(B.semi||'')+'</p>';
@@ -297,7 +299,7 @@ function render(B){
   else h+='<p class="empty" style="margin:0">후보 보류 — 근거가 뚜렷한 종목이 없습니다.</p>';
   h+='<h3>출처</h3><div class="src">';
   (B.sources||[]).forEach(function(s){if(/^https?:\/\//.test(s.u||''))h+='· <a href="'+esc(s.u)+'" target="_blank" rel="noopener">'+esc(s.t||s.u)+'</a><br>'});
-  h+='</div></div></div>';
+  h+='</div></div></div>';}
   h+='<div class="note">상승 = 빨강 ▲ · 하락 = 파랑 ▼ · 종목명을 누르면 네이버에서 열립니다.<br>참고용 정보이며 투자 판단의 근거 자료가 아닙니다. 투자 책임은 본인에게 있습니다.</div>';
   document.getElementById('app').innerHTML=h;
 }
@@ -330,6 +332,7 @@ function build(){
 }
 /* ---------- 야간선물 마감값: night.json(자동수집) / 수동입력 팝업 ---------- */
 var NIGHT=null,nfShown=false,nfSign='';
+function isWeekend(){var w=new Date().toLocaleDateString('en-US',{timeZone:'Asia/Seoul',weekday:'short'});return w==='Sat'||w==='Sun'}
 function kst(){var s=new Date().toLocaleString('sv-SE',{timeZone:'Asia/Seoul'});return {d:s.slice(0,10),hm:s.slice(11,16)}}
 /* 가장 최근에 끝난 야간 세션의 종료일(KST). 세션은 화~토 06:00에 끝남 (월요일 아침 → 토요일) */
 function nfExpected(){
@@ -406,7 +409,7 @@ function setStat(t,c){var e=document.getElementById('stat');e.innerHTML=t;e.clas
 function ageMin(){if(!Q||!Q.updated)return null;return (Date.now()-new Date(Q.updated).getTime())/60000}
 function paint(force){
   var B=build();if(force||!pkBusy())render(B);
-  document.getElementById('sub').textContent=(Q&&Q.updated?Q.updated.slice(5,10).replace('-','/')+' '+Q.updated.slice(11,19)+' 시세 · ':'시세 없음 · ')+(BR.asof||'');
+  document.getElementById('sub').textContent=(Q&&Q.updated?Q.updated.slice(5,10).replace('-','/')+' '+Q.updated.slice(11,19)+' 시세 · ':'시세 없음 · ')+(isWeekend()?'주말 · 시황분석 없음':(BR.asof||''));
   var a=ageMin();
   if(a==null)setStat('⚠️ 시세 데이터를 아직 받지 못했습니다.','err');
   else if(a>20)setStat('⚠️ 시세가 '+Math.round(a)+'분 전 데이터입니다. 자동 수집이 지연 중일 수 있어요.','err');
