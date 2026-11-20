@@ -400,8 +400,13 @@ function nfGap(g,nf){
   var extra=g&&g.why&&!/확인하지 못|미확인/.test(g.why)?' '+g.why:'';
   return {dir:dir,tone:tone,why:why+extra};
 }
+var NIGHT_OK=false,NIGHT_T=0;
+/* 오늘 세션 값이 이미 있으면 다시 받지 않고, 없을 때만 5분 간격으로 확인. 일시적 실패 시 기존 값 유지 */
 async function loadNight(){
-  try{var r=await fetch('night.json?_='+Date.now(),{cache:'no-store'});NIGHT=r.ok?await r.json():null}catch(e){NIGHT=null}
+  if(nfAuto())return;
+  var n=Date.now();if(NIGHT_T&&n-NIGHT_T<300000)return;
+  NIGHT_T=n;
+  try{var r=await fetch('night.json?_='+n,{cache:'no-store'});if(r.ok){NIGHT=await r.json();NIGHT_OK=true}}catch(e){}
 }
 function nfEl(i){return document.getElementById(i)}
 function nfSetSign(s){nfSign=s;nfEl('nfP').classList.toggle('on',s==='+');nfEl('nfM').classList.toggle('on',s==='-')}
@@ -427,6 +432,8 @@ function nfApply(){
 }
 function nfCheck(){
   if(nfData()){nfClose();return}
+  /* 자동수집 확인이 끝났고(정상 응답) 09시 이후인데도 없을 때만 수동입력 안내. 평소엔 버튼으로만 입력 */
+  if(!NIGHT_OK||kst().hm<'09:00')return;
   if(nfShown||lsGet('nf_skip')===nfExpected())return;
   nfShown=true;nfOpen();
 }
