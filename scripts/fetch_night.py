@@ -26,6 +26,27 @@ except Exception:
 if cur.get("closed") == closed.isoformat() and (cur.get("pct") or cur.get("close")):
     print("이미 기록됨", cur); sys.exit(0)
 
+
+# ---- 1순위: TradingView 스캐너(KOSPI200 선물 연속월물) — 야간 세션 마감 시각이 맞을 때만 사용 ----
+def from_tradingview():
+    try:
+        body = {"symbols": {"tickers": ["KRX:K2I1!"]}, "columns": ["close", "change", "change_abs", "time", "update_mode"]}
+        req = urllib.request.Request("https://scanner.tradingview.com/futures/scan", data=json.dumps(body).encode(),
+              headers={"User-Agent": "Mozilla/5.0", "Content-Type": "application/json",
+                       "Origin": "https://www.tradingview.com", "Referer": "https://www.tradingview.com/"})
+        d = json.loads(urllib.request.urlopen(req, timeout=25).read())["data"][0]["d"]
+        close, chg, tm = d[0], d[1], d[3]
+        t = datetime.fromtimestamp(tm, KST)
+        print("TV:", close, chg, t.strftime("%m/%d %H:%M"), d[4])
+        # 마감 세션 종료(해당일 06:00) 직전~이후에 갱신된 값만 인정
+        end = datetime(closed.year, closed.month, closed.day, 6, 0, tzinfo=KST)
+        if t < end - timedelta(minutes=30):
+            print("TV 값이 마감 전 시각이라 사용하지 않음"); return None
+        return {"closed": closed.isoformat(), "close": ("%.2f" % close), "pct": ("%+.2f" % chg),
+                "src": "TradingView 지연시세 자동수집", "at": now.strftime("%H:%M")}
+    except Exception as e:
+        print("TV 실패", e); return None
+
 QUERIES = ["코스피200 야간선물 마감 when:4d", "코스피 야간선물 마감 when:4d", "야간선물 코스피200 when:4d"]
 DOWN = re.compile(r"하락|급락|폭락|내림|약세|후퇴|털썩|밀려|하회|떨어|추락|마이너스")
 UP = re.compile(r"상승|급등|폭등|강세|반등|올라|오름|뛰|돌파|안착|회복|플러스")
@@ -45,8 +66,8 @@ for q in QUERIES:
     except Exception as e:
         print("검색 실패", q, e)
 
-best = None
-for dt, t in sorted(set(items), reverse=True):
+best = from_tradingview()
+for dt, t in ([] if best else sorted(set(items), reverse=True)):
     if dt.date() != closed or "야간" not in t or "장중" in t:
         continue
     m = re.search(r"(\d{1,2}(?:\.\d{1,2})?)\s*%", t)
