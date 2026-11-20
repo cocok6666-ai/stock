@@ -10,22 +10,22 @@ jobs:
       - run: |
           python3 - <<'PY' > out.txt
           import urllib.request as u,urllib.parse as p,json,re
-          def get(x,data=None,hd=None,n=700):
+          def get(x,hd=None):
             h={"User-Agent":"Mozilla/5.0"};h.update(hd or {})
-            try:
-              r=u.urlopen(u.Request(x,data=data,headers=h),timeout=25).read().decode("utf-8","replace")
-              print("OK",x,len(r));print(r[:n].replace("\n"," "));print();return r
-            except Exception as e:
-              print("ERR",x,e);print();return ""
-          KR={"Referer":"https://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201","Content-Type":"application/x-www-form-urlencoded; charset=UTF-8","X-Requested-With":"XMLHttpRequest"}
-          for bld in ["dbms/MDC/STAT/standard/MDCSTAT12501","dbms/MDC/STAT/standard/MDCSTAT12301"]:
-            d=p.urlencode({"bld":bld,"locale":"ko_KR","trdDd":"20261120","prodId":"KRDRVFUK2I","mktTpCd":"N","csvxls_isNo":"false"}).encode()
-            get("https://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd",data=d,hd=KR)
-          get("https://finance.daum.net/api/quotes/A005930",hd={"Referer":"https://finance.daum.net/"})
-          get("https://www.investing.com/indices/kospi-200-futures",n=300)
-          get("https://query1.finance.yahoo.com/v8/finance/chart/%5EKS200?interval=1d&range=5d",n=300)
-          get("https://search.naver.com/search.naver?where=news&query="+p.quote("코스피200 야간선물 마감")+"&sort=1&pd=4",n=100)
-          get("https://news.google.com/rss/search?q="+p.quote("코스피200 야간선물 마감")+"&hl=ko&gl=KR&ceid=KR:ko",n=1500)
+            try: return u.urlopen(u.Request(x,headers=h),timeout=25).read().decode("utf-8","replace")
+            except Exception as e: print("ERR",x,e);return ""
+          r=get("https://news.google.com/rss/search?q="+p.quote("야간선물 마감 코스피200")+"&hl=ko&gl=KR&ceid=KR:ko")
+          for m in re.finditer(r"<item><title>(.*?)</title>.*?<pubDate>(.*?)</pubDate>",r,re.S): print(m.group(2),"|",m.group(1))
+          print("---DAUM")
+          h=get("https://finance.daum.net/domestic",{"Referer":"https://finance.daum.net/"})
+          print(len(h))
+          js=re.findall(r'src="([^"]+\.js)"',h);print(js[:8])
+          for s in js[:8]:
+            s=p.urljoin("https://finance.daum.net/",s);t=get(s)
+            for m in re.finditer(r"[\w/\-\.]*(?:futures|night|FUT)[\w/\-\.\?=&]*",t,re.I):
+              print(s[-30:],m.group(0)[:100])
+          for x in ["https://finance.daum.net/api/domestic/futures","https://finance.daum.net/api/quotes/FUT","https://finance.daum.net/api/market_index/futures","https://finance.daum.net/api/domestic/market/futures"]:
+            t=get(x,{"Referer":"https://finance.daum.net/"});print(x,len(t),t[:200])
           PY
           git config user.name b; git config user.email b@b
           git checkout -q --orphan probe; git rm -rfq . ; mv out.txt probe.txt; git add probe.txt; git commit -qm p; git push -qf origin probe
