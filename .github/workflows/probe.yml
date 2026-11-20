@@ -10,20 +10,22 @@ jobs:
       - run: |
           python3 - <<'PY' > out.txt
           import urllib.request as u,urllib.parse as p,json,re
-          H={"User-Agent":"Mozilla/5.0","Referer":"https://m.stock.naver.com/"}
-          def get(x,n=1500,hd=H):
+          def get(x,data=None,hd=None,n=700):
+            h={"User-Agent":"Mozilla/5.0"};h.update(hd or {})
             try:
-              r=u.urlopen(u.Request(x,headers=hd),timeout=20).read().decode("utf-8","replace")
-              print("OK",x,len(r));return r
+              r=u.urlopen(u.Request(x,data=data,headers=h),timeout=25).read().decode("utf-8","replace")
+              print("OK",x,len(r));print(r[:n].replace("\n"," "));print();return r
             except Exception as e:
-              print("ERR",x,e);return ""
-          for x in ["https://m.stock.naver.com/api/index/FUT/integration","https://m.stock.naver.com/api/index/FUT/basic"]:
-            r=get(x);print(r[:1200]);print("night/야간 hits:",[m.start() for m in re.finditer("night|Night|야간",r)][:5]);print()
-          for q in ["야간선물","코스피200야간","KOSPI200 야간"]:
-            r=get("https://ac.stock.naver.com/ac?q="+p.quote(q)+"&target=index,stock,marketindicator");print(r[:800])
-          for x in ["https://finance.naver.com/sise/sise_index.naver?code=FUT","https://finance.naver.com/sise/","https://finance.naver.com/sise/sise_futures.naver","https://finance.naver.com/sise/nightFutures.naver"]:
-            r=get(x,hd={"User-Agent":"Mozilla/5.0"});
-            for m in re.finditer("야간",r): print("  ..",r[max(0,m.start()-150):m.start()+200].replace("\n"," "));break
+              print("ERR",x,e);print();return ""
+          KR={"Referer":"https://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201","Content-Type":"application/x-www-form-urlencoded; charset=UTF-8","X-Requested-With":"XMLHttpRequest"}
+          for bld in ["dbms/MDC/STAT/standard/MDCSTAT12501","dbms/MDC/STAT/standard/MDCSTAT12301"]:
+            d=p.urlencode({"bld":bld,"locale":"ko_KR","trdDd":"20261120","prodId":"KRDRVFUK2I","mktTpCd":"N","csvxls_isNo":"false"}).encode()
+            get("https://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd",data=d,hd=KR)
+          get("https://finance.daum.net/api/quotes/A005930",hd={"Referer":"https://finance.daum.net/"})
+          get("https://www.investing.com/indices/kospi-200-futures",n=300)
+          get("https://query1.finance.yahoo.com/v8/finance/chart/%5EKS200?interval=1d&range=5d",n=300)
+          get("https://search.naver.com/search.naver?where=news&query="+p.quote("코스피200 야간선물 마감")+"&sort=1&pd=4",n=100)
+          get("https://news.google.com/rss/search?q="+p.quote("코스피200 야간선물 마감")+"&hl=ko&gl=KR&ceid=KR:ko",n=1500)
           PY
           git config user.name b; git config user.email b@b
           git checkout -q --orphan probe; git rm -rfq . ; mv out.txt probe.txt; git add probe.txt; git commit -qm p; git push -qf origin probe
