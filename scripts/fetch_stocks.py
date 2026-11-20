@@ -33,7 +33,7 @@ for mk, url in [("P", "https://m.stock.naver.com/api/stocks/marketValue/KOSPI"),
         for s in paged(url):
             c, n = s.get("itemCode"), s.get("stockName")
             if c and n and c not in seen:
-                seen.add(c); kr.append([c, n, mk])
+                seen.add(c); kr.append([c, n, "E" if str(s.get("stockEndType", "")).lower() in ("etf", "etn") else mk])
     except Exception as e:
         print("KR 실패", mk, e)
 
