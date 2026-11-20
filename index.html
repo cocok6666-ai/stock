@@ -213,7 +213,7 @@ function render(B){
   h+='<div class="card"><div class="sum"><div class="hl">'+esc(B.headline||'')+'</div>'
     +(g.dir?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'')
     +'</div></div>';
-  h+='<div class="card"><h2><i>1</i>시장 현황</h2>';
+  h+='<div class="card"><h2><i>1</i>시장지표</h2>';
   (B.market||[]).forEach(function(grp,gi){
     h+='<div class="mg mg'+(gi%2)+'"><div class="sec'+(grp.nf&&B.nfBtn?' secr':'')+'"><span>'+esc(grp.g)+'</span>'+(grp.nf&&B.nfBtn?'<button class="nfchip sm" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>':'')+'</div>';
     h+='<div class="grid">';
