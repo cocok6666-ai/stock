@@ -212,7 +212,7 @@ function render(B){
     h+='<div class="sec'+(grp.nf&&B.nfBtn?' secr':'')+'"><span>'+esc(grp.g)+'</span>'+(grp.nf&&B.nfBtn?'<button class="nfchip sm" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>':'')+'</div>';
     h+='<div class="grid">';
     (grp.items||[]).forEach(function(it){
-      var c=sign(it.p),hv=String(it.v||'').trim(),has=hv||String(it.p||'').trim();
+      var c0=sign(it.p),c=grp.inv?(c0==='up'?'dn':c0==='dn'?'up':c0):c0,hv=String(it.v||'').trim(),has=hv||String(it.p||'').trim();
       h+='<div class="tile"><div class="lb">'+nl(it.n)+'</div><div class="val '+(has?c:'flat')+'">'+(hv?esc(it.v):'—')+'</div><div class="chg '+c+'">'+(has?pct(it.p):'미확인')+'</div>'+(it.t?'<div class="tm">'+esc(it.t)+'</div>':'')+'</div>';
     });
     h+='</div>';
@@ -237,7 +237,7 @@ var QURL='https://raw.githubusercontent.com/cocok6666-ai/stock/data/quotes.json'
 var STRUCT={
  market:[
   {g:'지수 · 선물',nf:1,items:[['코스피','KOSPI'],['코스닥','KOSDAQ'],['코스피200 야간선물','K200NF'],['다우존스','DJI'],['나스닥','IXIC'],['S&P500','SPX']]},
-  {g:'유가 · 금 · 환율 · 금리',items:[['WTI','WTI'],['브렌트유','BRENT'],['두바이유','DUBAI'],['국제 금','GOLD'],['원/달러','USDKRW'],['미국 10년물','US10Y']]}
+  {g:'유가 · 금 · 환율 · 금리',inv:1,items:[['WTI','WTI'],['브렌트유','BRENT'],['두바이유','DUBAI'],['국제 금','GOLD'],['원/달러','USDKRW'],['미국 10년물','US10Y']]}
  ],
  kr:[['KODEX 200','ETF','069500'],['KODEX AI반도체TOP2플러스','ETF','395160'],['삼성전자','반도체','005930'],['SK하이닉스','반도체','000660']],
  us:[['엔비디아','NVDA'],['SK하이닉스(ADR)','SKHY'],['마이크론 테크놀로지','MU'],['샌디스크','SNDK'],['브로드컴','AVGO'],['에이엠디','AMD'],['미국 반도체 3배 ETF','SOXL']]
@@ -247,7 +247,7 @@ function hhmm(){return new Date().toLocaleTimeString('ko-KR',{timeZone:'Asia/Seo
 function q(k){return (Q&&Q.items&&Q.items[k])||{}}
 function build(){
   var B={date:BR.date,asof:BR.asof,headline:BR.headline,gap:BR.gap,facts:BR.facts,semi:BR.semi,picks:BR.picks,sources:BR.sources};
-  B.market=STRUCT.market.map(function(g){return {g:g.g,items:g.items.map(function(a){var x=q(a[1]);return {n:a[0],v:x.v||'',p:x.p||'',t:x.t||''}})}});
+  B.market=STRUCT.market.map(function(g){return {g:g.g,nf:g.nf,inv:g.inv,items:g.items.map(function(a){var x=q(a[1]);return {n:a[0],v:x.v||'',p:x.p||'',t:x.t||''}})}});
   B.kr=STRUCT.kr.map(function(a){var x=q(a[2]);return {n:a[0],s:(x.t?a[1]+' · '+x.t:a[1]),v:x.v||'—',p:x.p||'',d:x.d||'',x:x.x||''}});
   B.us=STRUCT.us.map(function(a){var x=q(a[1]);return {n:a[0],s:a[1]+(x.t?' · '+x.t:''),v:x.v||'—',p:x.p||'',d:x.d||''}});
   B.krAsof=Q&&Q.updated?'시세 '+Q.updated.slice(11,19)+' 갱신':'시세 없음';
