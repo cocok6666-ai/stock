@@ -71,11 +71,41 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
 .stat{max-width:520px;margin:0 auto;padding:8px 14px;font-size:12px;line-height:1.5;color:var(--mut);display:none}
 .stat.err{color:#ffb4a8}.stat.busy{color:var(--acc)}
+.nfm{position:fixed;inset:0;z-index:50;background:rgba(5,9,18,.72);display:none;align-items:center;justify-content:center;padding:18px}
+.nfm.on{display:flex}
+.nfb{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 16px 12px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.nfb h3{margin:0 0 6px;font-size:16px}
+.nfb p{margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--mut)}
+.nfr{display:flex;gap:8px;align-items:stretch;margin-bottom:6px}
+.nfr input{flex:1;font-size:22px;font-weight:700;text-align:center;border-radius:12px;border:1px solid var(--line);background:var(--tile);color:var(--tx);padding:10px 8px;font-variant-numeric:tabular-nums;width:100%}
+.nfs{width:48px;border-radius:12px;border:1px solid var(--line);background:var(--tile);color:var(--tx);font-size:22px;font-weight:800;cursor:pointer;padding:0}
+.nfs.on.p{background:var(--up);color:#2a0709;border-color:var(--up)}
+.nfs.on.m{background:var(--dn);color:#06121f;border-color:var(--dn)}
+.nfe{min-height:18px;font-size:12px;color:#ffb4a8;margin:2px 2px 8px}
+.nfa{display:flex;gap:8px}
+.nfa button{flex:1;height:46px;border-radius:12px;font-size:14.5px;font-weight:700;border:1px solid var(--line);cursor:pointer;color:var(--tx);background:var(--tile)}
+.nfa .ok{background:var(--acc);color:#06231d;border-color:var(--acc)}
+.nfx{display:none;width:100%;margin-top:6px;background:none;border:0;color:var(--mut);font-size:12px;text-decoration:underline;cursor:pointer;padding:6px}
+.nfchip{margin-top:10px;border:1px dashed var(--line);background:none;color:var(--acc);border-radius:10px;font-size:12.5px;font-weight:600;padding:7px 12px;cursor:pointer}
 </style>
 </head>
 <body>
 <header><div class="hd"><div class="logo">허</div><div class="ttl"><b>깨비주식 아침브리핑</b><span id="sub">—</span></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간</span></button></div><div class="stat" id="stat"></div></header>
 <div class="wrap" id="app"></div>
+<div class="nfm" id="nfm" role="dialog" aria-modal="true" aria-labelledby="nfT">
+  <div class="nfb">
+    <h3 id="nfT">야간선물 마감값을 찾지 못했어요</h3>
+    <p>코스피200 야간선물 마감 등락률(%)을 입력하면 갭 방향을 바로 계산합니다.</p>
+    <div class="nfr">
+      <button class="nfs p" id="nfP" type="button" aria-label="플러스">+</button>
+      <button class="nfs m" id="nfM" type="button" aria-label="마이너스">−</button>
+      <input id="nfI" type="text" inputmode="decimal" autocomplete="off" placeholder="예: 1.2" aria-label="야간선물 등락률 퍼센트">
+    </div>
+    <div class="nfe" id="nfE"></div>
+    <div class="nfa"><button class="ok" id="nfOk" type="button">적용</button><button id="nfSkip" type="button">무시하고 시작하기</button></div>
+    <button class="nfx" id="nfClr" type="button">수동입력값 지우기</button>
+  </div>
+</div>
 <script>
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function sign(p){var s=String(p||'').trim();if(!s)return 'flat';if(/^[-−▼]/.test(s))return 'dn';if(/^[+▲]?0([.,]0+)?%?$/.test(s))return 'flat';return 'up'}
@@ -98,13 +128,14 @@ function render(B){
   var h='';
   var g=B.gap||{};
   h+='<div class="card"><div class="sum"><div class="hl">'+esc(B.headline||'')+'</div>'
-    +(g.dir?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'')+'</div></div>';
+    +(g.dir?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'')
+    +(B.nfBtn?'<button class="nfchip" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>':'')+'</div></div>';
   h+='<div class="card"><h2><i>1</i>시장 현황</h2>';
   (B.market||[]).forEach(function(grp){
     h+='<div class="sec">'+esc(grp.g)+'</div><div class="grid">';
     (grp.items||[]).forEach(function(it){
-      var c=sign(it.p),has=String(it.v||'').trim();
-      h+='<div class="tile"><div class="lb">'+nl(it.n)+'</div><div class="val '+(has?c:'flat')+'">'+(has?esc(it.v):'—')+'</div><div class="chg '+c+'">'+(has?pct(it.p):'미확인')+'</div>'+(it.t?'<div class="tm">'+esc(it.t)+'</div>':'')+'</div>';
+      var c=sign(it.p),hv=String(it.v||'').trim(),has=hv||String(it.p||'').trim();
+      h+='<div class="tile"><div class="lb">'+nl(it.n)+'</div><div class="val '+(has?c:'flat')+'">'+(hv?esc(it.v):'—')+'</div><div class="chg '+c+'">'+(has?pct(it.p):'미확인')+'</div>'+(it.t?'<div class="tm">'+esc(it.t)+'</div>':'')+'</div>';
     });
     h+='</div>';
   });
@@ -145,8 +176,87 @@ function build(){
   B.us=STRUCT.us.map(function(a){var x=q(a[1]);return {n:a[0],s:a[1]+(x.t?' · '+x.t:''),v:x.v||'—',p:x.p||'',d:x.d||''}});
   B.krAsof=Q&&Q.updated?'시세 '+Q.updated.slice(11,19)+' 갱신':'시세 없음';
   B.usAsof=B.krAsof;
+  /* 야간선물: night.json(자동) 또는 팝업 수동입력 → 시장현황 칸과 갭 카드에 반영 */
+  var nf=nfData();
+  B.gap=nfGap(BR.gap,nf);
+  B.nfBtn=nf?(nf.src==='수동입력'?'✎ 수동입력 수정':''):'＋ 야간선물 등락률 입력';
+  if(nf)B.market.forEach(function(g){g.items.forEach(function(it){if(it.n==='코스피200 야간선물'){it.v=nf.close||'';it.p=nf.pct;it.t=(nf.src==='수동입력'?'수동입력':'마감 · '+nf.src)}})});
   return B;
 }
+/* ---------- 야간선물 마감값: night.json(자동수집) / 수동입력 팝업 ---------- */
+var NIGHT=null,nfShown=false,nfSign='';
+function kst(){var s=new Date().toLocaleString('sv-SE',{timeZone:'Asia/Seoul'});return {d:s.slice(0,10),hm:s.slice(11,16)}}
+/* 가장 최근에 끝난 야간 세션의 종료일(KST). 세션은 화~토 06:00에 끝남 (월요일 아침 → 토요일) */
+function nfExpected(){
+  var k=kst(),a=k.d.split('-'),t=Date.UTC(+a[0],+a[1]-1,+a[2]);
+  if(k.hm<'06:00')t-=864e5;
+  for(var i=0;i<7;i++){var w=new Date(t).getUTCDay();if(w>=2&&w<=6)break;t-=864e5}
+  return new Date(t).toISOString().slice(0,10);
+}
+function fmtPct(x){return (x>0?'+':x<0?'-':'')+Math.abs(x).toFixed(2)}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}}
+function nfAuto(){
+  if(NIGHT&&NIGHT.closed===nfExpected()&&/^[+\-−]?\d/.test(String(NIGHT.pct||'').trim()))
+    return {pct:String(NIGHT.pct).trim().replace('−','-'),close:NIGHT.close||'',src:NIGHT.src||'자동'};
+  return null;
+}
+function nfManual(){
+  try{var m=JSON.parse(lsGet('nf_manual')||'null');if(m&&m.sess===nfExpected()&&isFinite(parseFloat(m.pct)))return {pct:m.pct,close:'',src:'수동입력'}}catch(e){}
+  return null;
+}
+function nfData(){return nfManual()||nfAuto()}
+function nfGap(g,nf){
+  if(!nf)return g;
+  var x=parseFloat(nf.pct);if(!isFinite(x))return g;
+  var dir=x>=0.3?'갭상승 예상':x<=-0.3?'갭하락 예상':'보합 출발 예상',tone=x>=0.3?'up':x<=-0.3?'dn':'flat';
+  var why='코스피200 야간선물 '+nf.pct+'% ('+nf.src+(nf.close?' · 마감 '+nf.close:'')+')';
+  var kv=Q&&Q.items&&Q.items.KOSPI&&parseFloat(String(Q.items.KOSPI.v||'').replace(/,/g,''));
+  if(kv&&kst().hm<'09:00')why+=' → 코스피 예상 시초 약 '+Math.round(kv*(1+x/100)).toLocaleString('ko-KR')+' (전일 종가 '+Q.items.KOSPI.v+' 기준)';
+  why+='. 야간선물 기준 단순 추정이며 실제 시초는 달라질 수 있습니다.';
+  var extra=g&&g.why&&!/확인하지 못|미확인/.test(g.why)?' '+g.why:'';
+  return {dir:dir,tone:tone,why:why+extra};
+}
+async function loadNight(){
+  try{var r=await fetch('night.json?_='+Date.now(),{cache:'no-store'});NIGHT=r.ok?await r.json():null}catch(e){NIGHT=null}
+}
+function nfEl(i){return document.getElementById(i)}
+function nfSetSign(s){nfSign=s;nfEl('nfP').classList.toggle('on',s==='+');nfEl('nfM').classList.toggle('on',s==='-')}
+function nfOpen(){
+  var m=nfManual();
+  nfEl('nfE').textContent='';nfEl('nfI').value='';nfSetSign('');
+  if(m){var v=parseFloat(m.pct);nfSetSign(v<0?'-':'+');nfEl('nfI').value=Math.abs(v).toFixed(2)}
+  nfEl('nfClr').style.display=m?'block':'none';
+  nfEl('nfm').classList.add('on');
+  setTimeout(function(){try{nfEl('nfI').focus()}catch(e){}},50);
+}
+function nfClose(){nfEl('nfm').classList.remove('on')}
+function nfApply(){
+  var t=nfEl('nfI').value.replace(/[−–]/g,'-').replace(/,/g,'.').replace(/[%\s]/g,''),m=t.match(/^([+-])?(\d+(?:\.\d+)?)$/),e=nfEl('nfE');
+  if(!m){e.textContent='숫자만 입력하세요 (예: 1.2 또는 -0.8)';return}
+  var s=m[1]||nfSign;
+  if(!s){e.textContent='+ 또는 −를 선택하세요';return}
+  var v=parseFloat(m[2]);
+  if(v>8){e.textContent='±8% 이내 값으로 입력하세요';return}
+  lsSet('nf_manual',JSON.stringify({sess:nfExpected(),pct:fmtPct(s==='-'?-v:v)}));
+  lsSet('nf_skip',null);
+  nfClose();paint();
+}
+function nfCheck(){
+  if(nfData()){nfClose();return}
+  if(nfShown||lsGet('nf_skip')===nfExpected())return;
+  nfShown=true;nfOpen();
+}
+(function(){
+  nfEl('nfP').addEventListener('click',function(){nfSetSign('+')});
+  nfEl('nfM').addEventListener('click',function(){nfSetSign('-')});
+  nfEl('nfI').addEventListener('input',function(){var c=this.value.trim().charAt(0);if(c==='+')nfSetSign('+');else if(c==='-'||c==='−')nfSetSign('-');nfEl('nfE').textContent=''});
+  nfEl('nfI').addEventListener('keydown',function(ev){if(ev.key==='Enter')nfApply()});
+  nfEl('nfOk').addEventListener('click',nfApply);
+  nfEl('nfSkip').addEventListener('click',function(){lsSet('nf_skip',nfExpected());nfClose()});
+  nfEl('nfClr').addEventListener('click',function(){lsSet('nf_manual',null);nfClose();paint()});
+  document.getElementById('app').addEventListener('click',function(ev){if(ev.target.closest&&ev.target.closest('#nfOpen'))nfOpen()});
+})();
 function setStat(t,c){var e=document.getElementById('stat');e.innerHTML=t;e.className='stat '+(c||'');e.style.display=t?'block':'none'}
 function ageMin(){if(!Q||!Q.updated)return null;return (Date.now()-new Date(Q.updated).getTime())/60000}
 function paint(){
@@ -156,6 +266,7 @@ function paint(){
   if(a==null)setStat('⚠️ 시세 데이터를 아직 받지 못했습니다.','err');
   else if(a>20)setStat('⚠️ 시세가 '+Math.round(a)+'분 전 데이터입니다. 자동 수집이 지연 중일 수 있어요.','err');
   else setStat('','');
+  nfCheck();
 }
 var RAW='https://raw.githubusercontent.com/cocok6666-ai/stock/data/';
 async function fetchQ(){
@@ -187,8 +298,8 @@ async function loadBrief(){
   catch(e){BR={date:'',asof:'',headline:'브리핑을 불러오지 못했습니다',gap:null,facts:[],semi:'',picks:[],sources:[]}}
 }
 document.getElementById('refBtn').addEventListener('click',function(){loadQ(true)});
-(async function(){await loadBrief();await loadQ(false);setInterval(function(){loadQ(false)},20000)})();
-document.addEventListener('visibilitychange',function(){if(!document.hidden&&BR)loadQ(false)});
+(async function(){await loadBrief();await loadNight();await loadQ(false);setInterval(function(){loadNight().then(function(){loadQ(false)})},20000)})();
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&BR)loadNight().then(function(){loadQ(false)})});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
 </script>
 </body>
