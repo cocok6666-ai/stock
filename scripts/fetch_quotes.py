@@ -41,10 +41,12 @@ def sgn(x, nd=2):
 
 
 def tlabel(dt, live):
-    now = datetime.now(KST)
-    if live and (now - dt).total_seconds() < 1800:
+    age = (datetime.now(KST) - dt).total_seconds()
+    if live is None:
+        live = age < 1800
+    if live and age < 3600:
         return dt.strftime("%H:%M") + " 현재"
-    return dt.strftime("%m/%d %H:%M")
+    return dt.strftime("%m/%d %H:%M") + " 종가"
 
 
 def put(key, price, prev, dt, live, nd=2, vol=None, chg_nd=None):
@@ -58,50 +60,55 @@ def put(key, price, prev, dt, live, nd=2, vol=None, chg_nd=None):
     items[key] = it
 
 
-# ---------- 네이버 ----------
-def naver_basic(kind, code, key, nd=2, vol=False):
-    j = get(f"https://m.stock.naver.com/api/{kind}/{code}/basic")
-    price = num(j.get("closePrice"))
-    cmp_ = num(j.get("compareToPreviousClosePrice"))
-    ratio = num(j.get("fluctuationsRatio"))
-    name = ((j.get("compareToPreviousPrice") or {}).get("name") or "").upper()
-    if cmp_ is not None and name in ("FALLING", "LOWER_LIMIT"):
-        cmp_ = -abs(cmp_)
-    elif cmp_ is not None:
-        cmp_ = abs(cmp_) if name in ("RISING", "UPPER_LIMIT") else cmp_
-    prev = price - cmp_ if (price is not None and cmp_ is not None) else None
-    dt = datetime.fromisoformat(j["localTradedAt"]).astimezone(KST) if j.get("localTradedAt") else datetime.now(KST)
-    live = (j.get("marketStatus") or "").upper() == "OPEN"
-    v = num(j.get("accumulatedTradingVolume")) if vol else None
-    put(key, price, prev, dt, live, nd, v, nd)
+# ---------- 네이버 (국내/해외/환율/원자재/채권 모두 동일 계열 API) ----------
+def naver(url, key, nd=2, vol=False):
+    j = get(url)
+    d = j.get("exchangeInfo") or j
+    price = num(d.get("closePrice"))
+    ftype = ((d.get("compareToPreviousPrice") or d.get("fluctuationsType") or {}).get("name") or "").upper()
+    chg = num(d.get("compareToPreviousClosePrice"))
+    if chg is None:
+        chg = num(d.get("fluctuations"))
+    ratio = num(d.get("fluctuationsRatio"))
+    if price is None or chg is None:
+        raise ValueError("price/change missing")
+    down = ftype in ("FALLING", "LOWER_LIMIT")
+    up = ftype in ("RISING", "UPPER_LIMIT")
+    chg = -abs(chg) if down else abs(chg) if up else chg
+    if ratio is None:
+        ratio = chg / (price - chg) * 100 if price != chg else 0.0
+    else:
+        ratio = -abs(ratio) if down else abs(ratio) if up else ratio
+    dt = datetime.fromisoformat(d["localTradedAt"]).astimezone(KST) if d.get("localTradedAt") else datetime.now(KST)
+    st = (d.get("marketStatus") or "").upper()
+    live = True if st == "OPEN" else False if st == "CLOSE" else None
+    it = {"v": fmt(price, nd), "p": sgn(ratio), "d": sgn(chg, nd), "t": tlabel(dt, live)}
+    if vol:
+        v = num(d.get("accumulatedTradingVolume"))
+        if v:
+            it["x"] = fmt(v, 0)
+    items[key] = it
 
 
-def naver_polling_stock(code, key):
+def polling_stock(code):
     j = get(f"https://polling.finance.naver.com/api/realtime/domestic/stock/{code}")
     d = (j.get("datas") or [None])[0]
     if not d:
         raise ValueError("no data")
     price = num(d.get("closePrice"))
-    cmp_ = num(d.get("compareToPreviousClosePrice"))
-    name = ((d.get("compareToPreviousPrice") or {}).get("name") or "").upper()
-    if cmp_ is not None and name in ("FALLING", "LOWER_LIMIT"):
-        cmp_ = -abs(cmp_)
-    prev = price - cmp_ if cmp_ is not None else None
+    chg = num(d.get("compareToPreviousClosePrice"))
+    ftype = ((d.get("compareToPreviousPrice") or {}).get("name") or "").upper()
+    down = ftype in ("FALLING", "LOWER_LIMIT")
+    chg = -abs(chg) if down else abs(chg)
+    ratio = num(d.get("fluctuationsRatio"))
+    ratio = -abs(ratio) if down else abs(ratio)
     dt = datetime.fromisoformat(d["localTradedAt"]).astimezone(KST)
-    live = (d.get("marketStatus") or "").upper() == "OPEN"
-    put(key, price, prev, dt, live, 0, num(d.get("accumulatedTradingVolume")), 0)
-
-
-# ---------- 야후 ----------
-def yahoo(sym, key, nd=2, chg_nd=None):
-    u = "https://query1.finance.yahoo.com/v8/finance/chart/" + urllib.parse.quote(sym) + "?interval=1m&range=1d"
-    j = get(u)
-    r = j["chart"]["result"][0]
-    m = r["meta"]
-    price = num(m.get("regularMarketPrice"))
-    prev = num(m.get("chartPreviousClose")) or num(m.get("previousClose"))
-    dt = datetime.fromtimestamp(m["regularMarketTime"], KST)
-    put(key, price, prev, dt, True, nd, None, chg_nd)
+    st = (d.get("marketStatus") or "").upper()
+    it = {"v": fmt(price, 0), "p": sgn(ratio), "d": sgn(chg, 0), "t": tlabel(dt, True if st == "OPEN" else False if st == "CLOSE" else None)}
+    v = num(d.get("accumulatedTradingVolume"))
+    if v:
+        it["x"] = fmt(v, 0)
+    items[code] = it
 
 
 def attempt(label, *fns):
@@ -114,20 +121,22 @@ def attempt(label, *fns):
     return False
 
 
-# 국내 지수/종목
-attempt("KOSPI", lambda: naver_basic("index", "KOSPI", "KOSPI"), lambda: yahoo("^KS11", "KOSPI"))
-attempt("KOSDAQ", lambda: naver_basic("index", "KOSDAQ", "KOSDAQ"), lambda: yahoo("^KQ11", "KOSDAQ"))
+M = "https://m.stock.naver.com/api"
+A = "https://api.stock.naver.com"
+attempt("KOSPI", lambda: naver(f"{M}/index/KOSPI/basic", "KOSPI"))
+attempt("KOSDAQ", lambda: naver(f"{M}/index/KOSDAQ/basic", "KOSDAQ"))
+attempt("K200F", lambda: naver(f"{M}/index/FUT/basic", "K200F"))
 for code in ["069500", "395160", "005930", "000660"]:
-    attempt(code, lambda c=code: naver_polling_stock(c, c), lambda c=code: naver_basic("stock", c, c, 0, True),
-            lambda c=code: yahoo(c + ".KS", c, 0))
-# 코스피200 선물 (네이버 지수 코드 FUT 시도)
-attempt("K200F", lambda: naver_basic("index", "FUT", "K200F"))
-# 해외/원자재/환율/금리
-for sym, key, nd in [("^DJI", "DJI", 2), ("^IXIC", "IXIC", 2), ("CL=F", "WTI", 2), ("BZ=F", "BRENT", 2),
-                     ("KRW=X", "USDKRW", 2), ("^TNX", "US10Y", 3), ("NQ=F", "NQF", 2),
-                     ("NVDA", "NVDA", 2), ("SKHY", "SKHY", 2), ("MU", "MU", 2), ("SNDK", "SNDK", 2),
-                     ("AVGO", "AVGO", 2), ("AMD", "AMD", 2), ("SOXL", "SOXL", 2)]:
-    attempt(key, lambda s=sym, k=key, n=nd: yahoo(s, k, n))
+    attempt(code, lambda c=code: polling_stock(c), lambda c=code: naver(f"{M}/stock/{c}/basic", c, 0, True))
+attempt("DJI", lambda: naver(f"{A}/index/.DJI/basic", "DJI"))
+attempt("IXIC", lambda: naver(f"{A}/index/.IXIC/basic", "IXIC"))
+attempt("USDKRW", lambda: naver(f"{A}/marketindex/exchange/FX_USDKRW", "USDKRW"))
+attempt("WTI", lambda: naver(f"{A}/marketindex/energy/CLcv1", "WTI"))
+attempt("BRENT", lambda: naver(f"{A}/marketindex/energy/LCOcv1", "BRENT"))
+attempt("US10Y", lambda: naver(f"{A}/marketindex/bond/US10YT=RR", "US10Y", 3))
+for key, codes in [("NVDA", ["NVDA.O"]), ("SKHY", ["SKHY.O", "SKHY.K", "SKHY"]), ("MU", ["MU.O"]),
+                   ("SNDK", ["SNDK.O"]), ("AVGO", ["AVGO.O"]), ("AMD", ["AMD.O"]), ("SOXL", ["SOXL.K"])]:
+    attempt(key, *[(lambda c=c, k=key: naver(f"{A}/stock/{c}/basic", k)) for c in codes])
 
 out = {"updated": datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00"), "items": items, "errors": errors}
 with open(sys.argv[1] if len(sys.argv) > 1 else "quotes.json", "w", encoding="utf-8") as f:
