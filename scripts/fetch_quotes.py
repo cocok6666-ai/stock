@@ -130,9 +130,12 @@ for code in ["069500", "395160", "005930", "000660"]:
     attempt(code, lambda c=code: polling_stock(c), lambda c=code: naver(f"{M}/stock/{c}/basic", c, 0, True))
 attempt("DJI", lambda: naver(f"{A}/index/.DJI/basic", "DJI"))
 attempt("IXIC", lambda: naver(f"{A}/index/.IXIC/basic", "IXIC"))
+attempt("SPX", lambda: naver(f"{A}/index/.INX/basic", "SPX"), lambda: naver(f"{A}/index/.SPX/basic", "SPX"))
 attempt("USDKRW", lambda: naver(f"{A}/marketindex/exchange/FX_USDKRW", "USDKRW"))
 attempt("WTI", lambda: naver(f"{A}/marketindex/energy/CLcv1", "WTI"))
 attempt("BRENT", lambda: naver(f"{A}/marketindex/energy/LCOcv1", "BRENT"))
+attempt("DUBAI", lambda: naver(f"{A}/marketindex/energy/OIL_DU", "DUBAI"), lambda: naver(f"{A}/marketindex/energy/DBCM", "DUBAI"), lambda: naver(f"{A}/marketindex/energy/DUBAI", "DUBAI"))
+attempt("GOLD", lambda: naver(f"{A}/marketindex/metals/GCcv1", "GOLD"), lambda: naver(f"{A}/marketindex/metals/GC", "GOLD"), lambda: naver(f"{A}/marketindex/metals/CMDT_GC", "GOLD"))
 attempt("US10Y", lambda: naver(f"{A}/marketindex/bond/US10YT=RR", "US10Y", 3))
 for key, codes in [("NVDA", ["NVDA.O"]), ("SKHY", ["SKHY.O", "SKHY.K", "SKHY"]), ("MU", ["MU.O"]),
                    ("SNDK", ["SNDK.O"]), ("AVGO", ["AVGO.O"]), ("AMD", ["AMD.O"]), ("SOXL", ["SOXL.K"])]:
