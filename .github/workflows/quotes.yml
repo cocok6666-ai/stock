@@ -27,10 +27,13 @@ jobs:
             return 1
           }
           publish() {
-            rm -rf /tmp/out && mkdir /tmp/out && cp /tmp/quotes.json /tmp/out/quotes.json && cd /tmp/out
+            mkdir -p /tmp/keep
+            cp /tmp/quotes.json "/tmp/keep/q$(( $(date +%s) / 15 )).json"
+            ls -1t /tmp/keep | tail -n +9 | while read f; do rm -f "/tmp/keep/$f"; done
+            rm -rf /tmp/out && mkdir /tmp/out && cp /tmp/keep/*.json /tmp/out/ && cp /tmp/quotes.json /tmp/out/quotes.json && cd /tmp/out
             git init -q -b data
             git config user.name "quotes-bot"; git config user.email "quotes-bot@users.noreply.github.com"
-            git add quotes.json && git commit -q -m "quotes $(date -u +%FT%TZ)"
+            git add . && git commit -q -m "quotes $(date -u +%FT%TZ)"
             git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data || true
             cd "$GITHUB_WORKSPACE"
           }
