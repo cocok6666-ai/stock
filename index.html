@@ -36,6 +36,13 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .gap{margin-top:10px;border-radius:12px;padding:11px 13px;font-size:13.5px;line-height:1.6;background:#16223a;border:1px solid var(--line)}
 .gap b{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:6px;font-size:12.5px}
 .gap.dn b{background:var(--dn);color:#06121f}.gap.up b{background:var(--up);color:#2a0709}.gap.flat b{background:var(--mut);color:#0b1220}
+.card.c1>h2{background:linear-gradient(90deg,#1d4ed8,#3b82f6);color:#fff;border-bottom:0;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+#pk-kr>h2{background:linear-gradient(90deg,#047857,#10b981);color:#fff;border-bottom:0;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+#pk-us>h2{background:linear-gradient(90deg,#6d28d9,#a78bfa);color:#fff;border-bottom:0;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.card.c4>h2{background:linear-gradient(90deg,#b45309,#f59e0b);color:#fff;border-bottom:0;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.card.c1>h2 i,#pk-kr>h2 i,#pk-us>h2 i,.card.c4>h2 i{background:#fff !important;color:#0b1220 !important;text-shadow:none}
+.card.c1>h2 small,#pk-kr>h2 small,#pk-us>h2 small,.card.c4>h2 small{color:rgba(255,255,255,.85)}
+.card>h2{font-size:16px;padding:13px 14px}
 .mg{border-top:1px solid rgba(255,255,255,.05)}.mg:first-of-type{border-top:0}
 .mg0{background:linear-gradient(180deg,rgba(110,140,205,.16),rgba(110,140,205,.02))}.mg0 .sec{color:#9db3e6}
 .mg1{background:linear-gradient(180deg,rgba(206,176,118,.15),rgba(206,176,118,.02))}.mg1 .sec{color:#d9c08f}
@@ -262,7 +269,7 @@ function render(B){
   h+='<div class="card"><div class="sum"><div class="hl">'+esc(B.headline||'')+'</div>'
     +(g.dir?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'')
     +'</div></div>';
-  h+='<div class="card"><h2><i>1</i>시장지표</h2>';
+  h+='<div class="card c1"><h2><i>1</i>시장지표</h2>';
   (B.market||[]).forEach(function(grp,gi){
     h+='<div class="mg mg'+(gi%2)+'"><div class="sec'+(grp.nf&&B.nfBtn?' secr':'')+'"><span>'+esc(grp.g)+'</span>'+(grp.nf&&B.nfBtn?'<button class="nfchip sm" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>':'')+'</div>';
     h+='<div class="grid">';
@@ -274,7 +281,7 @@ function render(B){
   });
   h+='</div>';
   h+=pkCard('kr',B)+pkCard('us',B);
-  h+='<div class="card"><h2><i>4</i>오늘의 시황 브리핑</h2><div class="memo">';
+  h+='<div class="card c4"><h2><i>4</i>오늘의 시황 브리핑</h2><div class="memo">';
   h+='<h3>핵심 3가지</h3>';
   (B.facts||[]).slice(0,3).forEach(function(f,i){h+='<div class="fact"><i>'+(i+1)+'</i><p><b>'+esc(f.h)+'</b>'+esc(f.b)+'</p></div>'});
   h+='<h3>반도체 · 미국↔국내 연동</h3><p style="margin:0">'+esc(B.semi||'')+'</p>';
