@@ -5,26 +5,41 @@ on:
   workflow_dispatch: {}
 permissions:
   contents: write
+  actions: write
 concurrency:
   group: quotes
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: 시세 수집
-        run: python3 scripts/fetch_quotes.py /tmp/quotes.json
-      - name: data 브랜치에 저장 (이력 없이 1커밋 유지)
+      - name: 시세 수집 (장 시간에는 25초 간격으로 ~4.5분 반복)
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          set -e
-          mkdir /tmp/out && cp /tmp/quotes.json /tmp/out/quotes.json
-          cd /tmp/out
-          git init -q -b data
-          git config user.name "quotes-bot"
-          git config user.email "quotes-bot@users.noreply.github.com"
-          git add quotes.json
-          git commit -q -m "quotes $(date -u +%FT%TZ)"
-          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
-          git push -f origin data
+          in_window() {
+            d=$(TZ=Asia/Seoul date +%u); hm=$(TZ=Asia/Seoul date +%H%M); hm=$((10#$hm))
+            if [ "$d" -le 5 ] && [ "$hm" -ge 650 ] && [ "$hm" -le 1545 ]; then return 0; fi
+            if [ "$d" -le 5 ] && [ "$hm" -ge 2220 ]; then return 0; fi
+            if [ "$d" -ge 2 ] && [ "$d" -le 6 ] && [ "$hm" -le 610 ]; then return 0; fi
+            return 1
+          }
+          publish() {
+            rm -rf /tmp/out && mkdir /tmp/out && cp /tmp/quotes.json /tmp/out/quotes.json && cd /tmp/out
+            git init -q -b data
+            git config user.name "quotes-bot"; git config user.email "quotes-bot@users.noreply.github.com"
+            git add quotes.json && git commit -q -m "quotes $(date -u +%FT%TZ)"
+            git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data || true
+            cd "$GITHUB_WORKSPACE"
+          }
+          LIMIT=$((SECONDS+270))
+          while true; do
+            python3 scripts/fetch_quotes.py /tmp/quotes.json || true
+            [ -s /tmp/quotes.json ] && publish
+            in_window || exit 0
+            [ "$SECONDS" -ge "$LIMIT" ] && break
+            sleep 25
+          done
+          gh workflow run quotes.yml --ref main || true
