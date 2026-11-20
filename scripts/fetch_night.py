@@ -27,7 +27,54 @@ if cur.get("closed") == closed.isoformat() and (cur.get("pct") or cur.get("close
     print("이미 기록됨", cur); sys.exit(0)
 
 
-# ---- 1순위: TradingView 스캐너(KOSPI200 선물 연속월물) — 야간 세션 마감 시각이 맞을 때만 사용 ----
+
+# ---- 1순위: 시세 전문 페이지(서버 렌더링 HTML) — PreKOSPI / 차트로그 (모두 KIS·KRX 야간선물 1분봉 기반) ----
+import html as _html
+HDR = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+       "Accept-Language": "ko-KR,ko;q=0.9"}
+
+def page_text(u):
+    b = urllib.request.urlopen(urllib.request.Request(u, headers=HDR), timeout=25).read().decode("utf-8", "ignore")
+    t = re.sub(r"<script.*?</script>|<style.*?</style>", "", b, flags=re.S)
+    return re.sub(r"\s+", " ", _html.unescape(re.sub(r"<[^>]+>", " ", t)))
+
+def fnum(x):
+    return float(x.replace(",", "").replace("\u2212", "-").replace("+", ""))
+
+def from_prekospi():
+    try:
+        t = page_text("https://www.prekospi.com/kospi200-night")
+        m = re.search(r"마지막 야간 기록\s*([\d,]+\.\d+)\s*([+\-\u2212]?[\d.,]+)\s*\(([+\-\u2212]?[\d.]+)%\)", t)
+        d = re.search(r"(\d{4})-(\d{2})-(\d{2}) 18:00 ~ 익일 06:00", t)
+        if not m or not d:
+            print("PreKOSPI: 마감 기록 형식 불일치(세션 진행 중이거나 구조 변경)"); return None
+        sess = datetime(int(d.group(1)), int(d.group(2)), int(d.group(3))).date() + timedelta(days=1)
+        print("PreKOSPI:", m.group(1), m.group(2), m.group(3), "세션종료일", sess)
+        if sess != closed:
+            print("PreKOSPI 세션일 불일치(기대 %s)" % closed); return None
+        close, chg = fnum(m.group(1)), fnum(m.group(2))
+        base = re.search(r"야간 기준가\s*([\d,]+\.\d+)", t)
+        pct = chg / fnum(base.group(1)) * 100 if base else fnum(m.group(3))
+        return {"closed": closed.isoformat(), "close": "%.2f" % close, "pct": "%+.2f" % pct,
+                "src": "PreKOSPI(야간선물 1분봉) 자동수집", "at": now.strftime("%H:%M")}
+    except Exception as e:
+        print("PreKOSPI 실패", e); return None
+
+def from_chartlog():
+    try:
+        t = page_text("https://chartlog.net/stats/market-index/kospi-night-futures/")
+        if "휴장" not in t and "마감" not in t:
+            print("차트로그: 장 진행 중"); return None
+        m = re.search(r"최종 마감가\s*([\d,]+\.\d+)\s*pt\s*([+\-\u2212]?[\d.,]+)\s*pt\s*\(\s*([+\-\u2212]?[\d.]+)%", t)
+        if not m:
+            print("차트로그: 형식 불일치"); return None
+        print("차트로그:", m.groups())
+        return {"closed": closed.isoformat(), "close": "%.2f" % fnum(m.group(1)), "pct": "%+.2f" % fnum(m.group(3)),
+                "src": "차트로그(KIS 야간선물) 자동수집", "at": now.strftime("%H:%M")}
+    except Exception as e:
+        print("차트로그 실패", e); return None
+
+# ---- 3순위: TradingView 스캐너(KOSPI200 선물 연속월물) — 야간 세션 마감 시각이 맞을 때만 사용 ----
 def from_tradingview():
     try:
         body = {"symbols": {"tickers": ["KRX:K2I1!"]}, "columns": ["close", "change", "change_abs", "time", "update_mode"]}
@@ -66,7 +113,7 @@ for q in QUERIES:
     except Exception as e:
         print("검색 실패", q, e)
 
-best = from_tradingview()
+best = from_prekospi() or from_chartlog() or from_tradingview()
 for dt, t in ([] if best else sorted(set(items), reverse=True)):
     if dt.date() != closed or "야간" not in t or "장중" in t:
         continue
