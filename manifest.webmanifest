@@ -1,6 +1,6 @@
 {
- "name": "깨비주식 아침브리핑",
- "short_name": "깨비주식",
+ "name": "주식보좌관",
+ "short_name": "주식보좌관",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
