@@ -32,6 +32,12 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .card h2 i{font-style:normal;background:var(--acc);color:#06231d;border-radius:6px;font-size:11px;font-weight:800;padding:2px 7px}
 .card h2 small{margin-left:auto;color:var(--mut);font-weight:500;font-size:11.5px}
 .sum{padding:14px}
+.card.csum{background:linear-gradient(135deg,#f6ecd9 0%,#ead8b6 55%,#dcc399 100%);border:1px solid #c9a86a;box-shadow:0 6px 22px rgba(201,168,106,.25),inset 0 1px 0 rgba(255,255,255,.6)}
+.csum .hl{color:#2b2112;font-weight:800;font-size:16.5px;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.csum .gap{background:rgba(255,255,255,.55);border:1px solid rgba(160,125,60,.45);color:#3a2d18}
+.csum .gap b{box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.csum .gap.dn b{background:#2a72ff;color:#fff}.csum .gap.up b{background:#e5232f;color:#fff}.csum .gap.flat b{background:#7d6b4a;color:#fff}
+
 .sum .hl{font-size:16px;font-weight:700;line-height:1.5}
 .gap{margin-top:10px;border-radius:12px;padding:11px 13px;font-size:13.5px;line-height:1.6;background:#16223a;border:1px solid var(--line)}
 .gap b{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:6px;font-size:12.5px}
@@ -266,7 +272,7 @@ function render(B){
   document.getElementById('sub').textContent=(B.date||'')+' · '+(B.asof||'');
   var h='';
   var g=B.gap||{};
-  h+='<div class="card"><div class="sum"><div class="hl">'+esc(B.headline||'')+'</div>'
+  h+='<div class="card csum"><div class="sum"><div class="hl">'+esc(B.headline||'')+'</div>'
     +(g.dir?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'')
     +'</div></div>';
   h+='<div class="card c1"><h2><i>1</i>시장지표</h2>';
