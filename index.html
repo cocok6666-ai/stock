@@ -129,7 +129,8 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .schip{display:inline-block;margin:0 6px 6px 0;padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:var(--tile);color:var(--tx);font-size:13px;cursor:pointer}
 
 .rb{width:46px}.hd{gap:8px}.ttl b{font-size:16px;overflow:hidden;text-overflow:ellipsis}
-.nfchip.in{display:block;margin:8px 12px 0}
+.sec.secr{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:6px}
+.nfchip.sm{margin:0;padding:5px 10px;font-size:12px;flex:none;white-space:nowrap}
 .pke{padding:10px 12px 12px}
 .pke .pkh{font-size:12px;color:var(--mut);line-height:1.5;margin:0 2px 8px}
 .pke .pkn{display:flex;align-items:center;gap:8px;margin-bottom:7px}
@@ -208,8 +209,7 @@ function render(B){
     +'</div></div>';
   h+='<div class="card"><h2><i>1</i>시장 현황</h2>';
   (B.market||[]).forEach(function(grp){
-    h+='<div class="sec">'+esc(grp.g)+'</div>';
-    if(grp.g==='선물'&&B.nfBtn)h+='<button class="nfchip in" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>';
+    h+='<div class="sec'+(grp.g==='선물'&&B.nfBtn?' secr':'')+'"><span>'+esc(grp.g)+'</span>'+(grp.g==='선물'&&B.nfBtn?'<button class="nfchip sm" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>':'')+'</div>';
     h+='<div class="grid">';
     (grp.items||[]).forEach(function(it){
       var c=sign(it.p),hv=String(it.v||'').trim(),has=hv||String(it.p||'').trim();
