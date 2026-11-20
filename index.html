@@ -101,6 +101,8 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .sah{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .sah h3{margin:0;font-size:16px}
 .sax{width:auto;height:34px;padding:0 12px !important;white-space:nowrap;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:13px;font-weight:700;cursor:pointer;padding:0}
+.ar.u{color:var(--up)}.ar.d{color:var(--dn)}.ar.off{opacity:.22}
+.sstar{display:flex;flex-direction:column;gap:3px;margin:2px 0 8px}.sstar div{display:flex;align-items:center;gap:6px;font-size:15px;letter-spacing:2px}.sstar b{width:34px;font-size:12px;letter-spacing:0;color:var(--mut)}.sstar em{font-style:normal;font-size:11.5px;letter-spacing:0;color:var(--mut);margin-left:4px}
 .sar{display:flex;gap:8px}
 .sar input{flex:1;min-width:0;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);padding:11px 12px}
 .sar button{height:46px;padding:0 18px;border-radius:12px;border:0;background:var(--acc);color:#06231d;font-size:14.5px;font-weight:800;cursor:pointer}
@@ -704,12 +706,13 @@ function saRender(code,nm,bs,ig,nw,errs,us){
   var rank={warn:0,good:1,info:2};S=S.map(function(x,i){x.i=i;return x}).sort(function(a,b){return rank[a.t]-rank[b.t]||a.i-b.i});
   var g=S.filter(function(x){return x.t==='good'}).length,w=S.filter(function(x){return x.t==='warn'}).length;
   var vd=g-w>=2?['우호','g']:w-g>=2?['주의','w']:['중립','n'];
-  var cl=!isFinite(rt)||rt===0?'flat':rt>0?'up':'dn',ic={good:'✅',warn:'⚠️',info:'➖'};
+  var cl=!isFinite(rt)||rt===0?'flat':rt>0?'up':'dn',ic={good:'<span class="ar u">▲</span>',warn:'<span class="ar d">▼</span>',info:'➖'};
+  function stars(n,ch,cl){n=Math.min(5,n);var o='';for(var i=0;i<5;i++)o+='<span class="ar '+cl+(i<n?'':' off')+'">'+ch+'</span>';return o}
   function sigs(a){return a.map(function(x){return '<div class="sig"><i>'+ic[x.t]+'</i><p><b>'+esc(x.h)+'</b>'+esc(x.b)+'</p></div>'}).join('')}
   var h='<div class="sas"><div class="sat"><b><a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(name)+'</a></b><span>'+esc(mkt)+(mkt?' · ':'')+esc(code)+'</span></div>'
     +'<div class="spx '+cl+'">'+saF(price,us?2:0)+(us?'<small style="margin-right:4px">USD</small>':'')+'<small>'+(isFinite(chg)?arrow(cl)+saF(Math.abs(chg),us?2:0):'')+' '+(isFinite(rt)?'('+saSp(rt)+'%)':'')+'</small></div>'
     +'<div style="font-size:11.5px;color:var(--mut);margin-top:2px">'+esc(saD(bs&&bs.localTradedAt))+' '+(us?'(미국 현지) ':'')+(bs&&String(bs.marketStatus||'').toUpperCase()==='OPEN'?'장중':'종가 기준')+(us&&bs&&bs.overMarketPriceInfo&&bs.overMarketPriceInfo.overPrice?' · 시간외 '+esc(bs.overMarketPriceInfo.overPrice)+' ('+esc(saSp(saN(bs.overMarketPriceInfo.fluctuationsRatio)))+'%)':'')+'</div></div>';
-  h+='<div class="sas"><h4>종합 판단 <span class="svd '+vd[1]+'">'+vd[0]+'</span><small style="color:var(--mut);font-weight:500;margin-left:6px">우호 '+g+' · 주의 '+w+'</small></h4>'
+  h+='<div class="sas"><h4>종합 판단 <span class="svd '+vd[1]+'">'+vd[0]+'</span></h4><div class="sstar"><div><b>우호</b>'+stars(g,'▲','u')+'<em>'+Math.min(5,g)+'/5</em></div><div><b>주의</b>'+stars(w,'▼','d')+'<em>'+Math.min(5,w)+'/5</em></div></div>'
     +'<div style="font-size:12px;color:var(--mut);margin-bottom:8px">오늘 시황 + 네이버 종목 정보를 규칙으로 조합한 참고 체크입니다 (종가매수 → 익일시가매도 관점).</div>'
     +'<b style="font-size:12.5px">핵심 3가지</b><div style="margin-top:6px">'+sigs(S.slice(0,3))+'</div>'
     +(S.length>3?'<b style="font-size:12.5px">추가 체크</b><div style="margin-top:6px">'+sigs(S.slice(3))+'</div>':'')+'</div>';
