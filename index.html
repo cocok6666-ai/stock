@@ -100,7 +100,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .sab{width:100%;max-width:520px;max-height:92vh;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:14px 12px calc(12px + env(safe-area-inset-bottom))}
 .sah{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .sah h3{margin:0;font-size:16px}
-.sax{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:16px;cursor:pointer;padding:0}
+.sax{width:auto;height:34px;padding:0 12px !important;white-space:nowrap;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:13px;font-weight:700;cursor:pointer;padding:0}
 .sar{display:flex;gap:8px}
 .sar input{flex:1;min-width:0;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);padding:11px 12px}
 .sar button{height:46px;padding:0 18px;border-radius:12px;border:0;background:var(--acc);color:#06231d;font-size:14.5px;font-weight:800;cursor:pointer}
@@ -183,7 +183,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 <button class="safab" id="saFab" type="button">📊 종목분석</button>
 <div class="sam" id="sam" role="dialog" aria-modal="true" aria-labelledby="saT">
   <div class="sab">
-    <div class="sah"><h3 id="saT">📊 종목분석</h3><button class="sax" id="saX" type="button" aria-label="닫기">✕</button></div>
+    <div class="sah"><h3 id="saT">📊 종목분석</h3><button class="sax" id="saX" type="button" aria-label="닫기">창닫기</button></div>
     <div class="sar"><input id="saI" type="text" placeholder="종목명 또는 6자리 코드 (예: 삼성전자)" autocomplete="off" enterkeyhint="search" aria-label="종목명 또는 종목코드"><button id="saGo" type="button">분석</button></div>
     <div id="saCfg"></div>
     <div class="sao" id="saO"></div>
