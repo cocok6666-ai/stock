@@ -214,7 +214,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
   <div class="sab">
     <div class="sah"><h3 id="saT">📊 종목분석</h3><button class="sax" id="saX" type="button" aria-label="닫기">창닫기</button></div>
     <div class="sar"><input id="saI" type="text" placeholder="종목명 또는 6자리 코드 (예: 삼성전자)" autocomplete="off" enterkeyhint="search" aria-label="종목명 또는 종목코드"><button id="saGo" type="button">분석</button></div>
-    <div class="sarl"><button id="saPick" type="button">📋 목록에서 종목 고르기 (검색·스크롤)</button></div>
+    <div class="sarl" style="display:flex;gap:8px"><button id="saPick" type="button">📋 국내 종목 고르기</button><button id="saPickUs" type="button">📋 미국 종목 고르기</button></div>
     <div id="saCfg"></div>
     <div class="sao" id="saO"></div>
   </div>
@@ -627,8 +627,15 @@ function saSignals(c,m){
   var S=[];function add(t,h,b){S.push({t:t,h:h,b:b})}
   var ctx=[];if(isFinite(m.kospi))ctx.push('코스피 '+saSp(m.kospi)+'%');if(isFinite(m.ixic))ctx.push('나스닥 '+saSp(m.ixic)+'%');if(isFinite(m.krw))ctx.push('원/달러 '+saSp(m.krw)+'%');if(isFinite(m.wti))ctx.push('WTI '+saSp(m.wti)+'%');
   var ctxs=ctx.length?' ('+ctx.join(' · ')+')':'';
+  var fd=c.us?2:0,cur=c.us?'달러':'원';
+  if(c.us){var ixm=m.ixic;
+    if(!isFinite(ixm))add('info','시장: 나스닥 시세 없음','미국 지수 시세를 읽지 못했습니다.'+ctxs);
+    else if(ixm<=-2)add('warn','시장: 나스닥 '+saSp(ixm)+'% 급락','미국 증시 약세 구간입니다. 한국 시장 갭다운과 변동성 확대에 유의하세요.'+ctxs);
+    else if(ixm>=2)add('good','시장: 나스닥 '+saSp(ixm)+'% 강세','미국 증시 우호적입니다. 급등 후 차익실현 변동성에는 유의하세요.'+ctxs);
+    else add('info','시장: 나스닥 '+saSp(ixm)+'%','지수 변동폭은 크지 않습니다.'+ctxs);
+  }
   var kd=/KOSDAQ|코스닥/i.test(c.mkt),idxm=kd?m.kosdaq:m.kospi,iname=kd?'코스닥':'코스피',gp=m.dir?' (아침 브리핑: '+m.dir+')':'';
-  if(kst().hm<'09:00'||!isFinite(idxm)){
+  if(c.us){}else if(kst().hm<'09:00'||!isFinite(idxm)){
     if(m.tone==='dn')add('warn','시장: 약세 출발 가능성','오늘 '+m.dir+' — 종가매수 시 익일 시초 갭 리스크가 커집니다.'+ctxs);
     else if(m.tone==='up')add('good','시장: 강세 출발 가능성','오늘 '+m.dir+' — 지수 환경은 우호적입니다.'+ctxs);
     else add('info','시장: 방향 불명확','오늘 갭 방향이 확정되지 않았습니다. 야간선물·미국장 확인이 필요합니다.'+ctxs);
@@ -639,7 +646,7 @@ function saSignals(c,m){
   }
   var rt=c.rt;
   if(isFinite(rt)){
-    var idx=/KOSDAQ|코스닥/i.test(c.mkt)?m.kosdaq:m.kospi,rs=isFinite(idx)?rt-idx:NaN;
+    var idx=c.us?m.ixic:(/KOSDAQ|코스닥/i.test(c.mkt)?m.kosdaq:m.kospi),rs=isFinite(idx)?rt-idx:NaN;
     if(rt>=10)add('warn','당일 급등 '+saSp(rt)+'%','과열 구간입니다. 종가매수는 익일 차익실현·갭 변동성에 노출됩니다.');
     else if(rt<=-7)add('warn','당일 급락 '+saSp(rt)+'%','낙폭이 큽니다. 반등 근거(수급·재료) 확인 전 진입은 부담입니다.');
     else if(isFinite(rs)&&rs>=2)add('good','시장 대비 강세','당일 '+saSp(rt)+'% (지수 대비 '+saSp(rs,1)+'%p).');
@@ -648,9 +655,9 @@ function saSignals(c,m){
   }
   if(isFinite(c.price)&&isFinite(c.hi)&&isFinite(c.lo)&&c.hi>c.lo){
     var pos=(c.price-c.lo)/(c.hi-c.lo)*100;
-    if(pos>=90)add('info','52주 고점권 (범위의 '+pos.toFixed(0)+'%)','추세는 강하지만 신고가 부근에서는 차익매물도 함께 나옵니다. (고점 '+saF(c.hi)+')');
-    else if(pos<=20)add('warn','52주 저점권 (범위의 '+pos.toFixed(0)+'%)','추세가 약합니다. 추세 전환 확인이 먼저입니다. (저점 '+saF(c.lo)+')');
-    else add('info','52주 범위의 '+pos.toFixed(0)+'% 위치','저점 '+saF(c.lo)+' ~ 고점 '+saF(c.hi));
+    if(pos>=90)add('info','52주 고점권 (범위의 '+pos.toFixed(0)+'%)','추세는 강하지만 신고가 부근에서는 차익매물도 함께 나옵니다. (고점 '+saF(c.hi,fd)+')');
+    else if(pos<=20)add('warn','52주 저점권 (범위의 '+pos.toFixed(0)+'%)','추세가 약합니다. 추세 전환 확인이 먼저입니다. (저점 '+saF(c.lo,fd)+')');
+    else add('info','52주 범위의 '+pos.toFixed(0)+'% 위치','저점 '+saF(c.lo,fd)+' ~ 고점 '+saF(c.hi,fd));
   }
   if(c.deal.length){
     var f=saStreak(c.deal,'f'),o=saStreak(c.deal,'o'),n=c.deal.length;
@@ -670,17 +677,17 @@ function saSignals(c,m){
   }
   if(isFinite(c.tp)&&isFinite(c.price)&&c.price>0){
     var up=(c.tp/c.price-1)*100;
-    if(up>=100)add('info','컨센서스 목표가 괴리 큼 ('+saSp(up,1)+'%)','평균 목표주가 '+saF(c.tp)+'원 — 최근 급락을 반영하지 못한 오래된 추정일 수 있어 참고만 하세요.');
-    else if(up>=15)add('good','컨센서스 목표가 여력 '+saSp(up,1)+'%','증권사 평균 목표주가 '+saF(c.tp)+'원 (현재가 '+saF(c.price)+'원).');
-    else if(up<=-5)add('warn','컨센서스 목표가 하회 '+saSp(up,1)+'%','평균 목표주가 '+saF(c.tp)+'원보다 현재가가 높습니다.');
-    else add('info','컨센서스 목표가 '+saF(c.tp)+'원','현재가 대비 '+saSp(up,1)+'%.');
+    if(up>=100)add('info','컨센서스 목표가 괴리 큼 ('+saSp(up,1)+'%)','평균 목표주가 '+saF(c.tp,fd)+cur+' — 최근 급락을 반영하지 못한 오래된 추정일 수 있어 참고만 하세요.');
+    else if(up>=15)add('good','컨센서스 목표가 여력 '+saSp(up,1)+'%','증권사 평균 목표주가 '+saF(c.tp,fd)+cur+' (현재가 '+saF(c.price,fd)+cur+').');
+    else if(up<=-5)add('warn','컨센서스 목표가 하회 '+saSp(up,1)+'%','평균 목표주가 '+saF(c.tp,fd)+cur+'보다 현재가가 높습니다.');
+    else add('info','컨센서스 목표가 '+saF(c.tp,fd)+cur,'현재가 대비 '+saSp(up,1)+'%.');
   }
   if(c.semi&&BR&&BR.semi)add('info','반도체 연동',String(BR.semi).slice(0,200)+(String(BR.semi).length>200?'…':''));
   return S;
 }
 var SEMI_RE=/반도체|하이닉스|삼성전자|리노공업|DB하이텍|원익|이오테크닉스|주성엔지|테스|HPSP|피에스케이|테스나/;
-function saRender(code,nm,bs,ig,nw,errs){
-  var link='https://m.stock.naver.com/domestic/stock/'+encodeURIComponent(code)+'/total';
+function saRender(code,nm,bs,ig,nw,errs,us){
+  var link='https://m.stock.naver.com/'+(us?'worldstock':'domestic')+'/stock/'+encodeURIComponent(code)+'/total';
   if(!bs&&!ig&&!nw)return '<div class="sas sae">네이버 정보를 불러오지 못했습니다. Worker 주소와 네트워크를 확인해 주세요.<br><a href="'+esc(link)+'" target="_blank" rel="noopener" style="text-decoration:underline">네이버에서 직접 보기</a></div>';
   var name=(bs&&bs.stockName)||(ig&&ig.stockName)||nm||code;
   var price=saN(bs&&bs.closePrice),chg=saN(bs&&bs.compareToPreviousClosePrice),rt=saN(bs&&bs.fluctuationsRatio);
@@ -690,9 +697,9 @@ function saRender(code,nm,bs,ig,nw,errs){
   var deal=((ig&&ig.dealTrendInfos)||[]).map(function(x){return {d:x.bizdate,f:saN(x.foreignerPureBuyQuant),o:saN(x.organPureBuyQuant),p:saN(x.individualPureBuyQuant),cp:x.closePrice}});
   deal.sort(function(a,b){return String(b.d||'')<String(a.d||'')?-1:1});deal=deal.slice(0,5);
   var cons=(ig&&ig.consensusInfo)||{};
-  var c={name:name,mkt:mkt,price:price,rt:rt,hi:saN(saInfo(ig,['highPriceOf52Weeks'],/52주\s*최고/)),lo:saN(saInfo(ig,['lowPriceOf52Weeks'],/52주\s*최저/)),
+  var c={us:!!us,name:name,mkt:mkt,price:price,rt:rt,hi:saN(saInfo(ig,['highPriceOf52Weeks'],/52주\s*최고/)),lo:saN(saInfo(ig,['lowPriceOf52Weeks'],/52주\s*최저/)),
     per:saN(saInfo(ig,['per'],/^PER/i)),pbr:saN(saInfo(ig,['pbr'],/^PBR/i)),eps:saN(saInfo(ig,['eps'],/^EPS/i)),tp:saN(cons.priceTargetMean),deal:deal,
-    semi:SEMI_RE.test(name)||((ig&&Array.isArray(ig.industryCompareInfo))?ig.industryCompareInfo:[]).filter(function(p){return SEMI_RE.test(String((p&&p.stockName)||''))}).length>=2};
+    semi:SEMI_RE.test(name)||(us&&/반도체/.test(String((bs&&bs.industryCodeType&&bs.industryCodeType.industryGroupKor)||'')))||((ig&&Array.isArray(ig.industryCompareInfo))?ig.industryCompareInfo:[]).filter(function(p){return SEMI_RE.test(String((p&&p.stockName)||''))}).length>=2};
   var m=saMkt(),S=saSignals(c,m);
   var rank={warn:0,good:1,info:2};S=S.map(function(x,i){x.i=i;return x}).sort(function(a,b){return rank[a.t]-rank[b.t]||a.i-b.i});
   var g=S.filter(function(x){return x.t==='good'}).length,w=S.filter(function(x){return x.t==='warn'}).length;
@@ -700,19 +707,20 @@ function saRender(code,nm,bs,ig,nw,errs){
   var cl=!isFinite(rt)||rt===0?'flat':rt>0?'up':'dn',ic={good:'✅',warn:'⚠️',info:'➖'};
   function sigs(a){return a.map(function(x){return '<div class="sig"><i>'+ic[x.t]+'</i><p><b>'+esc(x.h)+'</b>'+esc(x.b)+'</p></div>'}).join('')}
   var h='<div class="sas"><div class="sat"><b><a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(name)+'</a></b><span>'+esc(mkt)+(mkt?' · ':'')+esc(code)+'</span></div>'
-    +'<div class="spx '+cl+'">'+saF(price)+'<small>'+(isFinite(chg)?arrow(cl)+saF(Math.abs(chg)):'')+' '+(isFinite(rt)?'('+saSp(rt)+'%)':'')+'</small></div>'
-    +'<div style="font-size:11.5px;color:var(--mut);margin-top:2px">'+esc(saD(bs&&bs.localTradedAt))+' '+(bs&&String(bs.marketStatus||'').toUpperCase()==='OPEN'?'장중':'종가 기준')+'</div></div>';
+    +'<div class="spx '+cl+'">'+saF(price,us?2:0)+(us?'<small style="margin-right:4px">USD</small>':'')+'<small>'+(isFinite(chg)?arrow(cl)+saF(Math.abs(chg),us?2:0):'')+' '+(isFinite(rt)?'('+saSp(rt)+'%)':'')+'</small></div>'
+    +'<div style="font-size:11.5px;color:var(--mut);margin-top:2px">'+esc(saD(bs&&bs.localTradedAt))+' '+(us?'(미국 현지) ':'')+(bs&&String(bs.marketStatus||'').toUpperCase()==='OPEN'?'장중':'종가 기준')+(us&&bs&&bs.overMarketPriceInfo&&bs.overMarketPriceInfo.overPrice?' · 시간외 '+esc(bs.overMarketPriceInfo.overPrice)+' ('+esc(saSp(saN(bs.overMarketPriceInfo.fluctuationsRatio)))+'%)':'')+'</div></div>';
   h+='<div class="sas"><h4>종합 판단 <span class="svd '+vd[1]+'">'+vd[0]+'</span><small style="color:var(--mut);font-weight:500;margin-left:6px">우호 '+g+' · 주의 '+w+'</small></h4>'
     +'<div style="font-size:12px;color:var(--mut);margin-bottom:8px">오늘 시황 + 네이버 종목 정보를 규칙으로 조합한 참고 체크입니다 (종가매수 → 익일시가매도 관점).</div>'
     +'<b style="font-size:12.5px">핵심 3가지</b><div style="margin-top:6px">'+sigs(S.slice(0,3))+'</div>'
     +(S.length>3?'<b style="font-size:12.5px">추가 체크</b><div style="margin-top:6px">'+sigs(S.slice(3))+'</div>':'')+'</div>';
   var kv=[['시가총액',saInfo(ig,['marketValue'],/시총|시가총액/)],['PER',saInfo(ig,['per'],/^PER/i)],['PBR',saInfo(ig,['pbr'],/^PBR/i)],['EPS',saInfo(ig,['eps'],/^EPS/i)],['배당수익률',saInfo(ig,['dividendYieldRatio'],/배당수익률/)],['외국인소진율',saInfo(ig,['foreignRate'],/외[인국]인?\s*소진율/)],['52주 최고',saInfo(ig,['highPriceOf52Weeks'],/52주\s*최고/)],['52주 최저',saInfo(ig,['lowPriceOf52Weeks'],/52주\s*최저/)]].filter(function(x){return String(x[1]||'').trim()});
   h+='<div class="sas"><h4>투자 지표</h4>'+(kv.length?'<div class="skv">'+kv.map(function(x){return '<div><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>'}).join('')+'</div>':'<span style="color:var(--mut)">지표를 읽지 못했습니다.</span>')
-    +(isFinite(c.tp)?'<div style="margin-top:8px;font-size:12.5px;color:var(--mut)">증권사 평균 목표주가 '+esc(saF(c.tp))+'원'+(cons.recommMean?' · 투자의견 평균 '+esc(cons.recommMean):'')+'</div>':'')+'</div>';
-  h+='<div class="sas sdl"><h4>투자자별 순매수 (최근 '+deal.length+'거래일, 주)</h4>';
+    +(isFinite(c.tp)?'<div style="margin-top:8px;font-size:12.5px;color:var(--mut)">증권사 평균 목표주가 '+esc(saF(c.tp,us?2:0))+(us?'달러':'원')+(cons.recommMean?' · 투자의견 평균 '+esc(cons.recommMean):'')+'</div>':'')+'</div>';
+  if(us)h+='<div class="sas" style="color:var(--mut);font-size:12px">미국 종목은 외국인·기관 수급 데이터가 제공되지 않아 수급 항목은 생략합니다.</div>';
+  else{h+='<div class="sas sdl"><h4>투자자별 순매수 (최근 '+deal.length+'거래일, 주)</h4>';
   if(deal.length){h+='<table><tr><th>일자</th><th>외국인</th><th>기관</th><th>개인</th></tr>'+deal.map(function(x){return '<tr><td>'+esc(saD(x.d))+'</td><td class="'+scl(x.f)+'">'+saSn(x.f)+'</td><td class="'+scl(x.o)+'">'+saSn(x.o)+'</td><td class="'+scl(x.p)+'">'+saSn(x.p)+'</td></tr>'}).join('')+'</table>'}
   else h+='<span style="color:var(--mut)">수급 데이터를 읽지 못했습니다.</span>';
-  h+='</div>';
+  h+='</div>'}
   var items=[];(Array.isArray(nw)?nw:[]).forEach(function(x){if(x&&Array.isArray(x.items))items=items.concat(x.items);else if(x)items.push(x)});
   items=items.filter(function(x){return String((x&&(x.title||x.titleFull))||'').trim()});
   h+='<div class="sas snw"><h4>관련 뉴스</h4>'+(items.length?items.slice(0,6).map(function(x){
@@ -723,14 +731,24 @@ function saRender(code,nm,bs,ig,nw,errs){
   h+='<div class="note">참고용 정보이며 투자 판단의 근거 자료가 아닙니다. 투자 책임은 본인에게 있습니다.</div>';
   return h;
 }
-async function saRun(code,name,my){
+async function saRun(code,name,my,us){
   var o=saEl('saO'),errs=[];
   o.innerHTML='<div class="sas">⏳ '+esc(name||code)+' 정보를 불러오는 중…</div>';
   function safe(p,l){return p.catch(function(){errs.push(l);return null})}
+  var c=encodeURIComponent(code);
+  if(us){
+    var u=await Promise.all([
+      safe(saGet('https://api.stock.naver.com/stock/'+c+'/basic'),'시세·지표'),
+      safe(saGet('https://api.stock.naver.com/stock/'+c+'/integration'),'컨센서스'),
+      safe(saGet('https://api.stock.naver.com/news/stock/'+c+'?pageSize=6&page=1'),'뉴스')]);
+    if(my!==saTok)return;
+    var bs=u[0],it=u[1]||{},ig={totalInfos:(bs&&bs.stockItemTotalInfos)||[],consensusInfo:it.consensusInfo||{},industryCompareInfo:[]};
+    o.innerHTML=saRender(code,name,bs,ig,u[2],errs,true);return;
+  }
   var r=await Promise.all([
-    safe(saGet('https://m.stock.naver.com/api/stock/'+encodeURIComponent(code)+'/basic'),'시세'),
-    safe(saGet('https://m.stock.naver.com/api/stock/'+encodeURIComponent(code)+'/integration'),'투자지표·수급'),
-    safe(saGet('https://m.stock.naver.com/api/news/stock/'+encodeURIComponent(code)+'?pageSize=6&page=1'),'뉴스')]);
+    safe(saGet('https://m.stock.naver.com/api/stock/'+c+'/basic'),'시세'),
+    safe(saGet('https://m.stock.naver.com/api/stock/'+c+'/integration'),'투자지표·수급'),
+    safe(saGet('https://m.stock.naver.com/api/news/stock/'+c+'?pageSize=6&page=1'),'뉴스')]);
   if(my!==saTok)return;
   o.innerHTML=saRender(code,name,r[0],r[1],r[2],errs);
 }
@@ -869,6 +887,10 @@ function pkClose(){document.getElementById('pkm').classList.remove('on');PKC=nul
   document.getElementById('pkX').addEventListener('click',pkClose);
   document.addEventListener('keydown',function(ev){if(ev.key==='Escape')pkClose()});
   document.getElementById('saPick').addEventListener('click',function(){pkPick('kr',function(it){saEl('saI').value=it.name;if(!saWorker()){saGo();return}var my=++saTok;saRun(it.code,it.name,my)})});
+  document.getElementById('saPickUs').addEventListener('click',function(){pkPick('us',function(it){
+    var rc=it.code||(it.sym+'.O');saEl('saI').value=it.name;
+    if(!saWorker()){saEl('saO').innerHTML='<div class="sas sae">분석 서버 주소가 아직 설정되지 않았습니다. 아래에서 Worker 주소를 한 번 저장해 주세요.</div>';saCfgRender();return}
+    var my=++saTok;saRun(rc,it.name,my,true)})});
 })();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
 </script>
