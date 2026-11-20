@@ -300,7 +300,7 @@ function render(B){
   h+='<h3>출처</h3><div class="src">';
   (B.sources||[]).forEach(function(s){if(/^https?:\/\//.test(s.u||''))h+='· <a href="'+esc(s.u)+'" target="_blank" rel="noopener">'+esc(s.t||s.u)+'</a><br>'});
   h+='</div></div></div>';}
-  h+='<div class="note">상승 = 빨강 ▲ · 하락 = 파랑 ▼ · 종목명을 누르면 네이버에서 열립니다.<br>참고용 정보이며 투자 판단의 근거 자료가 아닙니다. 투자 책임은 본인에게 있습니다.</div>';
+  h+='<div class="note">종목명을 누르면 네이버에서 열립니다.<br>참고용 정보이며 투자 판단의 근거 자료가 아닙니다. 투자 책임은 본인에게 있습니다.</div>';
   document.getElementById('app').innerHTML=h;
 }
 /* ---------- 시세: GitHub Actions가 5분마다 저장한 quotes.json을 읽음 ---------- */
