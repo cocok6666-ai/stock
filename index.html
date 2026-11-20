@@ -446,6 +446,7 @@ function pkSlots(k){
   if(!PKS[k]){PKS[k]=[];for(var i=0;i<5;i++)PKS[k][i]=PK[k][i]?JSON.parse(JSON.stringify(PK[k][i])):null}
   return PKS[k];
 }
+function pkLabel(k,p){if(k==='us'){var t=pkKey('us',p);return US_KO[t]||p.name||p.q}return p.name||p.q}
 function pkStore(){lsSet('pk_v1',JSON.stringify(PK))}
 function pkNorm(s){return String(s||'').replace(/\s+/g,'').toUpperCase()}
 function pkKey(k,p){return k==='kr'?p.code:String(p.code||p.q||'').split('.')[0].toUpperCase()}
@@ -469,10 +470,9 @@ function pkCard(k,B){
   var kr=k==='kr',h='<div class="card" id="pk-'+k+'"><h2><i>'+(kr?'2':'3')+'</i>'+(kr?'국내 주식':'미국 주식')+'<small>'+esc(kr?B.krAsof:B.usAsof)+'</small></h2>';
   if(pkEditing(k)){
     var sl=pkSlots(k);
-    h+='<div class="pke"><p class="pkh">'+(kr?'칸을 눌러 목록에서 고르세요. 검색·스크롤 모두 됩니다. (최대 5개)':'영문 티커(예: NVDA)를 입력하세요. (최대 5개)')+'</p>';
+    h+='<div class="pke"><p class="pkh">'+'칸을 눌러 목록에서 고르세요. 검색·스크롤 모두 됩니다. (최대 5개)'+'</p>';
     for(var i=0;i<5;i++){var p=sl[i];
-      if(kr){h+='<div class="pkn"><i>'+(i+1)+'</i><button class="pks'+(p?'':' empty')+'" data-k="kr" data-i="'+i+'" type="button">'+(p?esc(p.name||p.q):'＋ 종목 선택')+'</button>'+(p?'<button class="pkx" data-k="kr" data-i="'+i+'" type="button" aria-label="비우기">✕</button>':'')+'</div>'}
-      else h+='<div class="pkn"><i>'+(i+1)+'</i><input class="pki" data-k="'+k+'" data-i="'+i+'" type="text" autocomplete="off" autocapitalize="off" value="'+esc(p?p.q:'')+'" placeholder="예: NVDA"></div>';
+      h+='<div class="pkn"><i>'+(i+1)+'</i><button class="pks'+(p?'':' empty')+'" data-k="'+k+'" data-i="'+i+'" type="button">'+(p?esc(pkLabel(k,p)):'＋ 종목 선택')+'</button>'+(p?'<button class="pkx" data-k="'+k+'" data-i="'+i+'" type="button" aria-label="비우기">✕</button>':'')+'</div>';
     }
     h+='<div class="pka"><button class="ok pksave" data-k="'+k+'" type="button">저장</button><button class="pkdef" data-k="'+k+'" type="button">기본 종목</button>'+(PK[k].length?'<button class="pkcan" data-k="'+k+'" type="button">취소</button>':'')+'</div></div>';
   }else{
@@ -487,17 +487,7 @@ function pkHint(k){
 }
 function pkCollect(k){
   var out=[],seen={};
-  if(k==='kr'){
-    pkSlots('kr').forEach(function(p){if(!p)return;var n=pkNorm(p.code||p.q);if(seen[n])return;seen[n]=1;out.push(p)});
-    return out;
-  }
-  var ins=document.querySelectorAll('#pk-'+k+' .pki');
-  for(var i=0;i<ins.length;i++){
-    var q=ins[i].value.trim();if(!q)continue;
-    var n=pkNorm(q);if(seen[n])continue;seen[n]=1;
-    var old=PK[k].filter(function(p){return pkNorm(p.q)===n})[0];
-    out.push(old||{q:q});
-  }
+  pkSlots(k).forEach(function(p){if(!p)return;var n=pkNorm(pkKey(k,p)||p.q);if(seen[n])return;seen[n]=1;out.push(p)});
   return out;
 }
 function pkTick(rows){var m={};rows.forEach(function(x){m[x]=1});return m}
@@ -579,13 +569,13 @@ async function pkRefresh(force){
     var b=t.closest('.pksave,.pkchg,.pkdef,.pkcan,.pkw,.pks,.pkx');if(!b)return;
     var k=b.getAttribute('data-k');
     if(b.classList.contains('pkw')){saOpen();return}
-    if(b.classList.contains('pks')){var ix=+b.getAttribute('data-i');pkPick('kr',function(it){pkSlots('kr')[ix]={q:it.name,code:it.code,name:it.name};paint(true)});return}
-    if(b.classList.contains('pkx')){pkSlots('kr')[+b.getAttribute('data-i')]=null;paint(true);return}
+    if(b.classList.contains('pks')){var ix=+b.getAttribute('data-i');pkPick(k,function(it){pkSlots(k)[ix]=k==='kr'?{q:it.name,code:it.code,name:it.name}:{q:it.sym,code:it.code,name:it.name};paint(true)});return}
+    if(b.classList.contains('pkx')){pkSlots(k)[+b.getAttribute('data-i')]=null;paint(true);return}
     if(b.classList.contains('pkchg')){PKS[k]=null;PKE[k]=true;paint(true);return}
     if(b.classList.contains('pkcan')){PKS[k]=null;PKE[k]=false;paint(true);return}
     if(b.classList.contains('pkdef')){
       if(k==='kr'){var KC={'삼성전자':'005930','SK하이닉스':'000660','KODEX 200':'069500','KODEX AI반도체TOP2플러스':'395160'};PKS.kr=[];for(var j=0;j<5;j++){var nm=KR_DEF[j];PKS.kr[j]=nm?{q:nm,code:KC[nm],name:nm}:null}paint(true)}
-      else{var ins=document.querySelectorAll('#pk-us .pki');for(var i=0;i<ins.length;i++)ins[i].value=US_DEF[i]||''}
+      else{PKS.us=[];for(var j2=0;j2<5;j2++)PKS.us[j2]=US_DEF[j2]?{q:US_DEF[j2]}:null;paint(true)}
       return;
     }
     if(b.classList.contains('pksave')){
@@ -800,55 +790,67 @@ function saClose(){saEl('sam').classList.remove('on')}
   document.addEventListener('keydown',function(ev){if(ev.key==='Escape')saClose()});
 })();
 
-/* ---------- 국내 종목 목록 선택 팝업 (검색 · 초성 · 스크롤) ---------- */
-var SL=null,SLP=null,PKC=null,PKR=[],PKN=0,PKF='all';
+/* ---------- 종목 목록 선택 팝업 (국내/미국 · 검색 · 초성 · 스크롤) ---------- */
+var SLM={kr:null,us:null},SLP={kr:null,us:null},PKC=null,PKR=[],PKN=0,PKF='all',PKMODE='kr';
 var CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
 function slCho(t){var o='';for(var i=0;i<t.length;i++){var c=t.charCodeAt(i);o+=(c>=0xAC00&&c<=0xD7A3)?CHO.charAt(Math.floor((c-0xAC00)/588)):t.charAt(i).toLowerCase()}return o}
-function slLoad(){
-  if(SLP)return SLP;
-  SLP=fetch('stocks.json?_='+Math.floor(Date.now()/600000),{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
-    var a=(j&&j.kr)||[];if(a.length<100)throw 0;
-    SL=a.map(function(x){var n=String(x[1]).replace(/\s+/g,'').toLowerCase();return {code:x[0],name:x[1],mk:x[2],n:n,c:String(x[0]).toLowerCase(),h:slCho(n)}});
+function slNorm(t){return String(t||'').replace(/\s+/g,'').toLowerCase()}
+function slLoad(m){
+  if(SLP[m])return SLP[m];
+  var f=m==='kr'?'stocks.json':'stocks_us.json';
+  SLP[m]=fetch(f+'?_='+Math.floor(Date.now()/600000),{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+    var a=(j&&j[m])||[];if(a.length<100)throw 0;
+    SLM[m]=a.map(function(x){
+      if(m==='kr'){var n=slNorm(x[1]);return {code:x[0],name:x[1],mk:x[2],n:n,c:String(x[0]).toLowerCase(),h:slCho(n),e:''}}
+      var ko=US_KO[x[1]]||x[2],n2=slNorm(ko+x[2]);return {code:x[0],sym:x[1],name:ko,mk:x[4],n:n2,c:String(x[1]).toLowerCase(),h:slCho(slNorm(ko)),e:slNorm(x[3]),en:x[3]};
+    });
   }).catch(function(){
-    SL=[['005930','삼성전자','P'],['000660','SK하이닉스','P'],['069500','KODEX 200','E'],['395160','KODEX AI반도체TOP2플러스','E']].map(function(x){var n=x[1].replace(/\s+/g,'').toLowerCase();return {code:x[0],name:x[1],mk:x[2],n:n,c:x[0],h:slCho(n)}});
-    SL.fb=true;
+    SLP[m]=null;
+    if(m==='kr')SLM.kr=[['005930','삼성전자','P'],['000660','SK하이닉스','P'],['069500','KODEX 200','E'],['395160','KODEX AI반도체TOP2플러스','E']].map(function(x){var n=slNorm(x[1]);return {code:x[0],name:x[1],mk:x[2],n:n,c:x[0],h:slCho(n),e:''}});
+    else SLM.us=Object.keys(US_KO).map(function(t){var n=slNorm(US_KO[t]);return {sym:t,name:US_KO[t],mk:'',n:n,c:t.toLowerCase(),h:slCho(n),e:'',en:''}});
+    SLM[m].fb=true;
   });
-  return SLP;
+  return SLP[m];
 }
-var MKN={P:'코스피',D:'코스닥',E:'ETF'};
+var MKN={P:'코스피',D:'코스닥',E:'ETF',N:'나스닥',Y:'뉴욕',A:'아멕스'};
+function PKQ_val(){return document.getElementById('pkQ').value}
 function pkFilter(){
-  var q=PKQ_val().replace(/\s+/g,'').toLowerCase(),cho=/^[ㄱ-ㅎ]+$/.test(q),out=[],r2=[];
-  var L=SL||[];
+  var q=slNorm(PKQ_val()),cho=/^[ㄱ-ㅎ]+$/.test(q),out=[],r2=[],L=SLM[PKMODE]||[];
   for(var i=0;i<L.length;i++){
     var x=L[i];if(PKF!=='all'&&x.mk!==PKF)continue;
     if(!q){out.push(x);continue}
     if(cho){var p=x.h.indexOf(q);if(p===0)out.push(x);else if(p>0)r2.push(x);continue}
-    if(x.n.indexOf(q)===0||x.c.indexOf(q)===0)out.push(x);
-    else if(x.n.indexOf(q)>0||x.c.indexOf(q)>0)r2.push(x);
+    if(x.n.indexOf(q)===0||x.c.indexOf(q)===0||(x.e&&x.e.indexOf(q)===0))out.push(x);
+    else if(x.n.indexOf(q)>0||x.c.indexOf(q)>0||(x.e&&x.e.indexOf(q)>0))r2.push(x);
   }
   return out.concat(r2);
 }
-function PKQ_val(){return document.getElementById('pkQ').value}
 function pkMore(){
-  var el=document.getElementById('pkL'),end=Math.min(PKR.length,PKN+60),h='';
-  for(var i=PKN;i<end;i++){var x=PKR[i];h+='<div class="pkr" data-i="'+i+'"><b>'+esc(x.name)+'</b><span>'+esc(x.code)+' · '+(MKN[x.mk]||'')+'</span></div>'}
+  var el=document.getElementById('pkL'),end=Math.min(PKR.length,PKN+60),h='',us=PKMODE==='us';
+  for(var i=PKN;i<end;i++){var x=PKR[i];
+    h+='<div class="pkr" data-i="'+i+'"><b>'+esc(x.name)+'</b><span>'+esc(us?(x.sym+(x.en?' · '+x.en.slice(0,18):'')):(x.code+' · '+(MKN[x.mk]||'')))+'</span></div>'}
   PKN=end;el.insertAdjacentHTML('beforeend',h);
 }
 function pkShow(){
-  var el=document.getElementById('pkL'),q=PKQ_val().trim();
+  var el=document.getElementById('pkL'),q=PKQ_val().trim(),L=SLM[PKMODE]||[],us=PKMODE==='us';
   PKR=pkFilter();PKN=0;el.innerHTML='';el.scrollTop=0;
-  if(!PKR.length){el.innerHTML='<div class="pkr" style="cursor:default"><b style="color:var(--mut)">검색 결과가 없습니다</b></div>'+(/^\d{6}$/.test(q)?'<div class="pkr dir" data-direct="'+esc(q)+'"><b>코드 '+esc(q)+' 그대로 사용</b><span>직접</span></div>':'')}
-  else pkMore();
-  document.getElementById('pkS').textContent=(SL&&SL.fb?'목록을 불러오지 못했습니다. 6자리 코드를 입력해 선택하세요. ':'')+(q?PKR.length.toLocaleString('ko-KR')+'개 검색됨':'전체 '+PKR.length.toLocaleString('ko-KR')+'개 · 시가총액 순')+(PKR.length>PKN?' · 아래로 스크롤':'');
+  if(!PKR.length){
+    var dq=us?/^[A-Za-z][A-Za-z.\-]{0,5}$/.test(q):/^\d{6}$/.test(q);
+    el.innerHTML='<div class="pkr" style="cursor:default"><b style="color:var(--mut)">검색 결과가 없습니다</b></div>'+(dq?'<div class="pkr dir" data-direct="'+esc(us?q.toUpperCase():q)+'"><b>'+esc(us?q.toUpperCase():q)+' 그대로 사용</b><span>직접</span></div>':'');
+  }else pkMore();
+  document.getElementById('pkS').textContent=(L.fb?'목록을 불러오지 못했습니다. '+(us?'티커를':'6자리 코드를')+' 입력해 선택하세요. ':'')+(q?PKR.length.toLocaleString('ko-KR')+'개 검색됨':'전체 '+PKR.length.toLocaleString('ko-KR')+'개 · '+(us?'거래소별 시가총액 순':'시가총액 순'))+(PKR.length>PKN?' · 아래로 스크롤':'');
 }
 function pkPick(mode,cb){
-  PKC=cb;PKF='all';
-  var m=document.getElementById('pkm');m.classList.add('on');
-  document.getElementById('pkQ').value='';
-  document.getElementById('pkF').innerHTML=[['all','전체'],['P','코스피'],['D','코스닥'],['E','ETF']].map(function(a){return '<button type="button" data-f="'+a[0]+'" class="'+(a[0]==='all'?'on':'')+'">'+a[1]+'</button>'}).join('');
+  PKC=cb;PKF='all';PKMODE=mode;
+  document.getElementById('pkm').classList.add('on');
+  document.getElementById('pkT').textContent=mode==='us'?'미국 종목 선택':'국내 종목 선택';
+  var qi=document.getElementById('pkQ');qi.value='';
+  qi.placeholder=mode==='us'?'한글명·티커·영문명 검색 (예: 엔비디아, NVDA, ㅇㅂㄷㅇ)':'종목명·코드·초성 검색 (예: 삼성, ㅅㅅ, 005930)';
+  var fl=mode==='us'?[['all','전체'],['N','나스닥'],['Y','뉴욕'],['A','아멕스']]:[['all','전체'],['P','코스피'],['D','코스닥'],['E','ETF']];
+  document.getElementById('pkF').innerHTML=fl.map(function(a){return '<button type="button" data-f="'+a[0]+'" class="'+(a[0]==='all'?'on':'')+'">'+a[1]+'</button>'}).join('');
   document.getElementById('pkL').innerHTML='<div class="pkr" style="cursor:default"><b style="color:var(--mut)">목록 불러오는 중…</b></div>';
-  slLoad().then(pkShow);
-  setTimeout(function(){try{document.getElementById('pkQ').focus()}catch(e){}},80);
+  slLoad(mode).then(function(){if(PKMODE===mode&&PKC)pkShow()});
+  setTimeout(function(){try{qi.focus()}catch(e){}},80);
 }
 function pkClose(){document.getElementById('pkm').classList.remove('on');PKC=null}
 (function(){
@@ -858,7 +860,7 @@ function pkClose(){document.getElementById('pkm').classList.remove('on');PKC=nul
   l.addEventListener('click',function(ev){
     var r=ev.target&&ev.target.closest&&ev.target.closest('.pkr');if(!r)return;
     var cb=PKC,it=null;
-    if(r.getAttribute('data-direct')){var c=r.getAttribute('data-direct');it={code:c,name:c}}
+    if(r.getAttribute('data-direct')){var c=r.getAttribute('data-direct');it=PKMODE==='us'?{code:'',sym:c,name:c}:{code:c,name:c}}
     else if(r.hasAttribute('data-i'))it=PKR[+r.getAttribute('data-i')];
     if(!it||!cb)return;pkClose();cb(it);
   });
