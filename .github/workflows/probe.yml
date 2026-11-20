@@ -1,0 +1,33 @@
+name: probe
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          python3 - <<'PY' > out.txt
+          import urllib.request as u,json
+          H={"User-Agent":"Mozilla/5.0","Referer":"https://m.stock.naver.com/"}
+          def get(x):
+            try:
+              r=u.urlopen(u.Request(x,headers=H),timeout=25).read().decode();print("OK",x,len(r));return json.loads(r)
+            except Exception as e: print("ERR",x,e);return None
+          j=get("https://m.stock.naver.com/api/stock/005930/price?pageSize=130&page=1")
+          if j: print(len(j),json.dumps(j[0],ensure_ascii=False)[:500])
+          for x in ["https://m.stock.naver.com/api/stock/005930/finance/annual","https://m.stock.naver.com/api/stock/005930/finance/quarter","https://api.stock.naver.com/stock/NVDA.O/finance/annual","https://api.stock.naver.com/stock/NVDA.O/finance/quarter"]:
+            j=get(x)
+            if j: print(json.dumps(j,ensure_ascii=False)[:2200]);print()
+          j=get("https://api.stock.naver.com/stock/NVDA.O/price?pageSize=130&page=1")
+          if j: print(len(j),json.dumps(j[0],ensure_ascii=False)[:300])
+          j=get("https://m.stock.naver.com/api/stock/005930/integration")
+          if j:
+            print(list(j.keys()))
+            print(json.dumps(j.get("industryCompareInfo"),ensure_ascii=False)[:700])
+            print(json.dumps(j.get("dealTrendInfos"),ensure_ascii=False)[:500])
+            print(json.dumps(j.get("consensusInfo"),ensure_ascii=False)[:500])
+          PY
+          git config user.name b; git config user.email b@b
+          git checkout -q --orphan probe; git rm -rfq . ; mv out.txt probe.txt; git add probe.txt; git commit -qm p; git push -qf origin probe
