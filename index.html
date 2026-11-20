@@ -127,10 +127,27 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .snw a{display:block;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.5}
 .snw a:last-child{border-bottom:0}.snw span{display:block;font-size:11px;color:var(--mut)}
 .schip{display:inline-block;margin:0 6px 6px 0;padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:var(--tile);color:var(--tx);font-size:13px;cursor:pointer}
+
+.rb{width:46px}.hd{gap:8px}.ttl b{font-size:16px;overflow:hidden;text-overflow:ellipsis}
+.nfchip.in{display:block;margin:8px 12px 0}
+.pke{padding:10px 12px 12px}
+.pke .pkh{font-size:12px;color:var(--mut);line-height:1.5;margin:0 2px 8px}
+.pke .pkn{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.pke .pkn i{flex:none;width:22px;height:22px;border-radius:50%;background:var(--tile);color:var(--mut);font-style:normal;font-size:12px;font-weight:700;display:grid;place-items:center}
+.pke input{flex:1;font-size:15px;border-radius:10px;border:1px solid var(--line);background:var(--tile);color:var(--tx);padding:10px 11px;width:100%}
+.pke .pka{display:flex;gap:8px;margin-top:10px}
+.pke .pka button,.pkf button{height:42px;border-radius:11px;border:1px solid var(--line);background:var(--tile);color:var(--tx);font-size:14px;font-weight:700;cursor:pointer;padding:0 14px}
+.pke .pka .ok{flex:1;background:var(--acc);color:#06231d;border-color:var(--acc)}
+.pkf{padding:8px 12px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pkf button{flex:none}
+.pkf span{font-size:11.5px;color:var(--mut);line-height:1.5;flex:1;min-width:140px}
+.pkf a{color:var(--acc);text-decoration:underline;cursor:pointer}
+.unmsg{font-size:12px;color:#ffb4a8;min-height:18px;margin:2px 2px 8px}
+.unin{width:100%;font-size:22px;font-weight:700;text-align:center;border-radius:12px;border:1px solid var(--line);background:var(--tile);color:var(--tx);padding:12px 8px}
 </style>
 </head>
 <body>
-<header><div class="hd"><div class="logo">허</div><div class="ttl"><b>깨비주식 아침브리핑</b><span id="sub">—</span></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간</span></button></div><div class="stat" id="stat"></div></header>
+<header><div class="hd"><div class="logo" id="logo">허</div><div class="ttl"><b id="ttl">깨비주식 아침브리핑</b><span id="sub">—</span></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간</span></button><button class="rb" id="unBtn" type="button" aria-label="사용자 이름 입력"><span class="ic">👤</span><span class="lb2">사용자</span></button></div><div class="stat" id="stat"></div></header>
 <div class="wrap" id="app"></div>
 <div class="nfm" id="nfm" role="dialog" aria-modal="true" aria-labelledby="nfT">
   <div class="nfb">
@@ -144,6 +161,16 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
     <div class="nfe" id="nfE"></div>
     <div class="nfa"><button class="ok" id="nfOk" type="button">적용</button><button id="nfSkip" type="button">무시하고 시작하기</button></div>
     <button class="nfx" id="nfClr" type="button">수동입력값 지우기</button>
+  </div>
+</div>
+<div class="nfm" id="unm" role="dialog" aria-modal="true" aria-labelledby="unT">
+  <div class="nfb">
+    <h3 id="unT">사용자 이름</h3>
+    <p>한글 3자를 입력하세요. 첫 글자는 큰 원형 로고에, 뒤 두 글자는 제목(“○○주식 보좌관”)에 쓰입니다.<br>예: 허승호 → 로고 “허”, 제목 “승호주식 보좌관”</p>
+    <input class="unin" id="unI" type="text" maxlength="3" autocomplete="off" placeholder="허승호" aria-label="사용자 이름 한글 3자">
+    <div class="unmsg" id="unE"></div>
+    <div class="nfa"><button class="ok" id="unOk" type="button">적용</button><button id="unCx" type="button">닫기</button></div>
+    <button class="nfx" id="unClr" type="button">이름 지우기 (기본 제목으로)</button>
   </div>
 </div>
 <button class="safab" id="saFab" type="button">📊 종목분석</button>
@@ -172,16 +199,18 @@ function stocks(arr,vol){
   }).join('');
 }
 function render(B){
-  document.title='깨비주식 아침브리핑';
+  document.title=titleText();
   document.getElementById('sub').textContent=(B.date||'')+' · '+(B.asof||'');
   var h='';
   var g=B.gap||{};
   h+='<div class="card"><div class="sum"><div class="hl">'+esc(B.headline||'')+'</div>'
     +(g.dir?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'')
-    +(B.nfBtn?'<button class="nfchip" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>':'')+'</div></div>';
+    +'</div></div>';
   h+='<div class="card"><h2><i>1</i>시장 현황</h2>';
   (B.market||[]).forEach(function(grp){
-    h+='<div class="sec">'+esc(grp.g)+'</div><div class="grid">';
+    h+='<div class="sec">'+esc(grp.g)+'</div>';
+    if(grp.g==='선물'&&B.nfBtn)h+='<button class="nfchip in" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>';
+    h+='<div class="grid">';
     (grp.items||[]).forEach(function(it){
       var c=sign(it.p),hv=String(it.v||'').trim(),has=hv||String(it.p||'').trim();
       h+='<div class="tile"><div class="lb">'+nl(it.n)+'</div><div class="val '+(has?c:'flat')+'">'+(hv?esc(it.v):'—')+'</div><div class="chg '+c+'">'+(has?pct(it.p):'미확인')+'</div>'+(it.t?'<div class="tm">'+esc(it.t)+'</div>':'')+'</div>';
@@ -189,8 +218,7 @@ function render(B){
     h+='</div>';
   });
   h+='</div>';
-  h+='<div class="card"><h2><i>2</i>국내 주도주 · ETF<small>'+esc(B.krAsof||'')+'</small></h2><div class="list">'+stocks(B.kr,true)+'</div></div>';
-  h+='<div class="card"><h2><i>3</i>미국 반도체 종목<small>'+esc(B.usAsof||'')+'</small></h2><div class="list">'+stocks(B.us,false)+'</div></div>';
+  h+=pkCard('kr',B)+pkCard('us',B);
   h+='<div class="card"><h2><i>4</i>오늘의 시황 브리핑</h2><div class="memo">';
   h+='<h3>핵심 3가지</h3>';
   (B.facts||[]).slice(0,3).forEach(function(f,i){h+='<div class="fact"><i>'+(i+1)+'</i><p><b>'+esc(f.h)+'</b>'+esc(f.b)+'</p></div>'});
@@ -308,8 +336,8 @@ function nfCheck(){
 })();
 function setStat(t,c){var e=document.getElementById('stat');e.innerHTML=t;e.className='stat '+(c||'');e.style.display=t?'block':'none'}
 function ageMin(){if(!Q||!Q.updated)return null;return (Date.now()-new Date(Q.updated).getTime())/60000}
-function paint(){
-  var B=build();render(B);
+function paint(force){
+  var B=build();if(force||!pkBusy())render(B);
   document.getElementById('sub').textContent=(Q&&Q.updated?Q.updated.slice(5,10).replace('-','/')+' '+Q.updated.slice(11,19)+' 시세 · ':'시세 없음 · ')+(BR.asof||'');
   var a=ageMin();
   if(a==null)setStat('⚠️ 시세 데이터를 아직 받지 못했습니다.','err');
@@ -338,7 +366,7 @@ async function loadQ(manual){
   try{var n=await fetchQ();if(!Q||n.updated>=Q.updated)Q=n;ok=true}
   catch(e){msg=e.message||String(e)}
   busy=false;ic.className='ic';rb.disabled=false;
-  paint();
+  paint();pkRefresh(manual);
   if(!ok){setStat('⚠️ 시세를 불러오지 못했습니다 ('+esc(msg)+'). 마지막 값을 표시 중입니다.','err')}
   else if(manual&&ageMin()<=20){setStat('✅ '+hhmm()+' 확인 · 시세 기준 '+Q.updated.slice(11,19),'busy');setTimeout(function(){if(ageMin()<=20)setStat('','')},4000)}
 }
@@ -346,6 +374,176 @@ async function loadBrief(){
   try{var r=await fetch('brief.json?_='+Date.now(),{cache:'no-store'});BR=await r.json()}
   catch(e){BR={date:'',asof:'',headline:'브리핑을 불러오지 못했습니다',gap:null,facts:[],semi:'',picks:[],sources:[]}}
 }
+
+/* ---------- 사용자 이름: 첫 글자=로고, 뒤 두 글자=제목 ---------- */
+function userName(){var n=lsGet('user_name')||'';return /^[가-힣]{3}$/.test(n)?n:''}
+function titleText(){var n=userName();return n?n.slice(1)+'주식 보좌관':'깨비주식 아침브리핑'}
+function applyName(){
+  var n=userName();
+  document.getElementById('logo').textContent=n?n.charAt(0):'허';
+  document.getElementById('ttl').textContent=titleText();
+  document.title=titleText();
+}
+function unOpen(){var e=document.getElementById('unI');e.value=userName();document.getElementById('unE').textContent='';document.getElementById('unClr').style.display=userName()?'block':'none';document.getElementById('unm').classList.add('on');setTimeout(function(){try{e.focus()}catch(x){}},50)}
+function unClose(){document.getElementById('unm').classList.remove('on')}
+function unApply(){
+  var v=document.getElementById('unI').value.trim();
+  if(!/^[가-힣]{3}$/.test(v)){document.getElementById('unE').textContent='한글 3자를 입력하세요 (예: 허승호)';return}
+  lsSet('user_name',v);applyName();unClose();
+}
+(function(){
+  document.getElementById('unBtn').addEventListener('click',unOpen);
+  document.getElementById('unOk').addEventListener('click',unApply);
+  document.getElementById('unCx').addEventListener('click',unClose);
+  document.getElementById('unClr').addEventListener('click',function(){lsSet('user_name',null);applyName();unClose()});
+  document.getElementById('unI').addEventListener('keydown',function(ev){if(ev.key==='Enter')unApply()});
+  applyName();
+})();
+
+/* ---------- 내 종목 5칸 (국내/미국): 입력 → 저장 → 종목변경 ---------- */
+var PK=(function(){try{var o=JSON.parse(lsGet('pk_v1')||'null');if(o&&Array.isArray(o.kr)&&Array.isArray(o.us))return o}catch(e){}return {kr:[],us:[]}})();
+var PKE={kr:false,us:false},CQ={},pkAt=0,pkRun=false;
+var KR_LOCAL={'삼성전자':'005930','SK하이닉스':'000660','KODEX200':'069500','KODEX AI반도체TOP2플러스':'395160','KODEXAI반도체TOP2플러스':'395160'};
+var KR_DEF=['삼성전자','SK하이닉스','KODEX 200','KODEX AI반도체TOP2플러스'],US_DEF=['NVDA','MU','SNDK','AVGO','AMD'];
+function pkStore(){lsSet('pk_v1',JSON.stringify(PK))}
+function pkNorm(s){return String(s||'').replace(/\s+/g,'').toUpperCase()}
+function pkKey(k,p){return k==='kr'?p.code:String(p.code||p.q||'').split('.')[0].toUpperCase()}
+function pkEditing(k){return PKE[k]||!PK[k].length}
+function pkBusy(){
+  var a=document.activeElement;
+  if(a&&a.classList&&a.classList.contains('pki'))return true;
+  var ins=document.querySelectorAll('#app .pki');
+  for(var i=0;i<ins.length;i++)if(ins[i].value.trim())return true;
+  return false;
+}
+function pkRows(k){
+  var kr=k==='kr';
+  return PK[k].map(function(p){
+    var key=pkKey(k,p),x=(key&&((Q&&Q.items&&Q.items[key])||CQ[key]))||null,nm=p.name||p.q;
+    if(x)return {n:nm,s:(kr?'':String(key||'')+' · ')+x.t,v:x.v,p:x.p,d:x.d,x:x.x||''};
+    return {n:nm,s:p.err?('⚠️ '+p.err):'시세 확인 중…',v:'—',p:'',d:'',x:''};
+  });
+}
+function pkCard(k,B){
+  var kr=k==='kr',h='<div class="card" id="pk-'+k+'"><h2><i>'+(kr?'2':'3')+'</i>'+(kr?'국내 주식':'미국 주식')+'<small>'+esc(kr?B.krAsof:B.usAsof)+'</small></h2>';
+  if(pkEditing(k)){
+    h+='<div class="pke"><p class="pkh">'+(kr?'종목명 또는 6자리 코드를 입력하세요. (최대 5개)':'영문 티커(예: NVDA) 또는 종목명을 입력하세요. (최대 5개)')+'</p>';
+    for(var i=0;i<5;i++){var p=PK[k][i];h+='<div class="pkn"><i>'+(i+1)+'</i><input class="pki" data-k="'+k+'" data-i="'+i+'" type="text" autocomplete="off" autocapitalize="off" value="'+esc(p?p.q:'')+'" placeholder="'+(kr?'예: 삼성전자':'예: NVDA')+'"></div>'}
+    h+='<div class="pka"><button class="ok pksave" data-k="'+k+'" type="button">저장</button><button class="pkdef" data-k="'+k+'" type="button">기본 종목</button>'+(PK[k].length?'<button class="pkcan" data-k="'+k+'" type="button">취소</button>':'')+'</div></div>';
+  }else{
+    h+='<div class="list">'+stocks(pkRows(k),kr)+'</div><div class="pkf"><button class="pkchg" data-k="'+k+'" type="button">종목변경</button>'+pkHint(k)+'</div>';
+  }
+  return h+'</div>';
+}
+function pkHint(k){
+  var need=PK[k].some(function(p){var key=pkKey(k,p);return !(key&&Q&&Q.items&&Q.items[key])&&!(key&&CQ[key])});
+  if(need&&!saWorker())return '<span>기본 종목 외 시세는 분석 서버 연결이 필요합니다. <a class="pkw">연결하기</a></span>';
+  return '';
+}
+function pkCollect(k){
+  var ins=document.querySelectorAll('#pk-'+k+' .pki'),out=[],seen={};
+  for(var i=0;i<ins.length;i++){
+    var q=ins[i].value.trim();if(!q)continue;
+    var n=pkNorm(q);if(seen[n])continue;seen[n]=1;
+    var old=PK[k].filter(function(p){return pkNorm(p.q)===n})[0];
+    out.push(old||{q:q});
+  }
+  return out;
+}
+function pkTick(rows){var m={};rows.forEach(function(x){m[x]=1});return m}
+async function pkResolve(k,p){
+  if(p.code)return;
+  var q=p.q.trim();
+  if(k==='kr'){
+    var loc=KR_LOCAL[pkNorm(q).replace(/\s/g,'')]||KR_LOCAL[q];
+    if(loc){p.code=loc;return}
+    if(/^[0-9A-Za-z]{6}$/.test(q)&&/\d/.test(q)){p.code=q.toUpperCase();return}
+    var r=await saResolve(q);
+    if(!r.length)throw new Error('찾지 못함');
+    p.code=r[0].code;p.name=r[0].name;return;
+  }
+  if(/^[A-Za-z][A-Za-z.\-]{0,5}$/.test(q)){
+    var t=q.toUpperCase();
+    if(Q&&Q.items&&Q.items[t]){p.code=t;return}
+    var sfx=['.O','.K',''];
+    for(var i=0;i<sfx.length;i++){
+      try{var j=await saGet('https://api.stock.naver.com/stock/'+encodeURIComponent(t+sfx[i])+'/basic');
+        if(j&&j.closePrice){p.code=t+sfx[i];p.name=j.stockName||'';return}}catch(e){if(e.message==='NOWORKER')throw e}
+    }
+    throw new Error('찾지 못함');
+  }
+  var a=await saGet('https://ac.stock.naver.com/ac?q='+encodeURIComponent(q)+'&target=stock');
+  var it=((a&&a.items)||[]).filter(function(x){return x&&!Array.isArray(x)&&x.nationCode&&x.nationCode!=='KOR'})[0];
+  if(!it)throw new Error('영문 티커로 입력하세요');
+  p.code=it.reutersCode||(String(it.code||'')+'.O');p.name=it.name||'';
+}
+function pkParse(d,vol,nd){
+  var num=function(s){if(s==null)return NaN;var v=parseFloat(String(s).replace(/[,+\s]/g,''));return v},
+      price=num(d.closePrice),chg=num(d.compareToPreviousClosePrice),ratio=num(d.fluctuationsRatio);
+  if(!isFinite(price)||!isFinite(chg))throw new Error('시세 없음');
+  var ty=String((d.compareToPreviousPrice||{}).name||'').toUpperCase(),dn=/FALLING|LOWER_LIMIT/.test(ty),up=/RISING|UPPER_LIMIT/.test(ty);
+  chg=dn?-Math.abs(chg):up?Math.abs(chg):chg;
+  ratio=isFinite(ratio)?(dn?-Math.abs(ratio):up?Math.abs(ratio):ratio):(price!==chg?chg/(price-chg)*100:0);
+  var dt=d.localTradedAt?new Date(d.localTradedAt):new Date(),age=(Date.now()-dt.getTime())/1000,st=String(d.marketStatus||'').toUpperCase();
+  var live=st==='OPEN'?true:st==='CLOSE'?false:age<1800,s=dt.toLocaleString('sv-SE',{timeZone:'Asia/Seoul'});
+  var t=(live&&age<3600)?s.slice(11,16)+' 현재':s.slice(5,7)+'/'+s.slice(8,10)+' '+s.slice(11,16)+' 종가';
+  var f=function(x,n){return x.toLocaleString('en-US',{minimumFractionDigits:n,maximumFractionDigits:n})},sg=function(x,n){return (x>0?'+':x<0?'-':'')+f(Math.abs(x),n)};
+  var o={v:f(price,nd),p:sg(ratio,2),d:sg(chg,nd),t:t},vv=num(d.accumulatedTradingVolume);
+  if(vol&&isFinite(vv)&&vv>0)o.x=f(vv,0);
+  return o;
+}
+async function pkQuote(k,p){
+  var key=pkKey(k,p);if(!key)return;
+  if(Q&&Q.items&&Q.items[key])return;
+  var o;
+  if(k==='kr'){
+    try{var j=await saGet('https://polling.finance.naver.com/api/realtime/domestic/stock/'+p.code),d=(j.datas||[])[0];if(!d)throw 0;o=pkParse(d,true,0);if(!p.name&&d.stockName)p.name=d.stockName}
+    catch(e){if(e&&e.message==='NOWORKER')throw e;var j2=await saGet('https://m.stock.naver.com/api/stock/'+p.code+'/basic');o=pkParse(j2,false,0);if(!p.name&&j2.stockName)p.name=j2.stockName}
+  }else{
+    var j3=await saGet('https://api.stock.naver.com/stock/'+encodeURIComponent(p.code)+'/basic');o=pkParse(j3,false,2);if(!p.name&&j3.stockName)p.name=j3.stockName;
+  }
+  CQ[key]=o;
+}
+async function pkRefresh(force){
+  if(pkRun)return;
+  if(!force&&Date.now()-pkAt<30000)return;
+  if(!PK.kr.length&&!PK.us.length)return;
+  pkRun=true;pkAt=Date.now();
+  try{
+    var jobs=[];
+    ['kr','us'].forEach(function(k){PK[k].forEach(function(p){
+      jobs.push((async function(){
+        try{await pkResolve(k,p);await pkQuote(k,p);delete p.err}
+        catch(e){p.err=(e&&e.message==='NOWORKER')?'':(e&&e.message)||'조회 실패'}
+      })());
+    })});
+    await Promise.all(jobs);
+    pkStore();
+  }finally{pkRun=false}
+  if(BR&&!pkBusy())paint();
+}
+(function(){
+  var app=document.getElementById('app');
+  app.addEventListener('click',function(ev){
+    var t=ev.target&&ev.target.closest?ev.target:null;if(!t)return;
+    var b=t.closest('.pksave,.pkchg,.pkdef,.pkcan,.pkw');if(!b)return;
+    var k=b.getAttribute('data-k');
+    if(b.classList.contains('pkw')){saOpen();return}
+    if(b.classList.contains('pkchg')){PKE[k]=true;paint(true);return}
+    if(b.classList.contains('pkcan')){PKE[k]=false;paint(true);return}
+    if(b.classList.contains('pkdef')){
+      var d=k==='kr'?KR_DEF:US_DEF,ins=document.querySelectorAll('#pk-'+k+' .pki');
+      for(var i=0;i<ins.length;i++)ins[i].value=d[i]||'';return;
+    }
+    if(b.classList.contains('pksave')){
+      var list=pkCollect(k).slice(0,5);
+      PK[k]=list;PKE[k]=false;pkStore();
+      var a=document.activeElement;if(a&&a.blur)a.blur();
+      paint(true);pkRefresh(true);
+    }
+  });
+  app.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target&&ev.target.classList&&ev.target.classList.contains('pki')){var c=ev.target.closest('.card'),s=c&&c.querySelector('.pksave');if(s)s.click()}});
+})();
 document.getElementById('refBtn').addEventListener('click',function(){loadQ(true)});
 (async function(){await loadBrief();await loadNight();await loadQ(false);setInterval(function(){loadNight().then(function(){loadQ(false)})},20000)})();
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&BR)loadNight().then(function(){loadQ(false)})});
