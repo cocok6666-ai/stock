@@ -253,8 +253,8 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 <div class="nfm" id="unm" role="dialog" aria-modal="true" aria-labelledby="unT">
   <div class="nfb">
     <h3 id="unT">사용자 이름</h3>
-    <p>한글 3자를 입력하세요. 첫 글자는 큰 원형 로고에, 뒤 두 글자는 제목(“○○주식 보좌관”)에 쓰입니다.<br>예: 허승호 → 로고 “허”, 제목 “승호주식 보좌관”</p>
-    <input class="unin" id="unI" type="text" maxlength="3" autocomplete="off" placeholder="허승호" aria-label="사용자 이름 한글 3자">
+    <p>한글 3자를 입력하세요. 첫 글자는 큰 원형 로고에, 뒤 두 글자는 제목(“○○주식 보좌관”)에 쓰입니다.<br>예: 홍길동 → 로고 “홍”, 제목 “길동주식 보좌관”</p>
+    <input class="unin" id="unI" type="text" maxlength="3" autocomplete="off" placeholder="홍길동" aria-label="사용자 이름 한글 3자">
     <div class="unmsg" id="unE"></div>
     <div class="nfa"><button class="ok" id="unOk" type="button">적용</button><button id="unCx" type="button">닫기</button></div>
     <button class="nfx" id="unClr" type="button">이름 지우기 (기본 제목으로)</button>
@@ -494,7 +494,7 @@ function unOpen(){var e=document.getElementById('unI');e.value=userName();docume
 function unClose(){document.getElementById('unm').classList.remove('on')}
 function unApply(){
   var v=document.getElementById('unI').value.trim();
-  if(!/^[가-힣]{3}$/.test(v)){document.getElementById('unE').textContent='한글 3자를 입력하세요 (예: 허승호)';return}
+  if(!/^[가-힣]{3}$/.test(v)){document.getElementById('unE').textContent='한글 3자를 입력하세요 (예: 홍길동)';return}
   lsSet('user_name',v);applyName();unClose();
 }
 (function(){
