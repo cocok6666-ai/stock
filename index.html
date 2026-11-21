@@ -366,7 +366,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
     <div class="sarl" style="margin:12px 0 4px"><button id="saSim" type="button" class="sast sasim">🎮 5거래일 종가매매 시뮬레이터 <small>종목당 1천만원 · 종가매수 → 다음날 시가매도 · 재미로 해보기</small></button></div>
   </div>
 </div>
-<script src="research.js?v=2"></script>
+<script src="research.js?v=3"></script>
 <script>
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function sign(p){var s=String(p||'').trim();if(!s)return 'flat';if(/^[-−▼]/.test(s))return 'dn';if(/^[+▲]?0([.,]0+)?%?$/.test(s))return 'flat';return 'up'}
@@ -872,7 +872,7 @@ function saRender(code,nm,bs,ig,nw,errs,us){
   var h='<div class="sas"><div class="sat"><b><a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(name)+'</a></b><span>'+esc(mkt)+(mkt?' · ':'')+esc(code)+'</span></div>'
     +'<div class="spx '+cl+'">'+saF(price,us?2:0)+(us?'<small style="margin-right:4px">USD</small>':'')+'<small>'+(isFinite(chg)?arrow(cl)+saF(Math.abs(chg),us?2:0):'')+' '+(isFinite(rt)?'('+saSp(rt)+'%)':'')+'</small></div>'
     +'<div style="font-size:11.5px;color:var(--mut);margin-top:2px">'+esc(saD(bs&&bs.localTradedAt))+' '+(us?'(미국 현지) ':'')+(bs&&String(bs.marketStatus||'').toUpperCase()==='OPEN'?'장중':'종가 기준')+(us&&bs&&bs.overMarketPriceInfo&&bs.overMarketPriceInfo.overPrice?' · 시간외 '+esc(bs.overMarketPriceInfo.overPrice)+' ('+esc(saSp(saN(bs.overMarketPriceInfo.fluctuationsRatio)))+'%)':'')+'</div></div>';
-  h+='<div class="sas"><div class="svh"><h4 class="svt">종합 판단 <span class="svi2">'+vd[1]+'</span><span class="svn l'+vl+'">'+vd[2]+'</span> <span class="svs">'+STARS(vl)+'</span></h4><div class="sstar"><div><b>우호</b>'+stars(g,'▲','u')+'<em>'+Math.min(5,g)+'/5</em></div><div><b>주의</b>'+stars(w,'▼','d')+'<em>'+Math.min(5,w)+'/5</em></div></div></div>'
+  h+='<div class="sas"><div class="svh"><h4 class="svt">종합 판단 <span class="svi2">'+vd[1]+'</span><span class="svs">'+STARS(vl)+'</span></h4><div class="sstar"><div><b>우호</b>'+stars(g,'▲','u')+'<em>'+Math.min(5,g)+'/5</em></div><div><b>주의</b>'+stars(w,'▼','d')+'<em>'+Math.min(5,w)+'/5</em></div></div></div>'
     +'<b style="font-size:12.5px">핵심 3가지</b><div style="margin-top:6px">'+sigs(S.slice(0,3))+'</div>'
     +(S.length>3?'<b style="font-size:12.5px">추가 체크</b><div style="margin-top:6px">'+sigs(S.slice(3))+'</div>':'')+'</div>';
   var kv=[['시가총액',saInfo(ig,['marketValue'],/시총|시가총액/)],['PER',saInfo(ig,['per'],/^PER/i)],['PBR',saInfo(ig,['pbr'],/^PBR/i)],['EPS',saInfo(ig,['eps'],/^EPS/i)],['배당수익률',saInfo(ig,['dividendYieldRatio'],/배당수익률/)],['외국인소진율',saInfo(ig,['foreignRate'],/외[인국]인?\s*소진율/)],['52주 최고',saInfo(ig,['highPriceOf52Weeks'],/52주\s*최고/)],['52주 최저',saInfo(ig,['lowPriceOf52Weeks'],/52주\s*최저/)]].filter(function(x){return String(x[1]||'').trim()});
@@ -1142,7 +1142,7 @@ function stRender(){
   var h=stGuide(STM),first=true;
   [5,4,3,2,1].forEach(function(l){
     var a=g[l],v=STLV[l];
-    h+='<details class="stg" data-l="'+l+'"><summary><span class="stn">'+v[0]+' '+v[1]+' '+STARS(l)+' <small style="font-weight:600;color:var(--mut);font-size:11px">'+v[2]+'</small></span><em class="l'+l+'">'+a.length+'개</em><i class="stgb"></i></summary><div class="stb2" data-l="'+l+'">'
+    h+='<details class="stg" data-l="'+l+'"><summary><span class="stn">'+v[0]+' '+STARS(l)+' <small style="font-weight:600;color:var(--mut);font-size:11px">'+v[2]+'</small></span><em class="l'+l+'">'+a.length+'개</em><i class="stgb"></i></summary><div class="stb2" data-l="'+l+'">'
       +(a.length?a.slice(0,30).map(function(x){return stRow(x)}).join('')+(a.length>30?'<div class="stmore" data-l="'+l+'">+ '+(a.length-30)+'개 더 보기</div>':''):'<div class="stg2" style="padding:10px 13px">해당 종목 없음</div>')+'</div></details>';
   });
   L.innerHTML=h+stWarn();

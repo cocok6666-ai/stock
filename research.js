@@ -100,7 +100,7 @@
     var lv = level(pass, total), L = LV[lv];
     _m.push(total >= 3 ? { lv: lv, p: pass, t: total } : null);
     return '<div class="rnh"><div><b>' + esc(title) + '</b><small>' + esc(sub) + '</small></div>' +
-      '<div class="rnb l' + lv + '"><div style="display:flex;align-items:center;gap:6px"><span>' + L[0] + '</span>' + L[1] + '<em>' + pass + '/' + total + '</em></div><span class="stars">' + '\u2605'.repeat(lv) + '<i>' + '\u2605'.repeat(5 - lv) + '</i></span></div></div>';
+      '<div class="rnb l' + lv + '"><div style="display:flex;align-items:center;gap:6px"><span>' + L[0] + '</span><em>' + pass + '/' + total + '</em></div><span class="stars">' + '\u2605'.repeat(lv) + '<i>' + '\u2605'.repeat(5 - lv) + '</i></span></div></div>';
   }
   function kv(pairs) {
     return '<div class="rnk">' + pairs.map(function (p) { return '<div><span>' + p[0] + '</span><b>' + p[1] + '</b></div>'; }).join('') + '</div>';
