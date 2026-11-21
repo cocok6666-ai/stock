@@ -1028,7 +1028,7 @@ function saClose(){saEl('sam').classList.remove('on')}
   (function(){
     var sab=document.querySelector('.sab'),o=saEl('saO'),dn=saEl('saDn');
     function sc(){return sab.classList.contains('first')?sab:o}
-    function chk(){var e=sc();var more=e.scrollHeight-e.scrollTop-e.clientHeight>28;sab.classList.toggle('rs',!sab.classList.contains('first')&&e.scrollHeight>e.clientHeight+28);dn.classList.toggle('show',more&&saEl('sam').style.display!=='none'&&getComputedStyle(saEl('sam')).display!=='none')}
+    function chk(){var e=sc();var more=e.scrollHeight-e.scrollTop-e.clientHeight>8;sab.classList.toggle('rs',!sab.classList.contains('first')&&e.scrollHeight>e.clientHeight+8);dn.classList.toggle('show',more&&saEl('sam').style.display!=='none'&&getComputedStyle(saEl('sam')).display!=='none')}
     function mode(){sab.classList.toggle('first',!o.innerHTML.trim());chk()}
     sab.addEventListener('scroll',chk,{passive:true});o.addEventListener('scroll',chk,{passive:true});
     new MutationObserver(function(){mode()}).observe(o,{childList:true,subtree:true,characterData:true});
