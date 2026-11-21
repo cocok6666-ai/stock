@@ -1174,7 +1174,10 @@ function stClose(){saEl('stm').classList.remove('on')}
   var exiting=false;
   function on(id){var e=document.getElementById(id);return e&&e.classList.contains('on')}
   function guard(){try{history.pushState({r:'main'},'')}catch(e){}}
-  try{history.replaceState({r:'base'},'');guard()}catch(e){}
+  /* 크롬은 사용자 조작 없이 쌓은 기록을 뒤로가기에서 건너뛰므로, 첫 터치 때와 매 터치마다 가드 기록을 확인해 채운다 */
+  try{history.replaceState({r:'base'},'')}catch(e){}
+  function arm(){try{if(!history.state||history.state.r!=='main')guard()}catch(e){}}
+  ['touchend','click','pointerup'].forEach(function(t){document.addEventListener(t,arm,{capture:true,passive:true})});
   function backStep(){
     if(on('exm')){document.getElementById('exm').classList.remove('on');return}
     if(on('stm')){stClose();return}
