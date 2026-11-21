@@ -42,7 +42,7 @@ def extra(s):
         tv *= 1e6
     if tv is None and vol is not None and px is not None:
         tv = vol * px
-    return [None if chg is None else round(chg, 2), None if tv is None else round(tv / 1e3)]  # 거래대금(정렬용 상대값)
+    return [None if chg is None else round(chg, 2), None if tv is None else round(tv / 1e3, 1)]  # 거래대금(정렬용 상대값)
 
 PX = {}
 kr, seen = [], set()

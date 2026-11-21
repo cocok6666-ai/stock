@@ -205,7 +205,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .pkb .pkq{flex:none;width:100%;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);padding:11px 12px}
 .pkfl{flex:none;display:flex;gap:6px;margin:8px 0 6px;overflow-x:auto}
 .pkfl button{flex:none;height:32px;padding:0 13px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--mut);font-size:13px;font-weight:700;cursor:pointer}
-.pkso{margin:0 0 6px}.pkso button{height:28px;font-size:12px;padding:0 11px;border-radius:8px}.pkso button.on{background:#1d1a14!important;border-color:#1d1a14!important;color:#f4efe4!important}
+.pkvl{flex:none;align-self:center;font-size:11.5px;font-weight:800;color:var(--mut);margin-right:2px}.pkv button.on{background:var(--acc)!important;border-color:var(--acc)!important;color:#fff!important}.pkso{margin:0 0 6px}.pkso button{height:28px;font-size:12px;padding:0 11px;border-radius:8px}.pkso button.on{background:#1d1a14!important;border-color:#1d1a14!important;color:#f4efe4!important}
 .pkr em{font-style:normal;font-weight:800;margin-left:4px}.pkr .pu{color:var(--up)}.pkr .pd{color:var(--dn)}
 .pkfl button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .pkst{flex:none;font-size:11.5px;color:var(--mut);margin:0 2px 6px}
@@ -268,6 +268,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
     <input class="pkq" id="pkQ" type="text" placeholder="종목명·코드·초성 검색 (예: 삼성, ㅅㅅ, 005930)" autocomplete="off" autocapitalize="off" enterkeyhint="search">
     <div class="pkfl" id="pkF"></div>
     <div class="pkfl pkso" id="pkO"></div>
+    <div class="pkfl pkso pkv" id="pkV"></div>
     <div class="pkst" id="pkS"></div>
     <div class="pkl" id="pkL"></div>
   </div>
@@ -912,7 +913,7 @@ function saClose(){saEl('sam').classList.remove('on')}
 })();
 
 /* ---------- 종목 목록 선택 팝업 (국내/미국 · 검색 · 초성 · 스크롤) ---------- */
-var SLU={kr:'',us:''},PKSORT='cap',SLM={kr:null,us:null},SLP={kr:null,us:null},PKC=null,PKR=[],PKN=0,PKF='all',PKMODE='kr';
+var SLU={kr:'',us:''},PKSORT='cap',PKV=1,PKVL={kr:[[0,'전체'],[1,'10억↑'],[5,'50억↑'],[10,'100억↑']],us:[[0,'전체'],[1000,'$1M↑'],[5000,'$5M↑'],[10000,'$10M↑']]},SLM={kr:null,us:null},SLP={kr:null,us:null},PKC=null,PKR=[],PKN=0,PKF='all',PKMODE='kr';
 var CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
 function slCho(t){var o='';for(var i=0;i<t.length;i++){var c=t.charCodeAt(i);o+=(c>=0xAC00&&c<=0xD7A3)?CHO.charAt(Math.floor((c-0xAC00)/588)):t.charAt(i).toLowerCase()}return o}
 function slNorm(t){return String(t||'').replace(/\s+/g,'').toLowerCase()}
@@ -937,6 +938,7 @@ function slLoad(m){
 }
 var MKN={P:'코스피',D:'코스닥',E:'ETF',N:'나스닥',Y:'뉴욕',A:'아멕스'};
 function PKQ_val(){return document.getElementById('pkQ').value}
+function PKVMIN(){var a=PKVL[PKMODE]||PKVL.kr;return (a[PKV]||a[0])[0]}
 var PKSORTS=[['cap','시가총액순'],['up','등락률 상위'],['dn','등락률 하위'],['tv','거래대금순'],['hi','52주 신고가']];
 function pkSortL(a){
   if(PKSORT==='cap')return a;
@@ -950,6 +952,7 @@ function pkFilter(){
   var q=slNorm(PKQ_val()),cho=/^[ㄱ-ㅎ]+$/.test(q),out=[],r2=[],L=SLM[PKMODE]||[];
   for(var i=0;i<L.length;i++){
     var x=L[i];if(PKF!=='all'&&x.mk!==PKF)continue;
+    if(!q&&PKVMIN()>0&&(x.tv==null||x.tv<PKVMIN()))continue;
     if(!q){out.push(x);continue}
     if(cho){var p=x.h.indexOf(q);if(p===0)out.push(x);else if(p>0)r2.push(x);continue}
     if(x.n.indexOf(q)===0||x.c.indexOf(q)===0||(x.e&&x.e.indexOf(q)===0))out.push(x);
@@ -970,10 +973,10 @@ function pkShow(){
     var dq=us?/^[A-Za-z][A-Za-z.\-]{0,5}$/.test(q):/^\d{6}$/.test(q);
     el.innerHTML='<div class="pkr" style="cursor:default"><b style="color:var(--mut)">검색 결과가 없습니다</b></div>'+(dq?'<div class="pkr dir" data-direct="'+esc(us?q.toUpperCase():q)+'"><b>'+esc(us?q.toUpperCase():q)+' 그대로 사용</b><span>직접</span></div>':'');
   }else pkMore();
-  document.getElementById('pkS').textContent=(L.fb?'목록을 불러오지 못했습니다. '+(us?'티커를':'6자리 코드를')+' 입력해 선택하세요. ':'')+(q?PKR.length.toLocaleString('ko-KR')+'개 검색됨':'전체 '+PKR.length.toLocaleString('ko-KR')+'개 · '+(PKSORT==='cap'?(us?'거래소별 시가총액 순':'시가총액 순'):PKSORTS.filter(function(s){return s[0]===PKSORT})[0][1])+(PKSORT==='up'||PKSORT==='dn'||PKSORT==='tv'||PKSORT==='hi'?(PKSORT==='hi'?' (52주 고점 대비 · '+(us?'나스닥·뉴욕 시총 상위 1,000개씩':'코스피·코스닥')+' · 전 거래일 종가 기준':' (전 거래일 종가 기준')+(SLU[PKMODE]?' · '+SLU[PKMODE].slice(5,10).replace('-','/')+' 갱신':'')+')':''))+(PKR.length>PKN?' · 아래로 스크롤':'');
+  document.getElementById('pkS').textContent=(L.fb?'목록을 불러오지 못했습니다. '+(us?'티커를':'6자리 코드를')+' 입력해 선택하세요. ':'')+(q?PKR.length.toLocaleString('ko-KR')+'개 검색됨 (거래대금 필터 미적용)':(PKVMIN()>0?'거래대금 '+PKVL[PKMODE][PKV][1].replace('↑',' 이상')+' · ':'')+'전체 '+PKR.length.toLocaleString('ko-KR')+'개 · '+(PKSORT==='cap'?(us?'거래소별 시가총액 순':'시가총액 순'):PKSORTS.filter(function(s){return s[0]===PKSORT})[0][1])+(PKSORT==='up'||PKSORT==='dn'||PKSORT==='tv'||PKSORT==='hi'?(PKSORT==='hi'?' (52주 고점 대비 · '+(us?'나스닥·뉴욕 시총 상위 1,000개씩':'코스피·코스닥')+' · 전 거래일 종가 기준':' (전 거래일 종가 기준')+(SLU[PKMODE]?' · '+SLU[PKMODE].slice(5,10).replace('-','/')+' 갱신':'')+')':''))+(PKR.length>PKN?' · 아래로 스크롤':'');
 }
 function pkPick(mode,cb){
-  PKC=cb;PKF='all';PKSORT='cap';PKMODE=mode;
+  PKC=cb;PKF='all';PKSORT='cap';PKV=1;PKMODE=mode;
   document.getElementById('pkm').classList.add('on');
   document.getElementById('pkT').textContent=mode==='us'?'미국 종목 선택':'국내 종목 선택';
   var qi=document.getElementById('pkQ');qi.value='';
@@ -981,6 +984,7 @@ function pkPick(mode,cb){
   var fl=mode==='us'?[['all','전체'],['N','나스닥'],['Y','뉴욕'],['A','아멕스']]:[['all','전체'],['P','코스피'],['D','코스닥'],['E','ETF']];
   document.getElementById('pkF').innerHTML=fl.map(function(a){return '<button type="button" data-f="'+a[0]+'" class="'+(a[0]==='all'?'on':'')+'">'+a[1]+'</button>'}).join('');
   document.getElementById('pkO').innerHTML=PKSORTS.map(function(a){return '<button type="button" data-s="'+a[0]+'" class="'+(a[0]==='cap'?'on':'')+'">'+a[1]+'</button>'}).join('');
+  document.getElementById('pkV').innerHTML='<span class="pkvl">거래대금</span>'+PKVL[mode].map(function(a,i){return '<button type="button" data-v="'+i+'" class="'+(i===1?'on':'')+'">'+a[1]+'</button>'}).join('');
   document.getElementById('pkL').innerHTML='<div class="pkr" style="cursor:default"><b style="color:var(--mut)">목록 불러오는 중…</b></div>';
   slLoad(mode).then(function(){if(PKMODE===mode&&PKC)pkShow()});
   setTimeout(function(){try{qi.focus()}catch(e){}},80);
@@ -1000,6 +1004,8 @@ function pkClose(){document.getElementById('pkm').classList.remove('on');PKC=nul
   document.getElementById('pkF').addEventListener('click',function(ev){var b=ev.target&&ev.target.closest&&ev.target.closest('button');if(!b)return;PKF=b.getAttribute('data-f');
     var bs=this.querySelectorAll('button');for(var i=0;i<bs.length;i++)bs[i].classList.toggle('on',bs[i]===b);pkShow()});
   document.getElementById('pkO').addEventListener('click',function(ev){var b=ev.target&&ev.target.closest&&ev.target.closest('button');if(!b)return;PKSORT=b.getAttribute('data-s');
+    var bs=this.querySelectorAll('button');for(var i=0;i<bs.length;i++)bs[i].classList.toggle('on',bs[i]===b);pkShow()});
+  document.getElementById('pkV').addEventListener('click',function(ev){var b=ev.target&&ev.target.closest&&ev.target.closest('button');if(!b)return;PKV=+b.getAttribute('data-v');
     var bs=this.querySelectorAll('button');for(var i=0;i<bs.length;i++)bs[i].classList.toggle('on',bs[i]===b);pkShow()});
   document.getElementById('pkX').addEventListener('click',pkClose);
   document.addEventListener('keydown',function(ev){if(ev.key==='Escape')pkClose()});
