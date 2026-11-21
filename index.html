@@ -242,6 +242,11 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .stgb::before{content:'펼치기 ▾'}.stg[open]>summary .stgb{background:#e11d2e}.stg[open]>summary .stgb::before{content:'접기 ▴'}
 .stmore{padding:10px;text-align:center;font-size:12.5px;font-weight:700;color:var(--acc);cursor:pointer}
 .stg2{padding:12px 13px;font-size:12px;line-height:1.7;color:#4d4435}.stg2 h6{margin:10px 0 3px;font-size:12.5px;color:#0f766e}.stg2 h6:first-child{margin-top:0}.stg2 ul{margin:0;padding-left:17px}.stg2 li{margin:2px 0}
+.exm{position:fixed;left:0;right:0;top:0;bottom:0;z-index:95;background:rgba(5,9,18,.72);display:none;align-items:center;justify-content:center;padding:20px}.exm.on{display:flex}
+.exb{background:#f4efe4;border:2px solid #d9b15c;border-radius:18px;padding:22px 18px 16px;max-width:340px;width:100%;color:#1d1a14;text-align:center;box-shadow:0 14px 50px rgba(0,0,0,.6)}
+.ext{font-size:18px;font-weight:900;margin-bottom:8px}.exs{font-size:13px;line-height:1.6;color:#6b6150;margin-bottom:16px}
+.exa{display:flex;gap:10px}.exa button{flex:1;height:48px;border-radius:12px;font-size:15px;font-weight:900;cursor:pointer;border:2px solid #1d1a14}
+.exno{background:#1d1a14;color:#f4efe4}.exyes{background:#fff;color:#c2261f;border-color:#c2261f!important}
 .pkfl button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .pkst{flex:none;font-size:11.5px;color:var(--mut);margin:0 2px 6px}
 .pkl{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:12px;background:var(--card);border:1px solid var(--line)}
@@ -299,6 +304,10 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
     <div class="unmsg" id="unE"></div>
     <div class="nfa"><button class="ok" id="unOk" type="button">적용</button><button id="unCx" type="button">닫기</button></div>
   </div>
+</div>
+<div class="exm" id="exm" role="dialog" aria-modal="true">
+  <div class="exb"><div class="ext">앱을 종료할까요?</div><div class="exs">뒤로가기를 눌렀습니다.<br>종료하지 않으려면 “계속 사용”을 누르세요.</div>
+    <div class="exa"><button type="button" id="exNo" class="exno">계속 사용</button><button type="button" id="exYes" class="exyes">종료</button></div></div>
 </div>
 <div class="pkm" id="stm" role="dialog" aria-modal="true" aria-labelledby="stT">
   <div class="pkb stb">
@@ -1158,6 +1167,30 @@ function stClose(){saEl('stm').classList.remove('on')}
     var top=sc?sc.scrollTop<=0:((document.scrollingElement||document.documentElement).scrollTop<=0);
     if(lock||top)e.preventDefault();
   },{passive:false});
+})();
+
+
+/* ---------- 폰 뒤로가기: 열린 팝업부터 닫고, 더 닫을 게 없으면 종료 확인 ---------- */
+(function(){
+  var exiting=false;
+  function on(id){var e=document.getElementById(id);return e&&e.classList.contains('on')}
+  function guard(){try{history.pushState({r:'main'},'')}catch(e){}}
+  try{history.replaceState({r:'base'},'');guard()}catch(e){}
+  function backStep(){
+    if(on('exm')){document.getElementById('exm').classList.remove('on');return}
+    if(on('stm')){stClose();return}
+    if(on('pkm')){pkClose();return}
+    if(on('nfm')){nfClose();return}
+    if(on('unm')){unClose();return}
+    if(on('sam')){saClose();return}
+    document.getElementById('exm').classList.add('on');
+  }
+  window.addEventListener('popstate',function(){
+    if(exiting)return;
+    backStep();guard();
+  });
+  document.getElementById('exNo').addEventListener('click',function(){document.getElementById('exm').classList.remove('on')});
+  document.getElementById('exYes').addEventListener('click',function(){exiting=true;document.getElementById('exm').classList.remove('on');try{history.go(-2)}catch(e){}setTimeout(function(){try{window.close()}catch(e){}},300)});
 })();
 
 /* 팝업을 폰 입력기(키보드) 위쪽 보이는 영역에 맞춰 배치 */
