@@ -1104,7 +1104,7 @@ function stLoad(){
 }
 function stGuide(m){
   var mt=(STD&&STD.meta&&STD.meta[m])||{},nk=(STD&&STD.meta&&STD.meta.kr)?STD.meta.kr.universe:'약 650',nu=(STD&&STD.meta&&STD.meta.us)?STD.meta.us.universe:500;
-  return '<details class="stdet" id="stDet"><summary><span class="rq">필독</span><span>안내 · 이 통계 보는 법<small>통계 설계 관련 내용입니다.</small></span></summary><div class="stg2">'
+  return '<details class="stdet" id="stDet"><summary><span class="rq">필독</span><span>통계 설계 관련 내용입니다.<small>터치하여 꼭 읽어보세요</small></span></summary><div class="stg2">'
   +'<h6>이 통계는 무엇인가요?</h6><ul><li>종목분석의 <b>3가지 투자방식</b> 체크리스트를 대상 종목 전체에 <b>같은 규칙으로 계산</b>해 단계별로 묶은 목록입니다. 종목을 누르면 해당 방식의 종목분석 세부자료가 열립니다.</li><li>종목분석 화면의 등급과 <b>같은 계산 코드</b>를 쓰므로 목록과 상세 화면의 단계가 일치합니다(데이터 시점이 다르면 달라질 수 있음).</li></ul>'
   +'<h6>5단계 기준</h6><ul><li>체크리스트 <b>통과 비율</b>로 나눕니다: 84%↑ 🚀 ★★★★★ · 67%↑ 📈 ★★★★ · 40%↑ ⚖️ ★★★ · 20%↑ ⚠️ ★★ · 그 미만 🚨 ★ (별이 많을수록 우호적).</li><li>목록의 “통과 6/8”은 판정 가능한 항목 8개 중 6개 충족이라는 뜻이며, 같은 단계 안에서는 통과 비율이 높은 순입니다.</li><li>데이터가 모자라 판정 항목이 3개 미만인 종목은 그 방식에서 제외됩니다.</li></ul>'
   +'<h6>3가지 투자방식</h6><ul><li><b>① 종가베팅</b>(1거래일): 종가강도, 거래량 배수, 5일선, 20일 고점 근접도, 외국인·기관 수급, 최근 60일 오버나이트 갭 승률.</li><li><b>② 수개월</b>(3~6개월): 60일선·이동평균 배열, 3개월 수익률, RSI, MACD, 수급, 컨센서스 목표가 여력, 최근 분기 실적.</li><li><b>③ 수년</b>(장기): ROE, 영업이익률, 매출·이익 성장률(CAGR), 부채비율, PER(과거 평균 대비)·PEG, 목표가 여력, 배당, 컨센서스 신뢰성.</li></ul>'
