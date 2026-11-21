@@ -325,8 +325,8 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
   </div>
 </div>
 <div class="exm" id="exm" role="dialog" aria-modal="true">
-  <div class="exb"><div class="ext">앱을 종료할까요?</div><div class="exs">뒤로가기를 눌렀습니다.<br>종료하지 않으려면 “계속 사용”을 누르세요.</div>
-    <div class="exa"><button type="button" id="exNo" class="exno">계속 사용</button><button type="button" id="exYes" class="exyes">종료</button></div></div>
+  <div class="exb"><div class="ext">앱을 종료할까요?</div><div class="exs">종료하려면 폰의 <b>뒤로가기 버튼을 한 번 더</b> 터치하세요.</div>
+    <div class="exa"><button type="button" id="exNo" class="exno">계속 사용</button></div></div>
 </div>
 <div class="pkm" id="stm" role="dialog" aria-modal="true" aria-labelledby="stT">
   <div class="pkb stb">
@@ -1371,15 +1371,9 @@ function simOpen(){
   function st(){try{return history.state&&history.state.r}catch(e){return null}}
   function push(r){try{history.pushState({r:r},'')}catch(e){}}
   try{history.replaceState({r:'base'},'')}catch(e){}
-  function arm(){if(exiting)return;var s=st();if(!s||s==='base')push('main')}
+  function arm(){if(exiting||el('exm').classList.contains('on'))return;var s=st();if(!s||s==='base')push('main')}
   ['touchend','click','pointerup'].forEach(function(t){document.addEventListener(t,arm,{capture:true,passive:true})});
-  function setExit(stage){
-    var m=el('exm');
-    m.querySelector('.ext').textContent=stage?'종료 준비 완료':'앱을 종료할까요?';
-    m.querySelector('.exs').innerHTML=stage?'이제 폰의 <b>뒤로가기를 한 번 더</b> 누르면 앱이 종료됩니다.<br>계속 사용하려면 아래 버튼을 누르세요.':'뒤로가기를 눌렀습니다.<br>종료하지 않으려면 “계속 사용”을 누르세요.';
-    el('exYes').style.display=stage?'none':'';
-  }
-  function resume(){if(document.hidden)return;exiting=false;el('exm').classList.remove('on');setExit(0);arm()}
+  function resume(){if(document.hidden)return;exiting=false;el('exm').classList.remove('on');arm()}
   document.addEventListener('visibilitychange',resume);window.addEventListener('pageshow',resume);window.addEventListener('focus',resume);
   /* 팝업이 열리면 기록 1개 추가, 버튼으로 닫히면 그 기록 제거 */
   IDS.forEach(function(id){
@@ -1399,18 +1393,12 @@ function simOpen(){
     if(ign>0){ign--;return}
     if(exiting)return;
     var m=el('exm');
-    if(m.classList.contains('on')){m.classList.remove('on');if(st()!=='main')push('main');return}
+    if(m.classList.contains('on'))return;   /* 안내창이 떠 있는 상태의 뒤로가기 = 종료 */
     if(PS.length){var id=PS.pop();el(id).classList.remove('on');return}
     /* 팝업 없음: 종료 확인 */
-    setExit(0);m.classList.add('on');
-    if(st()!=='main')push('main');
+    m.classList.add('on');
   });
-  el('exNo').addEventListener('click',function(){exiting=false;el('exm').classList.remove('on');setExit(0);arm()});
-  el('exYes').addEventListener('click',function(){
-    exiting=true;setExit(1);
-    try{history.go(-1)}catch(e){}
-    setTimeout(function(){try{window.close()}catch(e){}},200);
-  });
+  el('exNo').addEventListener('click',function(){exiting=false;el('exm').classList.remove('on');arm()});
 })();
 
 /* 팝업을 폰 입력기(키보드) 위쪽 보이는 영역에 맞춰 배치 */
