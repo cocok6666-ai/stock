@@ -277,7 +277,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
     <div class="sarl" style="display:flex;gap:8px"><button id="saPick" type="button">📋 국내 종목 고르기</button><button id="saPickUs" type="button">📋 미국 종목 고르기</button></div>
     <div id="saCfg"></div>
     <div class="sao" id="saO"></div>
-    <div class="sahelp"><b>종목 선택 방법</b><br>① 위 <u>국내/미국 종목 고르기</u> 버튼 → 종목명·티커·초성으로 검색하거나 목록을 스크롤해 눌러 선택<br>② 또는 입력칸에 종목명·6자리 코드를 직접 입력 후 <u>분석</u><br>※ 미국 종목은 외국인·기관 수급이 제공되지 않습니다.</div>
+    <div class="sahelp" id="saHelp"><b>종목 선택 방법</b><br>① 위 <u>국내/미국 종목 고르기</u> 버튼 → 종목명·티커·초성으로 검색하거나 목록을 스크롤해 눌러 선택<br>② 또는 입력칸에 종목명·6자리 코드를 직접 입력 후 <u>분석</u><br>※ 미국 종목은 외국인·기관 수급이 제공되지 않습니다.</div>
   </div>
 </div>
 <script src="research.js?v=1"></script>
@@ -889,6 +889,9 @@ function saOpen(){
 }
 function saClose(){saEl('sam').classList.remove('on')}
 (function(){
+  /* 분석 결과(또는 안내 메시지)가 표시되면 하단 '종목 선택 방법' 안내는 숨김 — 처음 화면에서만 보임 */
+  (function(){var o=saEl('saO'),hp=saEl('saHelp');function sync(){hp.style.display=o.innerHTML.trim()?'none':''}
+    new MutationObserver(sync).observe(o,{childList:true,subtree:true,characterData:true});sync()})();
   saEl('saFab').addEventListener('click',saOpen);
   saEl('saX').addEventListener('click',saClose);
   saEl('saGo').addEventListener('click',saGo);
