@@ -6,12 +6,12 @@
 <meta name="theme-color" content="#0b1220">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="주식보좌관">
+<meta name="apple-mobile-web-app-title" content="ㅇㅇㅇ주식딸랑이">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
-<title>깨비주식 아침브리핑</title>
+<title>주식딸랑이</title>
 <style>
 :root{--bg:#0b1220;--card:#121b2e;--tile:#0e1626;--line:#1f2b44;--tx:#e8edf7;--mut:#8b98b3;--up:#ff5a62;--dn:#4d8dff;--acc:#2dd4a7}
 *{box-sizing:border-box;min-width:0}
@@ -275,7 +275,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 </style>
 </head>
 <body>
-<header><div class="hd"><div class="logo" id="logo">허</div><div class="ttl"><b id="ttl">깨비주식 아침브리핑</b><span id="sub">—</span></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간</span></button><button class="rb" id="unBtn" type="button" aria-label="사용자 이름 입력"><span class="ic">👤</span><span class="lb2">사용자</span></button></div><div class="stat" id="stat"></div></header>
+<header><div class="hd"><div class="logo" id="logo">딸</div><div class="ttl"><b id="ttl">주식딸랑이</b><span id="sub">—</span></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간</span></button><button class="rb" id="unBtn" type="button" aria-label="사용자 이름 입력"><span class="ic">👤</span><span class="lb2">사용자</span></button></div><div class="stat" id="stat"></div></header>
 <div class="wrap" id="app"></div>
 <div class="nfm" id="nfm" role="dialog" aria-modal="true" aria-labelledby="nfT">
   <div class="nfb">
@@ -294,11 +294,10 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 <div class="nfm" id="unm" role="dialog" aria-modal="true" aria-labelledby="unT">
   <div class="nfb">
     <h3 id="unT">사용자 이름</h3>
-    <p>한글 3자를 입력하세요. 첫 글자는 큰 원형 로고에, 뒤 두 글자는 제목(“○○주식 보좌관”)에 쓰입니다.<br>예: 홍길동 → 로고 “홍”, 제목 “길동주식 보좌관”</p>
+    <p>한글 3자를 입력하세요. 첫 글자는 큰 원형 로고에, 뒤 두 글자는 제목(“○○주식딸랑이”)에 쓰입니다.<br>예: 홍길동 → 로고 “홍”, 제목 “길동주식딸랑이”</p>
     <input class="unin" id="unI" type="text" maxlength="3" autocomplete="off" placeholder="홍길동" aria-label="사용자 이름 한글 3자">
     <div class="unmsg" id="unE"></div>
     <div class="nfa"><button class="ok" id="unOk" type="button">적용</button><button id="unCx" type="button">닫기</button></div>
-    <button class="nfx" id="unClr" type="button">이름 지우기 (기본 제목으로)</button>
   </div>
 </div>
 <div class="pkm" id="stm" role="dialog" aria-modal="true" aria-labelledby="stT">
@@ -541,14 +540,14 @@ async function loadBrief(){
 
 /* ---------- 사용자 이름: 첫 글자=로고, 뒤 두 글자=제목 ---------- */
 function userName(){var n=lsGet('user_name')||'';return /^[가-힣]{3}$/.test(n)?n:''}
-function titleText(){var n=userName();return n?n.slice(1)+'주식 보좌관':'깨비주식 아침브리핑'}
+function titleText(){var n=userName();return n?n.slice(1)+'주식딸랑이':'주식딸랑이'}
 function applyName(){
   var n=userName();
-  document.getElementById('logo').textContent=n?n.charAt(0):'허';
+  document.getElementById('logo').textContent=n?n.charAt(0):'딸';
   document.getElementById('ttl').textContent=titleText();
   document.title=titleText();
 }
-function unOpen(){var e=document.getElementById('unI');e.value=userName();document.getElementById('unE').textContent='';document.getElementById('unClr').style.display=userName()?'block':'none';document.getElementById('unm').classList.add('on')}
+function unOpen(){var e=document.getElementById('unI');e.value=userName();document.getElementById('unE').textContent='';document.getElementById('unm').classList.add('on')}
 function unClose(){document.getElementById('unm').classList.remove('on')}
 function unApply(){
   var v=document.getElementById('unI').value.trim();
@@ -559,7 +558,6 @@ function unApply(){
   document.getElementById('unBtn').addEventListener('click',unOpen);
   document.getElementById('unOk').addEventListener('click',unApply);
   document.getElementById('unCx').addEventListener('click',unClose);
-  document.getElementById('unClr').addEventListener('click',function(){lsSet('user_name',null);applyName();unClose()});
   document.getElementById('unI').addEventListener('keydown',function(ev){if(ev.key==='Enter')unApply()});
   applyName();
 })();
@@ -1134,6 +1132,32 @@ function stClose(){saEl('stm').classList.remove('on')}
     if(more){var l=more.getAttribute('data-l'),box=more.parentNode,a=STX[l]||[];box.innerHTML=a.map(function(x){return stRow(x)}).join('');return}
     var r=t&&t.closest&&t.closest('.str');if(r)stPick(r.getAttribute('data-id'),r.getAttribute('data-n'));
   });
+})();
+
+
+/* 당겨서 새로고침 방지: 스크롤 영역이 맨 위일 때 아래로 끄는 동작만 막고, 일반 스크롤은 그대로 둔다 */
+(function(){
+  var y0=0,sc=null,lock=false;
+  function scroller(el){
+    while(el&&el!==document.body&&el!==document.documentElement){
+      var s=getComputedStyle(el),oy=s.overflowY;
+      if((oy==='auto'||oy==='scroll')&&el.scrollHeight>el.clientHeight+1)return el;
+      el=el.parentElement;
+    }
+    return null;
+  }
+  document.addEventListener('touchstart',function(e){
+    if(e.touches.length!==1){sc=null;lock=false;return}
+    y0=e.touches[0].clientY;sc=scroller(e.target);
+    lock=!!(e.target.closest&&e.target.closest('.sam,.pkm,.nfm,.unm,.stm'))&&!sc;
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(e.touches.length!==1||!e.cancelable)return;
+    var dy=e.touches[0].clientY-y0;
+    if(dy<=0&&!lock)return;
+    var top=sc?sc.scrollTop<=0:((document.scrollingElement||document.documentElement).scrollTop<=0);
+    if(lock||top)e.preventDefault();
+  },{passive:false});
 })();
 
 /* 팝업을 폰 입력기(키보드) 위쪽 보이는 영역에 맞춰 배치 */
