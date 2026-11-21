@@ -268,7 +268,6 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
     <input class="pkq" id="pkQ" type="text" placeholder="종목명·코드·초성 검색 (예: 삼성, ㅅㅅ, 005930)" autocomplete="off" autocapitalize="off" enterkeyhint="search">
     <div class="pkfl" id="pkF"></div>
     <div class="pkfl pkso" id="pkO"></div>
-    <div class="pkfl pkso pkv" id="pkV"></div>
     <div class="pkst" id="pkS"></div>
     <div class="pkl" id="pkL"></div>
   </div>
@@ -938,8 +937,8 @@ function slLoad(m){
 }
 var MKN={P:'코스피',D:'코스닥',E:'ETF',N:'나스닥',Y:'뉴욕',A:'아멕스'};
 function PKQ_val(){return document.getElementById('pkQ').value}
-function PKVMIN(){var a=PKVL[PKMODE]||PKVL.kr;return (a[PKV]||a[0])[0]}
-var PKSORTS=[['cap','시가총액순'],['up','등락률 상위'],['dn','등락률 하위'],['tv','거래대금순'],['hi','52주 신고가']];
+function PKVMIN(){return PKMODE==='us'?5000:5}
+var PKSORTS=[['cap','시가총액'],['tv','거래대금'],['hi','52주 신고가'],['up','등락률 상위']];
 function pkSortL(a){
   if(PKSORT==='cap')return a;
   var b=a.slice(),nn=function(v){return v==null||!isFinite(v)};
@@ -973,7 +972,7 @@ function pkShow(){
     var dq=us?/^[A-Za-z][A-Za-z.\-]{0,5}$/.test(q):/^\d{6}$/.test(q);
     el.innerHTML='<div class="pkr" style="cursor:default"><b style="color:var(--mut)">검색 결과가 없습니다</b></div>'+(dq?'<div class="pkr dir" data-direct="'+esc(us?q.toUpperCase():q)+'"><b>'+esc(us?q.toUpperCase():q)+' 그대로 사용</b><span>직접</span></div>':'');
   }else pkMore();
-  document.getElementById('pkS').textContent=(L.fb?'목록을 불러오지 못했습니다. '+(us?'티커를':'6자리 코드를')+' 입력해 선택하세요. ':'')+(q?PKR.length.toLocaleString('ko-KR')+'개 검색됨 (거래대금 필터 미적용)':(PKVMIN()>0?'거래대금 '+PKVL[PKMODE][PKV][1].replace('↑',' 이상')+' · ':'')+'전체 '+PKR.length.toLocaleString('ko-KR')+'개 · '+(PKSORT==='cap'?(us?'거래소별 시가총액 순':'시가총액 순'):PKSORTS.filter(function(s){return s[0]===PKSORT})[0][1])+(PKSORT==='up'||PKSORT==='dn'||PKSORT==='tv'||PKSORT==='hi'?(PKSORT==='hi'?' (52주 고점 대비 · '+(us?'나스닥·뉴욕 시총 상위 1,000개씩':'코스피·코스닥')+' · 전 거래일 종가 기준':' (전 거래일 종가 기준')+(SLU[PKMODE]?' · '+SLU[PKMODE].slice(5,10).replace('-','/')+' 갱신':'')+')':''))+(PKR.length>PKN?' · 아래로 스크롤':'');
+  document.getElementById('pkS').textContent=(L.fb?'목록을 불러오지 못했습니다. '+(us?'티커를':'6자리 코드를')+' 입력해 선택하세요. ':'')+(q?PKR.length.toLocaleString('ko-KR')+'개 검색됨 (거래대금 필터 미적용)':'거래대금 '+(us?'$5M':'50억')+' 이상 · '+'전체 '+PKR.length.toLocaleString('ko-KR')+'개 · '+(PKSORT==='cap'?(us?'거래소별 시가총액 순':'시가총액 순'):PKSORTS.filter(function(s){return s[0]===PKSORT})[0][1])+(PKSORT==='up'||PKSORT==='tv'||PKSORT==='hi'?(PKSORT==='hi'?' (52주 고점 대비 · '+(us?'나스닥·뉴욕 시총 상위 1,000개씩':'코스피·코스닥')+' · 전 거래일 종가 기준':' (전 거래일 종가 기준')+(SLU[PKMODE]?' · '+SLU[PKMODE].slice(5,10).replace('-','/')+' 갱신':'')+')':''))+(PKR.length>PKN?' · 아래로 스크롤':'');
 }
 function pkPick(mode,cb){
   PKC=cb;PKF='all';PKSORT='cap';PKV=0;PKMODE=mode;
@@ -984,7 +983,6 @@ function pkPick(mode,cb){
   var fl=mode==='us'?[['all','전체'],['N','나스닥'],['Y','뉴욕'],['A','아멕스']]:[['all','전체'],['P','코스피'],['D','코스닥'],['E','ETF']];
   document.getElementById('pkF').innerHTML=fl.map(function(a){return '<button type="button" data-f="'+a[0]+'" class="'+(a[0]==='all'?'on':'')+'">'+a[1]+'</button>'}).join('');
   document.getElementById('pkO').innerHTML=PKSORTS.map(function(a){return '<button type="button" data-s="'+a[0]+'" class="'+(a[0]==='cap'?'on':'')+'">'+a[1]+'</button>'}).join('');
-  document.getElementById('pkV').innerHTML='<span class="pkvl">거래대금</span>'+PKVL[mode].map(function(a,i){return '<button type="button" data-v="'+i+'" class="'+(i===0?'on':'')+'">'+a[1]+'</button>'}).join('');
   document.getElementById('pkL').innerHTML='<div class="pkr" style="cursor:default"><b style="color:var(--mut)">목록 불러오는 중…</b></div>';
   slLoad(mode).then(function(){if(PKMODE===mode&&PKC)pkShow()});
   setTimeout(function(){try{qi.focus()}catch(e){}},80);
@@ -1004,8 +1002,6 @@ function pkClose(){document.getElementById('pkm').classList.remove('on');PKC=nul
   document.getElementById('pkF').addEventListener('click',function(ev){var b=ev.target&&ev.target.closest&&ev.target.closest('button');if(!b)return;PKF=b.getAttribute('data-f');
     var bs=this.querySelectorAll('button');for(var i=0;i<bs.length;i++)bs[i].classList.toggle('on',bs[i]===b);pkShow()});
   document.getElementById('pkO').addEventListener('click',function(ev){var b=ev.target&&ev.target.closest&&ev.target.closest('button');if(!b)return;PKSORT=b.getAttribute('data-s');
-    var bs=this.querySelectorAll('button');for(var i=0;i<bs.length;i++)bs[i].classList.toggle('on',bs[i]===b);pkShow()});
-  document.getElementById('pkV').addEventListener('click',function(ev){var b=ev.target&&ev.target.closest&&ev.target.closest('button');if(!b)return;PKV=+b.getAttribute('data-v');
     var bs=this.querySelectorAll('button');for(var i=0;i<bs.length;i++)bs[i].classList.toggle('on',bs[i]===b);pkShow()});
   document.getElementById('pkX').addEventListener('click',pkClose);
   document.addEventListener('keydown',function(ev){if(ev.key==='Escape')pkClose()});
