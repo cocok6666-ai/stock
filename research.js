@@ -203,7 +203,7 @@
       if (!us && deal.length && deal[0].f < 0 && deal[0].i < 0) risks.push('외국인·기관 동반 순매도 — 수급 이탈');
 
       var sub = '1거래일 · 오버나이트 · 기준일 ' + (last ? last.d : '—') + (o.live ? ' (장중 값 포함)' : '');
-      var h = head('① 종가매수 → 익일 시가매도', sub, pass, tot);
+      var h = head('단기 · 종가매수 → 익일 시가매도', sub, pass, tot);
       h += kv([
         ['종가', PR(P)], ['당일 등락', PC(chg, 2)], ['종가강도', fin(strength) ? strength.toFixed(0) + '%' : '—'],
         ['거래량 배수', fin(vx) ? vx.toFixed(2) + '배' : '—'], ['20일 고점 대비', PC(fromH20, 1)], ['ATR(14)', fin(A) ? PR(A) + ' (' + atrp.toFixed(2) + '%)' : '—']
@@ -262,7 +262,7 @@
       var rvQ = ql >= 2 ? (function () { var a = q.get('매출액', qa[ql - 2].key), b = q.get('매출액', qa[ql - 1].key); return a > 0 ? (b / a - 1) * 100 : NaN; })() : NaN;
       if (ql) { add(fin(opY) ? opY > 0 : null, '최근 분기(' + qa[ql - 1].title + ') ' + (us ? 'EBIT' : '영업이익') + ' YoY ' + S(opY, 1) + '% · QoQ ' + S(opQ, 1) + '%'); }
 
-      var h = head('② 수개월 보유 · 스윙 (3~6개월)', '추세 · 모멘텀 · 실적 · 컨센서스 · 기준일 ' + (last ? last.d : '—'), pass, tot);
+      var h = head('중기 · 스윙 (3~6개월)', '추세 · 모멘텀 · 실적 · 컨센서스 · 기준일 ' + (last ? last.d : '—'), pass, tot);
       h += kv([
         ['현재가', PR(P)], ['20일선', PR(m20) + ' <small>' + S(d20, 1) + '%</small>'], ['60일선', PR(m60) + ' <small>' + S(d60, 1) + '%</small>'],
         ['120일선', PR(m120) + ' <small>' + S(d120, 1) + '%</small>'], ['배열', aligned === true ? '정배열' : aligned === false ? '혼조/역배열' : '—'], ['52주 위치', fin(pos52) ? pos52.toFixed(0) + '% <small>(' + PR(lo52) + '~' + PR(hi52) + ')</small>' : '—'],
@@ -295,7 +295,7 @@
       var opT = us ? 'EBIT' : '영업이익', niT = '당기순이익';
       var sub = '재무 · 밸류에이션 · 내재가치 · 3년 시나리오';
       if (!fa) {
-        out[2] = head('③ 수년 보유 · 장기 투자', sub, 0, 0) + '<div class="rnw"><b>재무 데이터 없음</b><ul><li>이 종목(ETF·신규상장 등)은 연간 재무 자료를 읽지 못했습니다. 컨센서스 목표가 ' + PR(tp) + ' (여력 ' + S(up, 1) + '%)</li></ul></div>' + DISC;
+        out[2] = head('장기 · 투자 (3년 이상)', sub, 0, 0) + '<div class="rnw"><b>재무 데이터 없음</b><ul><li>이 종목(ETF·신규상장 등)은 연간 재무 자료를 읽지 못했습니다. 컨센서스 목표가 ' + PR(tp) + ' (여력 ' + S(up, 1) + '%)</li></ul></div>' + DISC;
         return;
       }
       var ac = actual(fa), allc = fa.cols, lastA = ac[ac.length - 1], estC = allc.filter(function (c) { return c.est; })[0];
@@ -344,7 +344,7 @@
       rowF('PBR', function (c) { var v = fa.get('PBR', c.key); return fin(v) ? v.toFixed(2) + '배' : '—'; });
       var colsF = ['항목'].concat(showCols.map(function (c) { return c.title.replace(/\.$/, '').slice(0, us ? 7 : 7) + (c.est ? '<i class="rne">E</i>' : ''); }));
 
-      var h = head('③ 수년 보유 · 장기 투자', sub, pass, tot);
+      var h = head('장기 · 투자 (3년 이상)', sub, pass, tot);
       h += kv([
         ['시가총액', esc(ti.marketValue || '—')], ['PER / PBR', (fin(per) ? per.toFixed(1) : '—') + ' / ' + (fin(pbr) ? pbr.toFixed(2) : '—')], ['EPS / BPS', (fin(eps) ? F(eps, us ? 2 : 0) : '—') + ' / ' + (fin(bps) ? F(bps, us ? 2 : 0) : '—')],
         ['과거 평균 PER', fin(perAvg) ? perAvg.toFixed(1) + '배 <small>(' + perMin.toFixed(1) + '~' + perMax.toFixed(1) + ')</small>' : '—'], ['PEG', fin(peg) ? peg.toFixed(2) : '—'], ['배당수익률', fin(divy) ? divy.toFixed(2) + '%' : '—'],

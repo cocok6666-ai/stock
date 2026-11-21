@@ -366,7 +366,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
     <div class="sarl" style="margin:12px 0 4px"><button id="saSim" type="button" class="sast sasim">🎮 5거래일 종가매매 시뮬레이터 <small>종목당 1천만원 · 종가매수 → 다음날 시가매도 · 재미로 해보기</small></button></div>
   </div>
 </div>
-<script src="research.js?v=3"></script>
+<script src="research.js?v=4"></script>
 <script>
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function sign(p){var s=String(p||'').trim();if(!s)return 'flat';if(/^[-−▼]/.test(s))return 'dn';if(/^[+▲]?0([.,]0+)?%?$/.test(s))return 'flat';return 'up'}
@@ -895,7 +895,7 @@ function saRender(code,nm,bs,ig,nw,errs,us){
 }
 function saTabs(base,pro){
   if(!pro)return base;
-  return '<div class="rntabs" id="rnTabs"><button type="button" class="on" data-rt="0">종합</button><button type="button" data-rt="1">①종가베팅</button><button type="button" data-rt="2">②수개월</button><button type="button" data-rt="3">③수년</button></div>'
+  return '<div class="rntabs" id="rnTabs"><button type="button" class="on" data-rt="0">종합</button><button type="button" data-rt="1">단기</button><button type="button" data-rt="2">중기</button><button type="button" data-rt="3">장기</button></div>'
     +'<div class="rnp on" data-rp="0">'+base+'</div>'+pro.map(function(x,i){return '<div class="rnp" data-rp="'+(i+1)+'">'+x+'</div>'}).join('');
 }
 function saPro(us,bs,ig,pages,fa,fq,deal){
