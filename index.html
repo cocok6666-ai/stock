@@ -464,7 +464,6 @@ function nfOpen(){
   if(m){var v=parseFloat(m.pct);nfSetSign(v<0?'-':'+');nfEl('nfI').value=Math.abs(v).toFixed(2)}
   nfEl('nfClr').style.display=m?'block':'none';
   nfEl('nfm').classList.add('on');
-  setTimeout(function(){try{nfEl('nfI').focus()}catch(e){}},50);
 }
 function nfClose(){nfEl('nfm').classList.remove('on')}
 function nfApply(){
@@ -545,7 +544,7 @@ function applyName(){
   document.getElementById('ttl').textContent=titleText();
   document.title=titleText();
 }
-function unOpen(){var e=document.getElementById('unI');e.value=userName();document.getElementById('unE').textContent='';document.getElementById('unClr').style.display=userName()?'block':'none';document.getElementById('unm').classList.add('on');setTimeout(function(){try{e.focus()}catch(x){}},50)}
+function unOpen(){var e=document.getElementById('unI');e.value=userName();document.getElementById('unE').textContent='';document.getElementById('unClr').style.display=userName()?'block':'none';document.getElementById('unm').classList.add('on')}
 function unClose(){document.getElementById('unm').classList.remove('on')}
 function unApply(){
   var v=document.getElementById('unI').value.trim();
@@ -934,7 +933,6 @@ async function saSave(){
 function saOpen(){
   saEl('sam').classList.add('on');saCfgRender();
   var l=lsGet('sa_last');if(l&&!saEl('saI').value)saEl('saI').value=l;
-  setTimeout(function(){try{saEl('saI').focus()}catch(e){}},50);
 }
 function saClose(){saEl('sam').classList.remove('on')}
 (function(){
@@ -1031,7 +1029,6 @@ function pkPick(mode,cb){
   document.getElementById('pkO').innerHTML=PKSORTS.map(function(a){return '<button type="button" data-s="'+a[0]+'" class="'+(a[0]==='cap'?'on':'')+'">'+a[1]+'</button>'}).join('');
   document.getElementById('pkL').innerHTML='<div class="pkr" style="cursor:default"><b style="color:var(--mut)">목록 불러오는 중…</b></div>';
   slLoad(mode).then(function(){if(PKMODE===mode&&PKC)pkShow()});
-  setTimeout(function(){try{qi.focus()}catch(e){}},80);
 }
 function pkClose(){document.getElementById('pkm').classList.remove('on');PKC=null}
 (function(){
