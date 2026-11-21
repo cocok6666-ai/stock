@@ -1,0 +1,20 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          H='User-Agent: Mozilla/5.0'
+          for u in "https://m.stock.naver.com/api/stock/005930/basic" "https://m.stock.naver.com/api/stock/005930/integration" "https://m.stock.naver.com/api/stock/AAPL.O/basic" "https://m.stock.naver.com/api/stock/247540/integration"; do
+            echo "=== $u"; curl -s -H "$H" "$u" | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+def w(o,p='',dep=0):
+    if isinstance(o,dict):
+        for k,v in o.items():
+            if isinstance(v,(dict,list)) and dep<2: print(p+k+':'+type(v).__name__); w(v,p+k+'.',dep+1)
+            elif not isinstance(v,(dict,list)): print(p+k+'='+str(v)[:50])
+    elif isinstance(o,list) and o: w(o[0],p+'[0].',dep+1)
+w(d)" | grep -i "indust\|sector\|upjong\|category\|theme\|group\|Kor\|stockEndType\|Name" | head -30
+          done
