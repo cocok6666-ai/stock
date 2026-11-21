@@ -248,9 +248,9 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .exa{display:flex;gap:10px}.exa button{flex:1;height:48px;border-radius:12px;font-size:15px;font-weight:900;cursor:pointer;border:2px solid #1d1a14}
 .exno{background:#1d1a14;color:#f4efe4}.exyes{background:#fff;color:#c2261f;border-color:#c2261f!important}
 .stars{color:#f5b301;letter-spacing:1px;font-size:.95em;white-space:nowrap}.stars i{font-style:normal;color:rgba(150,140,120,.35)}
-.svs{display:inline-block;font-size:17px;margin-left:6px;vertical-align:1px}
-.stg .stars{font-size:13px;margin-left:2px}
-.rnb .stars{display:block;font-size:11px;margin-top:1px;color:#ffe08a}.rnb .stars i{color:rgba(255,255,255,.35)}
+.svs{display:inline-block;font-size:24px;margin-left:8px;vertical-align:-1px;letter-spacing:2px}
+.stg .stars{font-size:17px;margin-left:4px;letter-spacing:2px}
+.rnb .stars{display:block;font-size:13px;letter-spacing:1px;margin-top:1px;color:#ffe08a}.rnb .stars i{color:rgba(255,255,255,.35)}
 .sasim{background:linear-gradient(135deg,#0f766e,#0a4f49)!important;border-color:#0a4f49!important}.sasim small{color:#bfe9e3!important}
 .sib .stl{padding:0 0 10px}
 .siw{margin:10px 12px;border:2.5px solid #e11d2e;border-radius:14px;background:#fff5f5;padding:11px 12px;font-size:12.5px;line-height:1.65;color:#6b1018}.siw b{color:#c2161f}
@@ -872,7 +872,7 @@ function saRender(code,nm,bs,ig,nw,errs,us){
   var h='<div class="sas"><div class="sat"><b><a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(name)+'</a></b><span>'+esc(mkt)+(mkt?' · ':'')+esc(code)+'</span></div>'
     +'<div class="spx '+cl+'">'+saF(price,us?2:0)+(us?'<small style="margin-right:4px">USD</small>':'')+'<small>'+(isFinite(chg)?arrow(cl)+saF(Math.abs(chg),us?2:0):'')+' '+(isFinite(rt)?'('+saSp(rt)+'%)':'')+'</small></div>'
     +'<div style="font-size:11.5px;color:var(--mut);margin-top:2px">'+esc(saD(bs&&bs.localTradedAt))+' '+(us?'(미국 현지) ':'')+(bs&&String(bs.marketStatus||'').toUpperCase()==='OPEN'?'장중':'종가 기준')+(us&&bs&&bs.overMarketPriceInfo&&bs.overMarketPriceInfo.overPrice?' · 시간외 '+esc(bs.overMarketPriceInfo.overPrice)+' ('+esc(saSp(saN(bs.overMarketPriceInfo.fluctuationsRatio)))+'%)':'')+'</div></div>';
-  h+='<div class="sas"><div class="svh"><h4 class="svt">종합 판단 <span class="svi2">'+vd[1]+'</span><span class="svs">'+STARS(vl)+'</span></h4><div class="sstar"><div><b>우호</b>'+stars(g,'▲','u')+'<em>'+Math.min(5,g)+'/5</em></div><div><b>주의</b>'+stars(w,'▼','d')+'<em>'+Math.min(5,w)+'/5</em></div></div></div>'
+  h+='<div class="sas"><div class="svh"><h4 class="svt">종합 판단 <span class="svi2">'+vd[1]+'</span><span class="svs">'+STARS(vl)+'</span></h4></div>'
     +'<b style="font-size:12.5px">핵심 3가지</b><div style="margin-top:6px">'+sigs(S.slice(0,3))+'</div>'
     +(S.length>3?'<b style="font-size:12.5px">추가 체크</b><div style="margin-top:6px">'+sigs(S.slice(3))+'</div>':'')+'</div>';
   var kv=[['시가총액',saInfo(ig,['marketValue'],/시총|시가총액/)],['PER',saInfo(ig,['per'],/^PER/i)],['PBR',saInfo(ig,['pbr'],/^PBR/i)],['EPS',saInfo(ig,['eps'],/^EPS/i)],['배당수익률',saInfo(ig,['dividendYieldRatio'],/배당수익률/)],['외국인소진율',saInfo(ig,['foreignRate'],/외[인국]인?\s*소진율/)],['52주 최고',saInfo(ig,['highPriceOf52Weeks'],/52주\s*최고/)],['52주 최저',saInfo(ig,['lowPriceOf52Weeks'],/52주\s*최저/)]].filter(function(x){return String(x[1]||'').trim()});
@@ -1142,7 +1142,7 @@ function stRender(){
   var h=stGuide(STM),first=true;
   [5,4,3,2,1].forEach(function(l){
     var a=g[l],v=STLV[l];
-    h+='<details class="stg" data-l="'+l+'"><summary><span class="stn">'+v[0]+' '+STARS(l)+' <small style="font-weight:600;color:var(--mut);font-size:11px">'+v[2]+'</small></span><em class="l'+l+'">'+a.length+'개</em><i class="stgb"></i></summary><div class="stb2" data-l="'+l+'">'
+    h+='<details class="stg" data-l="'+l+'"><summary><span class="stn">'+v[0]+' '+STARS(l)+'</span><em class="l'+l+'">'+a.length+'개</em><i class="stgb"></i></summary><div class="stb2" data-l="'+l+'">'
       +(a.length?a.slice(0,30).map(function(x){return stRow(x)}).join('')+(a.length>30?'<div class="stmore" data-l="'+l+'">+ '+(a.length-30)+'개 더 보기</div>':''):'<div class="stg2" style="padding:10px 13px">해당 종목 없음</div>')+'</div></details>';
   });
   L.innerHTML=h+stWarn();
