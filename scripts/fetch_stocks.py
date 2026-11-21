@@ -25,6 +25,24 @@ def paged(base, size=100, maxpages=120):
             break
     return out
 
+def fn(x):
+    try:
+        return float(str(x).replace(",", "").replace("+", "").replace("%", "").replace("\u2212", "-"))
+    except Exception:
+        return None
+
+def extra(s):
+    """등락률(%)·거래대금(원/달러 환산)·거래량 — 정렬 메뉴용. 없으면 None."""
+    chg = fn(s.get("fluctuationsRatio"))
+    vol = fn(s.get("accumulatedTradingVolume"))
+    px = fn(s.get("closePrice"))
+    tv = fn(s.get("accumulatedTradingValue"))
+    if tv is not None and "백만" in str(s.get("accumulatedTradingValue")):
+        tv *= 1e6
+    if tv is None and vol is not None and px is not None:
+        tv = vol * px
+    return [None if chg is None else round(chg, 2), None if tv is None else round(tv / 1e6, 1)]  # 거래대금: 백만 단위
+
 kr, seen = [], set()
 for mk, url in [("P", "https://m.stock.naver.com/api/stocks/marketValue/KOSPI"),
                 ("D", "https://m.stock.naver.com/api/stocks/marketValue/KOSDAQ"),
@@ -33,7 +51,7 @@ for mk, url in [("P", "https://m.stock.naver.com/api/stocks/marketValue/KOSPI"),
         for s in paged(url):
             c, n = s.get("itemCode"), s.get("stockName")
             if c and n and c not in seen:
-                seen.add(c); kr.append([c, n, "E" if str(s.get("stockEndType", "")).lower() in ("etf", "etn") else mk])
+                seen.add(c); kr.append([c, n, "E" if str(s.get("stockEndType", "")).lower() in ("etf", "etn") else mk] + extra(s))
     except Exception as e:
         print("KR 실패", mk, e)
 
@@ -43,7 +61,7 @@ for mk, ex in [("N", "NASDAQ"), ("Y", "NYSE"), ("A", "AMEX")]:
         for s in paged(f"https://api.stock.naver.com/stock/exchange/{ex}/marketValue"):
             rc, sy, n, e = s.get("reutersCode"), s.get("symbolCode"), s.get("stockName"), s.get("stockNameEng") or ""
             if rc and sy and n and rc not in seen:
-                seen.add(rc); us.append([rc, sy, n, e, mk])
+                seen.add(rc); us.append([rc, sy, n, e, mk] + extra(s))
     except Exception as e:
         print("US 실패", ex, e)
 
