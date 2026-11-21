@@ -1169,40 +1169,51 @@ function stClose(){saEl('stm').classList.remove('on')}
 })();
 
 
-/* ---------- 폰 뒤로가기: 열린 팝업부터 닫고, 더 닫을 게 없으면 종료 확인 ---------- */
+/* ---------- 폰 뒤로가기: 팝업을 열 때마다 기록을 1개씩 쌓아, 뒤로가기가 열린 순서의 역순으로 팝업을 닫게 함 ----------
+   스택: [base, main(첫 터치 때 생성), 팝업1, 팝업2 …]. 팝업을 버튼으로 닫으면 그 기록도 함께 걷어낸다.
+   팝업이 하나도 없는 상태에서 뒤로가기 → 종료 확인창 → "종료" 누르면 가드를 걷어 다음 뒤로가기가 종료. */
 (function(){
-  var exiting=false;
+  var exiting=false,PS=[],ign=0,IDS=['sam','pkm','stm','nfm','unm'];
   function el(i){return document.getElementById(i)}
-  function on(id){var e=el(id);return e&&e.classList.contains('on')}
-  function guard(){try{history.pushState({r:'main'},'')}catch(e){}}
-  /* 크롬은 사용자 조작 없이 쌓은 기록을 뒤로가기에서 건너뛰므로, 첫 터치 때와 매 터치마다 가드 기록을 확인해 채운다 */
+  function st(){try{return history.state&&history.state.r}catch(e){return null}}
+  function push(r){try{history.pushState({r:r},'')}catch(e){}}
   try{history.replaceState({r:'base'},'')}catch(e){}
-  function arm(){try{if(!exiting&&(!history.state||history.state.r!=='main'))guard()}catch(e){}}
+  function arm(){if(exiting)return;var s=st();if(!s||s==='base')push('main')}
   ['touchend','click','pointerup'].forEach(function(t){document.addEventListener(t,arm,{capture:true,passive:true})});
-  /* 앱을 다시 열면(백그라운드 복귀) 종료 준비 상태를 풀고 가드를 다시 쌓는다 */
-  function resume(){if(document.hidden)return;exiting=false;el('exm').classList.remove('on');setExit(0);arm()}
-  document.addEventListener('visibilitychange',resume);window.addEventListener('pageshow',resume);window.addEventListener('focus',resume);
   function setExit(stage){
-    el('exm').querySelector('.ext').textContent=stage?'종료 준비 완료':'앱을 종료할까요?';
-    el('exm').querySelector('.exs').innerHTML=stage?'이제 폰의 <b>뒤로가기를 한 번 더</b> 누르면 앱이 종료됩니다.<br>계속 사용하려면 아래 버튼을 누르세요.':'뒤로가기를 눌렀습니다.<br>종료하지 않으려면 “계속 사용”을 누르세요.';
+    var m=el('exm');
+    m.querySelector('.ext').textContent=stage?'종료 준비 완료':'앱을 종료할까요?';
+    m.querySelector('.exs').innerHTML=stage?'이제 폰의 <b>뒤로가기를 한 번 더</b> 누르면 앱이 종료됩니다.<br>계속 사용하려면 아래 버튼을 누르세요.':'뒤로가기를 눌렀습니다.<br>종료하지 않으려면 “계속 사용”을 누르세요.';
     el('exYes').style.display=stage?'none':'';
   }
-  function backStep(){
-    if(on('exm')){el('exm').classList.remove('on');return}
-    if(on('stm')){stClose();return}
-    if(on('pkm')){pkClose();return}
-    if(on('nfm')){nfClose();return}
-    if(on('unm')){unClose();return}
-    if(on('sam')){saClose();return}
-    setExit(0);el('exm').classList.add('on');
-  }
+  function resume(){if(document.hidden)return;exiting=false;el('exm').classList.remove('on');setExit(0);arm()}
+  document.addEventListener('visibilitychange',resume);window.addEventListener('pageshow',resume);window.addEventListener('focus',resume);
+  /* 팝업이 열리면 기록 1개 추가, 버튼으로 닫히면 그 기록 제거 */
+  IDS.forEach(function(id){
+    var e=el(id),was=e.classList.contains('on');
+    new MutationObserver(function(){
+      var now=e.classList.contains('on');
+      if(now===was)return;was=now;
+      if(now){if(PS.indexOf(id)<0){PS.push(id);push('pop')}}
+      else{
+        var k=PS.indexOf(id);if(k<0)return;           /* 뒤로가기로 이미 걷어낸 경우 */
+        var top=k===PS.length-1;PS.splice(k,1);
+        if(top){ign++;try{history.back()}catch(x){ign--}}
+      }
+    }).observe(e,{attributes:true,attributeFilter:['class']});
+  });
   window.addEventListener('popstate',function(){
+    if(ign>0){ign--;return}
     if(exiting)return;
-    backStep();guard();
+    var m=el('exm');
+    if(m.classList.contains('on')){m.classList.remove('on');if(st()!=='main')push('main');return}
+    if(PS.length){var id=PS.pop();el(id).classList.remove('on');return}
+    /* 팝업 없음: 종료 확인 */
+    setExit(0);m.classList.add('on');
+    if(st()!=='main')push('main');
   });
   el('exNo').addEventListener('click',function(){exiting=false;el('exm').classList.remove('on');setExit(0);arm()});
   el('exYes').addEventListener('click',function(){
-    /* 웹앱은 스스로 종료할 수 없으므로 가드 기록을 걷어내 "다음 뒤로가기=종료" 상태로 만든다 */
     exiting=true;setExit(1);
     try{history.go(-1)}catch(e){}
     setTimeout(function(){try{window.close()}catch(e){}},200);
