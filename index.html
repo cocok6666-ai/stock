@@ -1172,27 +1172,41 @@ function stClose(){saEl('stm').classList.remove('on')}
 /* ---------- 폰 뒤로가기: 열린 팝업부터 닫고, 더 닫을 게 없으면 종료 확인 ---------- */
 (function(){
   var exiting=false;
-  function on(id){var e=document.getElementById(id);return e&&e.classList.contains('on')}
+  function el(i){return document.getElementById(i)}
+  function on(id){var e=el(id);return e&&e.classList.contains('on')}
   function guard(){try{history.pushState({r:'main'},'')}catch(e){}}
   /* 크롬은 사용자 조작 없이 쌓은 기록을 뒤로가기에서 건너뛰므로, 첫 터치 때와 매 터치마다 가드 기록을 확인해 채운다 */
   try{history.replaceState({r:'base'},'')}catch(e){}
-  function arm(){try{if(!history.state||history.state.r!=='main')guard()}catch(e){}}
+  function arm(){try{if(!exiting&&(!history.state||history.state.r!=='main'))guard()}catch(e){}}
   ['touchend','click','pointerup'].forEach(function(t){document.addEventListener(t,arm,{capture:true,passive:true})});
+  /* 앱을 다시 열면(백그라운드 복귀) 종료 준비 상태를 풀고 가드를 다시 쌓는다 */
+  function resume(){if(document.hidden)return;exiting=false;el('exm').classList.remove('on');setExit(0);arm()}
+  document.addEventListener('visibilitychange',resume);window.addEventListener('pageshow',resume);window.addEventListener('focus',resume);
+  function setExit(stage){
+    el('exm').querySelector('.ext').textContent=stage?'종료 준비 완료':'앱을 종료할까요?';
+    el('exm').querySelector('.exs').innerHTML=stage?'이제 폰의 <b>뒤로가기를 한 번 더</b> 누르면 앱이 종료됩니다.<br>계속 사용하려면 아래 버튼을 누르세요.':'뒤로가기를 눌렀습니다.<br>종료하지 않으려면 “계속 사용”을 누르세요.';
+    el('exYes').style.display=stage?'none':'';
+  }
   function backStep(){
-    if(on('exm')){document.getElementById('exm').classList.remove('on');return}
+    if(on('exm')){el('exm').classList.remove('on');return}
     if(on('stm')){stClose();return}
     if(on('pkm')){pkClose();return}
     if(on('nfm')){nfClose();return}
     if(on('unm')){unClose();return}
     if(on('sam')){saClose();return}
-    document.getElementById('exm').classList.add('on');
+    setExit(0);el('exm').classList.add('on');
   }
   window.addEventListener('popstate',function(){
     if(exiting)return;
     backStep();guard();
   });
-  document.getElementById('exNo').addEventListener('click',function(){document.getElementById('exm').classList.remove('on')});
-  document.getElementById('exYes').addEventListener('click',function(){exiting=true;document.getElementById('exm').classList.remove('on');try{history.go(-2)}catch(e){}setTimeout(function(){try{window.close()}catch(e){}},300)});
+  el('exNo').addEventListener('click',function(){exiting=false;el('exm').classList.remove('on');setExit(0);arm()});
+  el('exYes').addEventListener('click',function(){
+    /* 웹앱은 스스로 종료할 수 없으므로 가드 기록을 걷어내 "다음 뒤로가기=종료" 상태로 만든다 */
+    exiting=true;setExit(1);
+    try{history.go(-1)}catch(e){}
+    setTimeout(function(){try{window.close()}catch(e){}},200);
+  });
 })();
 
 /* 팝업을 폰 입력기(키보드) 위쪽 보이는 영역에 맞춰 배치 */
