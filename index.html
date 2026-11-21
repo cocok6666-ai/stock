@@ -275,7 +275,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 </style>
 </head>
 <body>
-<header><div class="hd"><div class="logo" id="logo">딸</div><div class="ttl"><b id="ttl">주식딸랑이</b><span id="sub">—</span></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간</span></button><button class="rb" id="unBtn" type="button" aria-label="사용자 이름 입력"><span class="ic">👤</span><span class="lb2">사용자</span></button></div><div class="stat" id="stat"></div></header>
+<header><div class="hd"><div class="logo" id="logo">M</div><div class="ttl"><b id="ttl">주식딸랑이</b><span id="sub">—</span></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간</span></button><button class="rb" id="unBtn" type="button" aria-label="사용자 이름 입력"><span class="ic">👤</span><span class="lb2">사용자</span></button></div><div class="stat" id="stat"></div></header>
 <div class="wrap" id="app"></div>
 <div class="nfm" id="nfm" role="dialog" aria-modal="true" aria-labelledby="nfT">
   <div class="nfb">
@@ -543,7 +543,7 @@ function userName(){var n=lsGet('user_name')||'';return /^[가-힣]{3}$/.test(n)
 function titleText(){var n=userName();return n?n.slice(1)+'주식딸랑이':'주식딸랑이'}
 function applyName(){
   var n=userName();
-  document.getElementById('logo').textContent=n?n.charAt(0):'딸';
+  document.getElementById('logo').textContent=n?n.charAt(0):'M';
   document.getElementById('ttl').textContent=titleText();
   document.title=titleText();
 }
