@@ -54,7 +54,7 @@ const flat = m => m ? [m.lv, m.p, m.t] : [null, null, null];
   const out = { updated: new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 19) + '+09:00', kr: cur.kr || [], us: cur.us || [], meta: cur.meta || {} };
   const dates = {};
   if (MODE === 'kr' || MODE === 'all') {
-    let u = JSON.parse(fs.readFileSync('stocks.json', 'utf8')).kr.filter(x => (x[2] === 'P' || x[2] === 'D') && x[4] >= 5);
+    let u = JSON.parse(fs.readFileSync('stocks.json', 'utf8')).kr.filter(x => (x[2] === 'P' || x[2] === 'D') && x[4] >= 5 && !/스팩|SPAC/i.test(x[1]));
     if (LIMIT) u = u.slice(0, LIMIT);
     console.log('KR 대상', u.length);
     const r = await pool(u, x => one(false, x[0]));

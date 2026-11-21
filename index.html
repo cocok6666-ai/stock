@@ -214,14 +214,28 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .stg>summary::-webkit-details-marker{display:none}
 .stg>summary em{font-style:normal;font-size:12px;font-weight:700;color:#fff;border-radius:10px;padding:2px 9px}
 .stg>summary em.l1{background:#1e5bff}.stg>summary em.l2{background:#4a8bff}.stg>summary em.l3{background:#8b98b3;color:#0b1220}.stg>summary em.l4{background:#ff4d58}.stg>summary em.l5{background:#ff1f2d}
-.stg>summary::after{content:'▾';color:var(--mut);margin-left:4px}.stg[open]>summary::after{content:'▴'}
 .stg .stn{flex:1}
 .str{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 13px;border-bottom:1px solid var(--line);cursor:pointer}.str:active{background:var(--tile)}
 .str b{font-size:14px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.str span{flex:none;font-size:11.5px;color:var(--mut);text-align:right}.str span em{font-style:normal;font-weight:800;margin-left:4px}.str .pu{color:var(--up)}.str .pd{color:var(--dn)}
+.stb #stM{justify-content:center;gap:10px;margin:2px 0 10px;overflow:visible}
+.stb #stM button{flex:1;max-width:172px;height:46px;border-radius:14px;font-size:17px;font-weight:900;letter-spacing:-.3px}
+.stt{flex:none;display:flex;gap:4px;margin:0;align-items:flex-end}
+.stt button{flex:1;height:40px;border:2px solid var(--tc);border-bottom:none;border-radius:12px 12px 0 0;font-size:13.5px;font-weight:900;cursor:pointer;background:var(--tl);color:var(--tc);padding:0 4px;position:relative;top:0}
+.stt button.on{background:var(--tc);color:#fff;height:44px}
+.stt button[data-k="1"]{--tc:#b45f06;--tl:#fbefd9}.stt button[data-k="2"]{--tc:#0f766e;--tl:#dcf2ee}.stt button[data-k="3"]{--tc:#5b3fb5;--tl:#e9e3fa}
+.stb .stinfo.c1{--tc:#b45f06;--tl:#fbefd9}.stb .stinfo.c2{--tc:#0f766e;--tl:#dcf2ee}.stb .stinfo.c3{--tc:#5b3fb5;--tl:#e9e3fa}
+.stb .stinfo{flex:none;background:var(--tl);border:2px solid var(--tc);border-radius:0 0 12px 12px;padding:9px 11px;margin:0 0 10px;font-size:12px;color:#3a3226;line-height:1.6}.stb .stinfo b{color:var(--tc)}
+.stdet{border:2.5px solid #e11d2e;border-radius:14px;background:#fff5f5;margin:10px 12px}
+.stdet>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;padding:11px 12px;font-size:13.5px;font-weight:800;color:#8a0f1c}
+.stdet>summary::-webkit-details-marker{display:none}
+.stdet>summary .rq{flex:none;background:#e11d2e;color:#fff;border-radius:8px;padding:3px 9px;font-size:12.5px;font-weight:900;letter-spacing:.5px}
+.stdet>summary small{display:block;font-size:11.5px;font-weight:700;color:#b4232f;margin-top:1px}
+.stdet>summary::after{content:'▾';margin-left:auto;font-size:20px;color:#e11d2e}.stdet[open]>summary::after{content:'▴'}
+.stdet>.stg2{border-top:1.5px dashed #e8a0a6}
+.stgb{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:74px;height:34px;border-radius:17px;background:#1d1a14;color:#f4efe4;font-size:13px;font-weight:800;font-style:normal;padding:0 12px}
+.stgb::before{content:'펼치기 ▾'}.stg[open]>summary .stgb{background:#e11d2e}.stg[open]>summary .stgb::before{content:'접기 ▴'}
 .stmore{padding:10px;text-align:center;font-size:12.5px;font-weight:700;color:var(--acc);cursor:pointer}
 .stg2{padding:12px 13px;font-size:12px;line-height:1.7;color:#4d4435}.stg2 h6{margin:10px 0 3px;font-size:12.5px;color:#0f766e}.stg2 h6:first-child{margin-top:0}.stg2 ul{margin:0;padding-left:17px}.stg2 li{margin:2px 0}
-.stwarn{background:#fff3d6;border:1px solid #e2c27a;border-radius:12px;padding:10px 12px;margin:10px 12px;font-size:12px;line-height:1.65;color:#6b4e12}.stwarn>b{display:block;margin-bottom:3px}
-.stdet{margin-bottom:6px;flex:none}.stdet>summary{cursor:pointer;font-size:12.5px;font-weight:800;color:#0f766e;padding:6px 2px}
 .pkfl button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .pkst{flex:none;font-size:11.5px;color:var(--mut);margin:0 2px 6px}
 .pkl{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:12px;background:var(--card);border:1px solid var(--line)}
@@ -281,7 +295,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
   <div class="pkb stb">
     <div class="sah"><h3 id="stT">📊 분석통계</h3><button class="sax" id="stX" type="button">창닫기</button></div>
     <div class="pkfl" id="stM"></div>
-    <div class="pkfl pkso" id="stS"></div>
+    <div class="stt c1" id="stS"></div>
     <div class="stinfo" id="stI"></div>
     <div class="stl" id="stL"></div>
   </div>
@@ -1050,16 +1064,16 @@ function stLoad(){
 }
 function stGuide(m){
   var mt=(STD&&STD.meta&&STD.meta[m])||{},nk=(STD&&STD.meta&&STD.meta.kr)?STD.meta.kr.universe:'약 650',nu=(STD&&STD.meta&&STD.meta.us)?STD.meta.us.universe:500;
-  return '<details class="stdet" id="stDet"'+(lsGet('st_seen')?'':' open')+'><summary>📖 안내 · 이 통계 보는 법 (꼭 읽어보세요)</summary><div class="stg2">'
+  return '<details class="stdet" id="stDet"><summary><span class="rq">필독</span><span>안내 · 이 통계 보는 법<small>터치하여 꼭 읽어보세요</small></span></summary><div class="stg2">'
   +'<h6>이 통계는 무엇인가요?</h6><ul><li>종목분석의 <b>3가지 투자방식</b> 체크리스트를 대상 종목 전체에 <b>같은 규칙으로 계산</b>해 단계별로 묶은 목록입니다. 종목을 누르면 해당 방식의 종목분석 세부자료가 열립니다.</li><li>종목분석 화면의 등급과 <b>같은 계산 코드</b>를 쓰므로 목록과 상세 화면의 단계가 일치합니다(데이터 시점이 다르면 달라질 수 있음).</li></ul>'
   +'<h6>5단계 기준</h6><ul><li>체크리스트 <b>통과 비율</b>로 나눕니다: 84%↑ 🚀강력 우호 · 67%↑ 📈우호 · 40%↑ ⚖️중립 · 20%↑ ⚠️주의 · 그 미만 🚨위험.</li><li>목록의 “통과 6/8”은 판정 가능한 항목 8개 중 6개 충족이라는 뜻이며, 같은 단계 안에서는 통과 비율이 높은 순입니다.</li><li>데이터가 모자라 판정 항목이 3개 미만인 종목은 그 방식에서 제외됩니다.</li></ul>'
   +'<h6>3가지 투자방식</h6><ul><li><b>① 종가베팅</b>(1거래일): 종가강도, 거래량 배수, 5일선, 20일 고점 근접도, 외국인·기관 수급, 최근 60일 오버나이트 갭 승률.</li><li><b>② 수개월</b>(3~6개월): 60일선·이동평균 배열, 3개월 수익률, RSI, MACD, 수급, 컨센서스 목표가 여력, 최근 분기 실적.</li><li><b>③ 수년</b>(장기): ROE, 영업이익률, 매출·이익 성장률(CAGR), 부채비율, PER(과거 평균 대비)·PEG, 목표가 여력, 배당, 컨센서스 신뢰성.</li></ul>'
-  +'<h6>대상 종목</h6><ul><li>국내: 코스피·코스닥 중 <b>거래대금 50억원 이상</b> 종목('+nk+'개). 미국: 나스닥·뉴욕 <b>거래대금 상위 '+nu+'개</b>.</li><li>ETF·ETN, 아멕스, 거래가 적은 종목, 자료를 읽지 못한 종목은 포함되지 않습니다. 재무자료가 없는 신규상장 등은 ③에서 빠집니다.</li></ul>'
+  +'<h6>대상 종목</h6><ul><li>국내: 코스피·코스닥 중 <b>거래대금 50억원 이상</b> 종목('+nk+'개). 미국: 나스닥·뉴욕 <b>거래대금 상위 '+nu+'개</b>.</li><li>ETF·ETN, <b>스팩(SPAC)</b>, 아멕스, 거래가 적은 종목, 자료를 읽지 못한 종목은 포함되지 않습니다. 재무자료가 없는 신규상장 등은 ③에서 빠집니다.</li></ul>'
   +'<h6>갱신 시각</h6><ul><li>평일 <b>오전 6시 30분</b>: 국내·미국 전체(전 거래일 종가 기준). 평일 <b>오후 3시 10분</b>: 국내만 다시 계산(장 마감 직전 값).</li><li>장중 시세 변동은 실시간 반영되지 않습니다. 오후 3시 10분 값은 종가와 다를 수 있으니 <b>종가베팅은 장 마감 후 종목분석 화면에서 다시 확인</b>하세요.</li></ul>'
   +'</div></details>';
 }
 function stWarn(){
-  return '<div class="stwarn"><b>⚠️ 투자 전 꼭 확인하세요</b><ul style="margin:0;padding-left:17px">'
+  return '<details class="stdet" open><summary><span class="rq">필독</span><span>투자 전 꼭 확인하세요<small>매수·매도 추천이 아닙니다</small></span></summary><div class="stg2"><ul style="margin:0;padding-left:17px">'
   +'<li>이 목록은 규칙으로 계산한 <b>참고용 분류</b>이며 <b>매수·매도 추천이 아닙니다</b>. 투자 판단과 책임은 본인에게 있습니다.</li>'
   +'<li><b>높은 단계 ≠ 상승 보장, 낮은 단계 ≠ 하락 보장.</b> 단계는 “조건 충족 비율”일 뿐 예측이 아니며, 🚨위험은 매도 신호가 아닙니다.</li>'
   +'<li>과거 통계(갭·수익률·이동평균 등)는 미래를 보장하지 않고, 표본이 적으면 신뢰도가 낮습니다.</li>'
@@ -1067,7 +1081,7 @@ function stWarn(){
   +'<li>③ 재무·컨센서스는 추정치·일회성 이익·업황 사이클의 영향으로 <b>호황 정점에서 점수가 높게</b> 나올 수 있습니다.</li>'
   +'<li>자료는 네이버 금융 공개 데이터를 자동 수집한 것으로 <b>누락·지연·오류</b>가 있을 수 있습니다. 반드시 종목분석 세부자료와 공시·뉴스로 재확인하세요.</li>'
   +'<li>미국 종목은 시차·환율·거래시간이 달라 전 거래일(미국 현지) 종가 기준입니다.</li>'
-  +'</ul></div>';
+  +'</ul></div></details>';
 }
 function stRows(m,k){
   var a=(STD&&STD[m])||[],b=m==='kr'?3:4,i=b+(k-1)*3,g={1:[],2:[],3:[],4:[],5:[]};
@@ -1078,21 +1092,21 @@ function stRows(m,k){
 function stRow(x,l,n){return '<div class="str" data-id="'+esc(x.id)+'" data-n="'+esc(x.name)+'"><b>'+esc(x.name)+'</b><span>'+esc(x.sym)+' · 통과 '+x.p+'/'+x.t+(x.chg==null?'':' <em class="'+(x.chg>0?'pu':x.chg<0?'pd':'')+'">'+(x.chg>0?'+':'')+x.chg.toFixed(2)+'%</em>')+'</span></div>'}
 function stRender(){
   var L=saEl('stL'),M=saEl('stM'),S=saEl('stS'),I=saEl('stI');
-  M.innerHTML=[['kr','국내'],['us','미국']].map(function(a){return '<button type="button" data-m="'+a[0]+'" class="'+(a[0]===STM?'on':'')+'">'+a[1]+'</button>'}).join('');
+  M.innerHTML=[['kr','국내주식'],['us','미국주식']].map(function(a){return '<button type="button" data-m="'+a[0]+'" class="'+(a[0]===STM?'on':'')+'">'+a[1]+'</button>'}).join('');
   S.innerHTML=STKS.map(function(a){return '<button type="button" data-k="'+a[0]+'" class="'+(a[0]===STK?'on':'')+'">'+a[1]+'</button>'}).join('');
   if(!STD){I.innerHTML='';L.innerHTML='<div class="stg2">분석통계를 불러오지 못했습니다. 잠시 후 다시 열어 주세요. (통계는 평일 06:30·15:10 자동 생성되며, 처음 설정 직후에는 아직 없을 수 있습니다.)</div>'+stWarn();return}
   var mt=(STD.meta&&STD.meta[STM])||{},ks=STKS.filter(function(a){return a[0]===STK})[0],g=stRows(STM,STK);
   var d=(mt.asof||'').slice(5).replace('-','/'),at=(mt.at||'').slice(5,16).replace('-','/').replace('T',' ');
+  I.className='stinfo c'+STK;S.className='stt c'+STK;
   I.innerHTML='<b>'+ks[1]+'</b> · '+ks[2]+' ('+ks[3]+')<br>'+(STM==='kr'?'코스피·코스닥 거래대금 50억↑':'나스닥·뉴욕 거래대금 상위')+' · 기준 <b>'+(d||'—')+' 종가</b> · 계산 '+(at||'—')+' · 분석 '+(mt.ok||0)+'/'+(mt.universe||0)+'종목';
   var h=stGuide(STM),first=true;
   [5,4,3,2,1].forEach(function(l){
     var a=g[l],v=STLV[l];
-    h+='<details class="stg" data-l="'+l+'"'+((l>=4&&a.length)?' open':'')+'><summary><span class="stn">'+v[0]+' '+v[1]+' <small style="font-weight:600;color:var(--mut)">'+v[2]+'</small></span><em class="l'+l+'">'+a.length+'개</em></summary><div class="stb2" data-l="'+l+'">'
+    h+='<details class="stg" data-l="'+l+'"><summary><span class="stn">'+v[0]+' '+v[1]+' <small style="font-weight:600;color:var(--mut);font-size:11px">'+v[2]+'</small></span><em class="l'+l+'">'+a.length+'개</em><i class="stgb"></i></summary><div class="stb2" data-l="'+l+'">'
       +(a.length?a.slice(0,30).map(function(x){return stRow(x)}).join('')+(a.length>30?'<div class="stmore" data-l="'+l+'">+ '+(a.length-30)+'개 더 보기</div>':''):'<div class="stg2" style="padding:10px 13px">해당 종목 없음</div>')+'</div></details>';
   });
   L.innerHTML=h+stWarn();
   STX=g;L.scrollTop=0;
-  if(!lsGet('st_seen')){lsSet('st_seen','1')}
 }
 function stPick(id,name){
   stClose();
