@@ -923,8 +923,8 @@ function slLoad(m){
     var a=(j&&j[m])||[];if(a.length<100)throw 0;
     SLU[m]=(j&&j.updated)||'';
     SLM[m]=a.map(function(x,ix){
-      if(m==='kr'){var n=slNorm(x[1]);return {code:x[0],name:x[1],mk:x[2],n:n,c:String(x[0]).toLowerCase(),h:slCho(n),e:'',g:x[3]==null?null:+x[3],tv:x[4]==null?null:+x[4]}}
-      var ko=US_KO[x[1]]||x[2],n2=slNorm(ko+x[2]);return {code:x[0],sym:x[1],name:ko,mk:x[4],n:n2,c:String(x[1]).toLowerCase(),h:slCho(slNorm(ko)),e:slNorm(x[3]),en:x[3],g:x[5]==null?null:+x[5],tv:x[6]==null?null:+x[6]};
+      if(m==='kr'){var n=slNorm(x[1]);return {code:x[0],name:x[1],mk:x[2],n:n,c:String(x[0]).toLowerCase(),h:slCho(n),e:'',g:x[3]==null?null:+x[3],tv:x[4]==null?null:+x[4],h:(x[5]==null||x[5]>5||!x[4])?null:Math.min(0,+x[5])}}
+      var ko=US_KO[x[1]]||x[2],n2=slNorm(ko+x[2]);return {code:x[0],sym:x[1],name:ko,mk:x[4],n:n2,c:String(x[1]).toLowerCase(),h:slCho(slNorm(ko)),e:slNorm(x[3]),en:x[3],g:x[5]==null?null:+x[5],tv:x[6]==null?null:+x[6],h:(x[7]==null||x[7]>5||!x[6])?null:Math.min(0,+x[7])};
     });
     SLM[m].forEach(function(o,i){o.i=i});
   }).catch(function(){
@@ -937,11 +937,11 @@ function slLoad(m){
 }
 var MKN={P:'코스피',D:'코스닥',E:'ETF',N:'나스닥',Y:'뉴욕',A:'아멕스'};
 function PKQ_val(){return document.getElementById('pkQ').value}
-var PKSORTS=[['cap','시가총액순'],['up','등락률 상위'],['dn','등락률 하위'],['tv','거래대금순'],['nm','가나다순']];
+var PKSORTS=[['cap','시가총액순'],['up','등락률 상위'],['dn','등락률 하위'],['tv','거래대금순'],['hi','52주 신고가']];
 function pkSortL(a){
   if(PKSORT==='cap')return a;
   var b=a.slice(),nn=function(v){return v==null||!isFinite(v)};
-  if(PKSORT==='nm'){b.sort(function(x,y){return x.name<y.name?-1:x.name>y.name?1:0});return b}
+  if(PKSORT==='hi'){b.sort(function(x,y){var p=x.h,q=y.h;if(nn(p)&&nn(q))return x.i-y.i;if(nn(p))return 1;if(nn(q))return -1;if(p!==q)return q-p;return (nn(y.g)?-99:y.g)-(nn(x.g)?-99:x.g)});return b}
   var k=PKSORT==='tv'?'tv':'g',d=PKSORT==='dn'?1:-1;
   b.sort(function(x,y){var p=x[k],q=y[k];if(nn(p)&&nn(q))return x.i-y.i;if(nn(p))return 1;if(nn(q))return -1;return p===q?x.i-y.i:(p-q)*d});
   return b;
@@ -960,7 +960,7 @@ function pkFilter(){
 function pkMore(){
   var el=document.getElementById('pkL'),end=Math.min(PKR.length,PKN+60),h='',us=PKMODE==='us';
   for(var i=PKN;i<end;i++){var x=PKR[i];
-    h+='<div class="pkr" data-i="'+i+'"><b>'+esc(x.name)+'</b><span>'+esc(us?(x.sym+(x.en?' · '+x.en.slice(0,18):'')):(x.code+' · '+(MKN[x.mk]||'')))+(x.g==null?'':' <em class="'+(x.g>0?'pu':x.g<0?'pd':'')+'">'+(x.g>0?'+':'')+x.g.toFixed(2)+'%</em>')+'</span></div>'}
+    h+='<div class="pkr" data-i="'+i+'"><b>'+esc(x.name)+'</b><span>'+esc(us?(x.sym+(x.en?' · '+x.en.slice(0,18):'')):(x.code+' · '+(MKN[x.mk]||'')))+(PKSORT==='hi'&&x.h!=null?' <em class="'+(x.h>=-0.1?'pu':'')+'">'+(x.h>=-0.1?'신고가':'고점 '+x.h.toFixed(1)+'%')+'</em>':'')+(x.g==null?'':' <em class="'+(x.g>0?'pu':x.g<0?'pd':'')+'">'+(x.g>0?'+':'')+x.g.toFixed(2)+'%</em>')+'</span></div>'}
   PKN=end;el.insertAdjacentHTML('beforeend',h);
 }
 function pkShow(){
@@ -970,7 +970,7 @@ function pkShow(){
     var dq=us?/^[A-Za-z][A-Za-z.\-]{0,5}$/.test(q):/^\d{6}$/.test(q);
     el.innerHTML='<div class="pkr" style="cursor:default"><b style="color:var(--mut)">검색 결과가 없습니다</b></div>'+(dq?'<div class="pkr dir" data-direct="'+esc(us?q.toUpperCase():q)+'"><b>'+esc(us?q.toUpperCase():q)+' 그대로 사용</b><span>직접</span></div>':'');
   }else pkMore();
-  document.getElementById('pkS').textContent=(L.fb?'목록을 불러오지 못했습니다. '+(us?'티커를':'6자리 코드를')+' 입력해 선택하세요. ':'')+(q?PKR.length.toLocaleString('ko-KR')+'개 검색됨':'전체 '+PKR.length.toLocaleString('ko-KR')+'개 · '+(PKSORT==='cap'?(us?'거래소별 시가총액 순':'시가총액 순'):PKSORTS.filter(function(s){return s[0]===PKSORT})[0][1])+(PKSORT==='up'||PKSORT==='dn'||PKSORT==='tv'?' (전 거래일 종가 기준'+(SLU[PKMODE]?' · '+SLU[PKMODE].slice(5,10).replace('-','/')+' 갱신':'')+')':''))+(PKR.length>PKN?' · 아래로 스크롤':'');
+  document.getElementById('pkS').textContent=(L.fb?'목록을 불러오지 못했습니다. '+(us?'티커를':'6자리 코드를')+' 입력해 선택하세요. ':'')+(q?PKR.length.toLocaleString('ko-KR')+'개 검색됨':'전체 '+PKR.length.toLocaleString('ko-KR')+'개 · '+(PKSORT==='cap'?(us?'거래소별 시가총액 순':'시가총액 순'):PKSORTS.filter(function(s){return s[0]===PKSORT})[0][1])+(PKSORT==='up'||PKSORT==='dn'||PKSORT==='tv'||PKSORT==='hi'?(PKSORT==='hi'?' (52주 고점 대비 · '+(us?'나스닥·뉴욕 시총 상위 1,000개씩':'코스피·코스닥')+' · 전 거래일 종가 기준':' (전 거래일 종가 기준')+(SLU[PKMODE]?' · '+SLU[PKMODE].slice(5,10).replace('-','/')+' 갱신':'')+')':''))+(PKR.length>PKN?' · 아래로 스크롤':'');
 }
 function pkPick(mode,cb){
   PKC=cb;PKF='all';PKSORT='cap';PKMODE=mode;
