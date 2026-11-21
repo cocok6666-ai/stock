@@ -152,6 +152,13 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .sacr button{height:40px;padding:0 14px;border-radius:10px;border:0;background:var(--acc);color:#06231d;font-weight:800;cursor:pointer}
 .sab .sar button,.sab .sacr button{color:#fff}
 .sab .sacf.warn{background:#fff3d6;border-color:#e2c27a;color:#6b4e12}
+.sab.first{overflow-y:auto;-webkit-overflow-scrolling:touch}.sab.first>*{flex-shrink:0}
+.sdn{position:sticky;bottom:4px;height:0;z-index:5;pointer-events:none;display:none}.sab.first .sdn,.sab.rs .sdn{display:block}
+.sdn button{position:absolute;left:50%;bottom:6px;transform:translate(-50%,8px);display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 15px 0 17px;border-radius:999px;border:1px solid rgba(255,255,255,.45);background:linear-gradient(180deg,rgba(18,140,128,.78),rgba(10,79,73,.78));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-size:12.5px;font-weight:800;letter-spacing:-.2px;box-shadow:0 6px 16px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.35);opacity:0;pointer-events:none;transition:opacity .35s,transform .35s;cursor:pointer;white-space:nowrap}
+.sdn.show button{opacity:.82;transform:translate(-50%,0);pointer-events:auto}.sdn.show button:active{opacity:1}
+.sdn i{font-style:normal;font-size:15px;line-height:1;animation:sdnb 1.6s ease-in-out infinite}
+@keyframes sdnb{0%,100%{transform:translateY(-2px)}50%{transform:translateY(2px)}}
+@media(prefers-reduced-motion:reduce){.sdn i{animation:none}}
 .sab .sahelp{background:#fffdf7;border:1px solid #d8cdb2;color:#4d4435}.sab .sahelp b{color:#0f766e}.sahelp ol,.sahelp ul{margin:4px 0 9px;padding-left:18px}.sahelp li{margin:2px 0}.sahelp>b{display:block;font-size:13px;margin-top:2px}.sahelp li b{display:inline;font-size:inherit}
 .sab .sah h3{color:#1d1a14}
 .sab .sax{background:#1d1a14;color:#f4efe4;border-color:#1d1a14}
@@ -386,6 +393,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
     <div id="saCfg"></div>
     <div class="sao" id="saO"></div>
     <div class="sarl" style="margin:12px 0 4px"><button id="saSim" type="button" class="sast sasim">🎮 5거래일 종가매매 시뮬레이터 <small>종목당 1천만원 · 종가매수 → 다음날 시가매도 · 재미로 해보기</small></button></div>
+    <div class="sdn" id="saDn"><button type="button" id="saDnB" aria-label="아래로 이동">아래에 더 있어요 <i>⌄</i></button></div>
   </div>
 </div>
 <script src="research.js?v=4"></script>
@@ -1017,6 +1025,18 @@ function saClose(){saEl('sam').classList.remove('on')}
   /* 분석 결과(또는 안내 메시지)가 표시되면 하단 '종목 선택 방법' 안내는 숨김 — 처음 화면에서만 보임 */
   (function(){var o=saEl('saO'),hp=saEl('saHelp');function sync(){hp.style.display=o.innerHTML.trim()?'none':''}
     new MutationObserver(sync).observe(o,{childList:true,subtree:true,characterData:true});sync()})();
+  (function(){
+    var sab=document.querySelector('.sab'),o=saEl('saO'),dn=saEl('saDn');
+    function sc(){return sab.classList.contains('first')?sab:o}
+    function chk(){var e=sc();var more=e.scrollHeight-e.scrollTop-e.clientHeight>28;sab.classList.toggle('rs',!sab.classList.contains('first')&&e.scrollHeight>e.clientHeight+28);dn.classList.toggle('show',more&&saEl('sam').style.display!=='none'&&getComputedStyle(saEl('sam')).display!=='none')}
+    function mode(){sab.classList.toggle('first',!o.innerHTML.trim());chk()}
+    sab.addEventListener('scroll',chk,{passive:true});o.addEventListener('scroll',chk,{passive:true});
+    new MutationObserver(function(){mode()}).observe(o,{childList:true,subtree:true,characterData:true});
+    new MutationObserver(function(){setTimeout(chk,60)}).observe(sab,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
+    window.addEventListener('resize',chk);if(window.visualViewport)window.visualViewport.addEventListener('resize',chk);
+    saEl('saDnB').addEventListener('click',function(){var e=sc();e.scrollBy({top:Math.max(160,e.clientHeight*.7),behavior:'smooth'})});
+    mode();setInterval(chk,1500);
+  })();
   saEl('saFab').addEventListener('click',saOpen);
   saEl('saX').addEventListener('click',saClose);
   saEl('saGo').addEventListener('click',saGo);
