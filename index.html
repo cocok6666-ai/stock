@@ -30,8 +30,8 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .logo::after{content:'';position:absolute;left:-30%;top:-60%;width:70%;height:200%;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.85) 50%,transparent 70%);transform:rotate(25deg);animation:coin 3.8s ease-in-out infinite;pointer-events:none}
 @keyframes coin{0%,55%{left:-70%}100%{left:130%}}
 @media(prefers-reduced-motion:reduce){.logo::after{animation:none;opacity:.35;left:10%}}
-.ttl{flex:1;min-width:0}.trow{display:flex;align-items:center;min-width:0}.trow b{flex:none;max-width:100%}.visn{flex:1;text-align:center;font-style:normal;font-size:15px;font-weight:800;line-height:1;color:#f5b301;opacity:.85;text-shadow:0 1px 2px rgba(0,0,0,.5);min-width:0}
-.ttl b{display:block;font-size:17px;letter-spacing:-.3px;white-space:nowrap}
+.ttl{flex:1;min-width:0}.visn{flex:none;font-style:normal;font-size:12px;font-weight:inherit;color:inherit}
+.ttl b{display:block;font-size:25px;font-weight:900;letter-spacing:-.6px;white-space:nowrap}
 .ttl span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ttl span{font-size:11.5px;color:var(--mut)}
 .wrap{max-width:520px;margin:0 auto;padding:12px 12px 56px}
@@ -95,7 +95,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .rb:active{background:#1a2640}.rb[disabled]{opacity:.6}
 .rb .ic{display:inline-block;font-size:18px}
 .spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
-.stat{max-width:520px;margin:0 auto;padding:8px 14px;font-size:12px;line-height:1.5;color:var(--mut);display:none}
+.stat{max-width:520px;margin:0 auto;padding:6px 14px 8px;font-size:12px;line-height:1.5;color:var(--mut);display:flex;align-items:center;gap:8px}.stat #stTx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat.err{color:#ffb4a8}.stat.busy{color:var(--acc)}
 .nfm{position:fixed;inset:0;z-index:50;background:rgba(5,9,18,.72);display:none;align-items:center;justify-content:center;padding:18px}
 .nfm.on{display:flex}
@@ -207,7 +207,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .snw a:last-child{border-bottom:0}.snw span{display:block;font-size:11px;color:var(--mut)}
 .schip{display:inline-block;margin:0 6px 6px 0;padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:var(--tile);color:var(--tx);font-size:13px;cursor:pointer}
 
-.rb{width:46px}.hd{gap:8px}.ttl b{font-size:16px;overflow:hidden;text-overflow:ellipsis}
+.rb{width:46px}.hd{gap:8px}.ttl b{font-size:22px;overflow:hidden;text-overflow:ellipsis}
 .sec.secr{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:6px}
 .nfchip.sm{margin:0;padding:5px 10px;font-size:12px;flex:none;white-space:nowrap}
 
@@ -313,7 +313,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 </head>
 <body>
-<header><div class="hd"><div class="logo" id="logo">M</div><div class="ttl"><div class="trow"><b id="ttl">주식딸랑이</b><em id="visN" class="visn" title="오늘 접속한 기기 수"></em></div><span id="sub">—</span></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간</span></button><button class="rb" id="unBtn" type="button" aria-label="사용자 이름 입력"><span class="ic">👤</span><span class="lb2">사용자</span></button></div><div class="stat" id="stat"></div></header>
+<header><div class="hd"><div class="logo" id="logo">M</div><div class="ttl"><b id="ttl">주식딸랑이</b></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간</span></button><button class="rb" id="unBtn" type="button" aria-label="사용자 이름 입력"><span class="ic">👤</span><span class="lb2">사용자</span></button></div><div class="stat" id="stat"><span id="stTx"></span><em id="visN" class="visn" title="오늘 접속한 기기 수"></em></div></header>
 <div class="wrap" id="app"></div>
 <div class="nfm" id="nfm" role="dialog" aria-modal="true" aria-labelledby="nfT">
   <div class="nfb">
@@ -413,7 +413,7 @@ function stocks(arr,vol){
 }
 function render(B){
   document.title=titleText();
-  document.getElementById('sub').textContent=dayMode()?DMT[dayMode()].sub:(B.date||'')+' · '+(B.asof||'');
+  setSub(dayMode()?DMT[dayMode()].sub:(B.date||'')+' · '+(B.asof||''));
   var h='';
   var g=B.gap||{};
   var DM=dayMode(),WK=!!DM,DT=DMT[DM]||{};
@@ -560,14 +560,17 @@ function nfCheck(){
   nfEl('nfClr').addEventListener('click',function(){lsSet('nf_manual',null);nfClose();paint()});
   document.getElementById('app').addEventListener('click',function(ev){if(ev.target.closest&&ev.target.closest('#nfOpen'))nfOpen()});
 })();
-function setStat(t,c){var e=document.getElementById('stat');e.innerHTML=t;e.className='stat '+(c||'');e.style.display=t?'block':'none'}
+var STX={t:'',c:''},SUBT='';
+function renderStat(){var e=document.getElementById('stat');document.getElementById('stTx').textContent=STX.t||SUBT||'—';e.className='stat '+(STX.t?STX.c:'')}
+function setStat(t,c){STX.t=String(t||'').replace(/<[^>]*>/g,'');STX.c=c||'';renderStat()}
+function setSub(t){SUBT=t;renderStat()}
 function ageMin(){if(!Q||!Q.updated)return null;return (Date.now()-new Date(Q.updated).getTime())/60000}
 function paint(force){
   var B=build();if(force||!pkBusy())render(B);
-  document.getElementById('sub').textContent=(Q&&Q.updated?Q.updated.slice(5,10).replace('-','/')+' '+Q.updated.slice(11,19)+' 시세 · ':'시세 없음 · ')+(dayMode()?DMT[dayMode()].sub:(BR.asof||''));
+  setSub((Q&&Q.updated?Q.updated.slice(5,10).replace('-','/')+' '+Q.updated.slice(11,16)+' 시세 · ':'시세 없음 · ')+(dayMode()?DMT[dayMode()].sub:(BR.asof||'')));
   var a=ageMin();
-  if(a==null)setStat('⚠️ 시세 데이터를 아직 받지 못했습니다.','err');
-  else if(a>20)setStat('⚠️ 시세가 '+Math.round(a)+'분 전 데이터입니다. 자동 수집이 지연 중일 수 있어요.','err');
+  if(a==null)setStat('⚠️ 시세를 아직 받지 못했어요','err');
+  else if(a>20)setStat('⚠️ 시세가 '+Math.round(a)+'분 전 데이터예요 · 수집 지연 중','err');
   else setStat('','');
   nfCheck();
 }
@@ -593,7 +596,7 @@ async function loadQ(manual){
   catch(e){msg=e.message||String(e)}
   busy=false;ic.className='ic';rb.disabled=false;
   paint();pkRefresh(manual);
-  if(!ok){setStat('⚠️ 시세를 불러오지 못했습니다 ('+esc(msg)+'). 마지막 값을 표시 중입니다.','err')}
+  if(!ok){setStat('⚠️ 시세 불러오기 실패 · 마지막 값 표시 중','err')}
   else if(manual&&ageMin()<=20){setStat('✅ '+hhmm()+' 확인 · 시세 기준 '+Q.updated.slice(11,19),'busy');setTimeout(function(){if(ageMin()<=20)setStat('','')},4000)}
 }
 async function loadBrief(){
