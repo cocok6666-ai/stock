@@ -253,6 +253,10 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .pke .pks{flex:1;min-width:0;text-align:left;font-size:15px;border-radius:10px;border:1px solid var(--line);background:var(--tile);color:var(--tx);padding:10px 11px;height:42px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pke .pks.empty{color:var(--mut)}
 .pke .pkx{flex:none;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--mut);font-size:14px;cursor:pointer;padding:0}
+.sarl button.sapk{height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:15.5px;font-weight:900;border-width:2.5px;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.sapk i{font-style:normal;width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;font-size:15px;font-weight:900;color:#fff;line-height:1}
+.sarl button.sapk.kr{background:linear-gradient(135deg,#e5352c,#a81c16);border-color:#a81c16;color:#fff}.sapk.kr i{background:#fff;color:#c2261f}
+.sarl button.sapk.us{background:linear-gradient(135deg,#2f6bff,#1a3fae);border-color:#1a3fae;color:#fff}.sapk.us i{background:#fff;color:#1d4fd8}
 .sarl{margin-top:8px}.sarl button{width:100%;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:13.5px;font-weight:700;cursor:pointer}
 .pke{padding:10px 12px 12px}
 .pke .pkh{font-size:12px;color:var(--mut);line-height:1.5;margin:0 2px 8px}
@@ -320,8 +324,8 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 <div class="sam" id="sam" role="dialog" aria-modal="true" aria-labelledby="saT">
   <div class="sab">
     <div class="sah"><h3 id="saT">📊 종목분석</h3><button class="sax" id="saX" type="button" aria-label="닫기">창닫기</button></div>
-    <div class="sar"><input id="saI" type="text" placeholder="종목명 또는 6자리 코드 (예: 삼성전자)" autocomplete="off" enterkeyhint="search" aria-label="종목명 또는 종목코드"><button id="saGo" type="button">분석</button></div>
-    <div class="sarl" style="display:flex;gap:8px"><button id="saPick" type="button">📋 국내 종목 고르기</button><button id="saPickUs" type="button">📋 미국 종목 고르기</button></div>
+    <div class="sar"><input id="saI" type="text" placeholder="예: 삼성전자 또는 005930" autocomplete="off" enterkeyhint="search" aria-label="종목명 또는 종목코드"><button id="saGo" type="button">분석</button></div>
+    <div class="sarl" style="display:flex;gap:8px"><button id="saPick" type="button" class="sapk kr"><i>₩</i>국내주식 찾기</button><button id="saPickUs" type="button" class="sapk us"><i>$</i>미국주식 찾기</button></div>
     <div class="sarl"><button id="saStat" type="button" class="sast">📊 분석통계 보기 <small>투자방식 3단계 · 우호/중립/주의 분류 목록</small></button></div>
     <div id="saCfg"></div>
     <div class="sao" id="saO"></div>
@@ -932,7 +936,7 @@ async function saSave(){
 }
 function saOpen(){
   saEl('sam').classList.add('on');saCfgRender();
-  var l=lsGet('sa_last');if(l&&!saEl('saI').value)saEl('saI').value=l;
+  if(!saEl('saO').innerHTML.trim())saEl('saI').value='';
 }
 function saClose(){saEl('sam').classList.remove('on')}
 (function(){
