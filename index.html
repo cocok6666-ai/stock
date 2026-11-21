@@ -866,7 +866,7 @@ function saTerms(n){
 async function saInd(){
   var m=null;try{m=JSON.parse(lsGet('sa_ind')||'null')}catch(e){}
   if(m&&m.t&&Date.now()-m.t<30*864e5&&m.m)return m.m;
-  var j=await saGet('https://m.stock.naver.com/api/stocks/industry?page=1&pageSize=200'),o={};
+  var j=await saGet('https://m.stock.naver.com/api/stocks/industry?page=1&pageSize=100'),o={};
   ((j&&j.groups)||[]).forEach(function(g){o[g.no]=g.name});
   if(Object.keys(o).length>20)lsSet('sa_ind',JSON.stringify({t:Date.now(),m:o}));
   return o;
