@@ -152,7 +152,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .sacr button{height:40px;padding:0 14px;border-radius:10px;border:0;background:var(--acc);color:#06231d;font-weight:800;cursor:pointer}
 .sab .sar button,.sab .sacr button{color:#fff}
 .sab .sacf.warn{background:#fff3d6;border-color:#e2c27a;color:#6b4e12}
-.sab .sahelp{background:#fffdf7;border:1px solid #d8cdb2;color:#4d4435}.sab .sahelp b{color:#0f766e}
+.sab .sahelp{background:#fffdf7;border:1px solid #d8cdb2;color:#4d4435}.sab .sahelp b{color:#0f766e}.sahelp ol,.sahelp ul{margin:4px 0 9px;padding-left:18px}.sahelp li{margin:2px 0}.sahelp>b{display:block;font-size:13px;margin-top:2px}.sahelp li b{display:inline;font-size:inherit}
 .sab .sah h3{color:#1d1a14}
 .sab .sax{background:#1d1a14;color:#f4efe4;border-color:#1d1a14}
 .sab .svt{color:#0f766e}
@@ -368,10 +368,23 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
     <div class="sah"><h3 id="saT">📊 종목분석</h3><button class="sax" id="saX" type="button" aria-label="닫기">창닫기</button></div>
     <div class="sar"><input id="saI" type="text" placeholder="예: 삼성전자 또는 005930" autocomplete="off" enterkeyhint="search" aria-label="종목명 또는 종목코드"><button id="saGo" type="button">분석</button></div>
     <div class="sarl" style="display:flex;gap:8px"><button id="saPick" type="button" class="sapk kr"><i>₩</i>국내주식 찾기</button><button id="saPickUs" type="button" class="sapk us"><i>$</i>미국주식 찾기</button></div>
+    <div class="sahelp" id="saHelp">
+      <b>🔎 종목 선택 방법</b>
+      <ol><li>위 <u>국내주식 찾기 / 미국주식 찾기</u> 버튼 → 종목명·티커·초성으로 검색하거나 목록을 스크롤해 눌러 선택</li>
+      <li>또는 입력칸에 종목명·6자리 코드(미국은 티커)를 직접 입력 후 <u>분석</u></li>
+      <li>아래 <u>전체 종목 분석 자료 보기</u>에서 단기·중기·장기별 별 개수 순으로 훑어보다가 종목을 눌러 세부 분석으로 이동</li></ol>
+      <b>📊 전체 종목 분석 자료는 이렇게 만들어져요</b>
+      <ul><li><b>대상</b> 시가총액·거래대금이 큰 국내 약 350종목, 미국 약 500종목 (스팩 제외, 거래대금 국내 50억원·미국 500만달러 이상)</li>
+      <li><b>자료</b> 네이버 금융의 공개 시세·재무·수급·컨센서스. 같은 계산 규칙을 전 종목에 똑같이 적용해 하루 한두 번 자동 갱신 (국내 장 마감 후, 이른 아침 전체)</li>
+      <li><b>세 가지 투자방식</b> 단기=종가강도·거래량·수급·갭 / 중기=추세·모멘텀·실적·목표가 / 장기=재무·밸류에이션·성장·배당</li>
+      <li><b>별 개수</b> 방식별 체크 항목 중 통과한 비율로 ★1~5개. 별이 많을수록 그 방식의 조건에 더 많이 부합</li></ul>
+      <b>⚠️ 알아두세요</b>
+      <ul><li>규칙 기반 참고 자료이며 수익을 보장하지 않습니다. 매수·매도 판단과 책임은 본인에게 있습니다.</li>
+      <li>미국 종목은 외국인·기관 수급이 제공되지 않습니다. 시세는 지연·오류가 있을 수 있습니다.</li></ul>
+    </div>
     <div class="sarl"><button id="saStat" type="button" class="sast">📊 전체 종목 분석 자료 보기 <small>세 종류 투자방식, 별 개수로 평가</small></button></div>
     <div id="saCfg"></div>
     <div class="sao" id="saO"></div>
-    <div class="sahelp" id="saHelp"><b>종목 선택 방법</b><br>① 위 <u>국내/미국 종목 고르기</u> 버튼 → 종목명·티커·초성으로 검색하거나 목록을 스크롤해 눌러 선택<br>② 또는 입력칸에 종목명·6자리 코드를 직접 입력 후 <u>분석</u><br>※ 미국 종목은 외국인·기관 수급이 제공되지 않습니다.</div>
     <div class="sarl" style="margin:12px 0 4px"><button id="saSim" type="button" class="sast sasim">🎮 5거래일 종가매매 시뮬레이터 <small>종목당 1천만원 · 종가매수 → 다음날 시가매도 · 재미로 해보기</small></button></div>
   </div>
 </div>
