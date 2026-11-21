@@ -913,7 +913,7 @@ function saClose(){saEl('sam').classList.remove('on')}
 })();
 
 /* ---------- 종목 목록 선택 팝업 (국내/미국 · 검색 · 초성 · 스크롤) ---------- */
-var SLU={kr:'',us:''},PKSORT='cap',PKV=1,PKVL={kr:[[0,'전체'],[1,'10억↑'],[5,'50억↑'],[10,'100억↑']],us:[[0,'전체'],[1000,'$1M↑'],[5000,'$5M↑'],[10000,'$10M↑']]},SLM={kr:null,us:null},SLP={kr:null,us:null},PKC=null,PKR=[],PKN=0,PKF='all',PKMODE='kr';
+var SLU={kr:'',us:''},PKSORT='cap',PKV=0,PKVL={kr:[[5,'50억↑'],[10,'100억↑'],[50,'500억↑'],[100,'1,000억↑']],us:[[5000,'$5M↑'],[10000,'$10M↑'],[50000,'$50M↑'],[100000,'$100M↑']]},SLM={kr:null,us:null},SLP={kr:null,us:null},PKC=null,PKR=[],PKN=0,PKF='all',PKMODE='kr';
 var CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
 function slCho(t){var o='';for(var i=0;i<t.length;i++){var c=t.charCodeAt(i);o+=(c>=0xAC00&&c<=0xD7A3)?CHO.charAt(Math.floor((c-0xAC00)/588)):t.charAt(i).toLowerCase()}return o}
 function slNorm(t){return String(t||'').replace(/\s+/g,'').toLowerCase()}
@@ -976,7 +976,7 @@ function pkShow(){
   document.getElementById('pkS').textContent=(L.fb?'목록을 불러오지 못했습니다. '+(us?'티커를':'6자리 코드를')+' 입력해 선택하세요. ':'')+(q?PKR.length.toLocaleString('ko-KR')+'개 검색됨 (거래대금 필터 미적용)':(PKVMIN()>0?'거래대금 '+PKVL[PKMODE][PKV][1].replace('↑',' 이상')+' · ':'')+'전체 '+PKR.length.toLocaleString('ko-KR')+'개 · '+(PKSORT==='cap'?(us?'거래소별 시가총액 순':'시가총액 순'):PKSORTS.filter(function(s){return s[0]===PKSORT})[0][1])+(PKSORT==='up'||PKSORT==='dn'||PKSORT==='tv'||PKSORT==='hi'?(PKSORT==='hi'?' (52주 고점 대비 · '+(us?'나스닥·뉴욕 시총 상위 1,000개씩':'코스피·코스닥')+' · 전 거래일 종가 기준':' (전 거래일 종가 기준')+(SLU[PKMODE]?' · '+SLU[PKMODE].slice(5,10).replace('-','/')+' 갱신':'')+')':''))+(PKR.length>PKN?' · 아래로 스크롤':'');
 }
 function pkPick(mode,cb){
-  PKC=cb;PKF='all';PKSORT='cap';PKV=1;PKMODE=mode;
+  PKC=cb;PKF='all';PKSORT='cap';PKV=0;PKMODE=mode;
   document.getElementById('pkm').classList.add('on');
   document.getElementById('pkT').textContent=mode==='us'?'미국 종목 선택':'국내 종목 선택';
   var qi=document.getElementById('pkQ');qi.value='';
@@ -984,7 +984,7 @@ function pkPick(mode,cb){
   var fl=mode==='us'?[['all','전체'],['N','나스닥'],['Y','뉴욕'],['A','아멕스']]:[['all','전체'],['P','코스피'],['D','코스닥'],['E','ETF']];
   document.getElementById('pkF').innerHTML=fl.map(function(a){return '<button type="button" data-f="'+a[0]+'" class="'+(a[0]==='all'?'on':'')+'">'+a[1]+'</button>'}).join('');
   document.getElementById('pkO').innerHTML=PKSORTS.map(function(a){return '<button type="button" data-s="'+a[0]+'" class="'+(a[0]==='cap'?'on':'')+'">'+a[1]+'</button>'}).join('');
-  document.getElementById('pkV').innerHTML='<span class="pkvl">거래대금</span>'+PKVL[mode].map(function(a,i){return '<button type="button" data-v="'+i+'" class="'+(i===1?'on':'')+'">'+a[1]+'</button>'}).join('');
+  document.getElementById('pkV').innerHTML='<span class="pkvl">거래대금</span>'+PKVL[mode].map(function(a,i){return '<button type="button" data-v="'+i+'" class="'+(i===0?'on':'')+'">'+a[1]+'</button>'}).join('');
   document.getElementById('pkL').innerHTML='<div class="pkr" style="cursor:default"><b style="color:var(--mut)">목록 불러오는 중…</b></div>';
   slLoad(mode).then(function(){if(PKMODE===mode&&PKC)pkShow()});
   setTimeout(function(){try{qi.focus()}catch(e){}},80);
