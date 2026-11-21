@@ -184,7 +184,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .sas h4{margin:0 0 8px;font-size:13px;color:var(--acc)}
 .sas.sae{color:#ffb4a8}
 .sat{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.sat b{font-size:18px}.sat span{font-size:12px;color:var(--mut)}
+.sat .sec{font-style:normal;font-weight:700;color:var(--acc)}.sat b{font-size:18px}.sat span{font-size:12px;color:var(--mut)}
 .spx{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:4px}
 .spx small{font-size:13px;font-weight:700;margin-left:6px}
 .skv{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
@@ -857,6 +857,20 @@ function saSignals(c,m){
   return S;
 }
 var SEMI_RE=/반도체|하이닉스|삼성전자|리노공업|DB하이텍|원익|이오테크닉스|주성엔지|테스|HPSP|피에스케이|테스나/;
+var SA_SEC='';
+function saTerms(n){
+  n=String(n||'').trim();if(!n)return '';
+  var p=n.split(/\s*,\s*|(?<=.{2})[와과](?=.{2})/).map(function(s){return s.trim()}).filter(function(s){return s&&!/^(용품|제품|서비스)$/.test(s)});
+  return p.slice(0,3).join(' · ');
+}
+async function saInd(){
+  var m=null;try{m=JSON.parse(lsGet('sa_ind')||'null')}catch(e){}
+  if(m&&m.t&&Date.now()-m.t<30*864e5&&m.m)return m.m;
+  var j=await saGet('https://m.stock.naver.com/api/stocks/industry?page=1&pageSize=200'),o={};
+  ((j&&j.groups)||[]).forEach(function(g){o[g.no]=g.name});
+  if(Object.keys(o).length>20)lsSet('sa_ind',JSON.stringify({t:Date.now(),m:o}));
+  return o;
+}
 function saRender(code,nm,bs,ig,nw,errs,us){
   var link='https://m.stock.naver.com/'+(us?'worldstock':'domestic')+'/stock/'+encodeURIComponent(code)+'/total';
   if(!bs&&!ig&&!nw)return '<div class="sas sae">네이버 정보를 불러오지 못했습니다. Worker 주소와 네트워크를 확인해 주세요.<br><a href="'+esc(link)+'" target="_blank" rel="noopener" style="text-decoration:underline">네이버에서 직접 보기</a></div>';
@@ -878,7 +892,7 @@ function saRender(code,nm,bs,ig,nw,errs,us){
   var cl=!isFinite(rt)||rt===0?'flat':rt>0?'up':'dn',ic={good:'<span class="ar u">▲</span>',warn:'<span class="ar d">▼</span>',info:'➖'};
   function stars(n,ch,cl){n=Math.min(5,n);var o='';for(var i=0;i<5;i++)o+='<span class="ar '+cl+(i<n?'':' off')+'">'+ch+'</span>';return o}
   function sigs(a){return a.map(function(x){return '<div class="sig"><i>'+ic[x.t]+'</i><p><b>'+esc(x.h)+'</b>'+esc(x.b)+'</p></div>'}).join('')}
-  var h='<div class="sas"><div class="sat"><b><a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(name)+'</a></b><span>'+esc(mkt)+(mkt?' · ':'')+esc(code)+'</span></div>'
+  var h='<div class="sas"><div class="sat"><b><a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(name)+'</a></b><span>'+esc(mkt)+(mkt?' · ':'')+esc(code)+(SA_SEC?' <em class="sec">('+esc(SA_SEC)+')</em>':'')+'</span></div>'
     +'<div class="spx '+cl+'">'+saF(price,us?2:0)+(us?'<small style="margin-right:4px">USD</small>':'')+'<small>'+(isFinite(chg)?arrow(cl)+saF(Math.abs(chg),us?2:0):'')+' '+(isFinite(rt)?'('+saSp(rt)+'%)':'')+'</small></div>'
     +'<div style="font-size:11.5px;color:var(--mut);margin-top:2px">'+esc(saD(bs&&bs.localTradedAt))+' '+(us?'(미국 현지) ':'')+(bs&&String(bs.marketStatus||'').toUpperCase()==='OPEN'?'장중':'종가 기준')+(us&&bs&&bs.overMarketPriceInfo&&bs.overMarketPriceInfo.overPrice?' · 시간외 '+esc(bs.overMarketPriceInfo.overPrice)+' ('+esc(saSp(saN(bs.overMarketPriceInfo.fluctuationsRatio)))+'%)':'')+'</div></div>';
   h+='<div class="sas"><div class="svh"><h4 class="svt">종합 판단 <span class="svi2">'+vd[1]+'</span><span class="svs">'+STARS(vl)+'</span></h4></div>'
@@ -929,6 +943,12 @@ async function saRun(code,name,my,us){
   tasks.push(saGet(B+'/finance/annual').catch(function(){return null}));
   tasks.push(saGet(B+'/finance/quarter').catch(function(){return null}));
   var r=await Promise.all(tasks);
+  if(my!==saTok)return;
+  SA_SEC='';
+  try{
+    if(us)SA_SEC=saTerms(r[0]&&r[0].industryCodeType&&r[0].industryCodeType.industryGroupKor);
+    else if(r[1]&&r[1].industryCode!=null){var im=await saInd();SA_SEC=saTerms(im[r[1].industryCode])}
+  }catch(e){}
   if(my!==saTok)return;
   var bs=r[0],it=r[1]||{},pages=r.slice(3,8).filter(function(x){return Array.isArray(x)}),fa=r[8],fq=r[9],ig,html,deal=[];
   if(us){ig={totalInfos:(bs&&bs.stockItemTotalInfos)||[],consensusInfo:it.consensusInfo||{},industryCompareInfo:[]};html=saRender(code,name,bs,ig,r[2],errs,true)}
