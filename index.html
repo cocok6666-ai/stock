@@ -219,6 +219,12 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .str b{font-size:14px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.str span{flex:none;font-size:11.5px;color:var(--mut);text-align:right}.str span em{font-style:normal;font-weight:800;margin-left:4px}.str .pu{color:var(--up)}.str .pd{color:var(--dn)}
 .stb #stM{justify-content:center;gap:10px;margin:2px 0 10px;overflow:visible}
 .stb #stM button{flex:1;max-width:172px;height:46px;border-radius:14px;font-size:17px;font-weight:900;letter-spacing:-.3px}
+.stb #stM button{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:2.5px solid var(--mc);background:var(--ml);color:var(--mc);box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.stb #stM button[data-m="kr"]{--mc:#c2261f;--ml:#fdeceb;--mg:linear-gradient(135deg,#e5352c,#a81c16)}
+.stb #stM button[data-m="us"]{--mc:#1d4fd8;--ml:#e8eefd;--mg:linear-gradient(135deg,#2f6bff,#1a3fae)}
+.stb #stM button.on{background:var(--mg);color:#fff;border-color:var(--mc);box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.stb #stM .cu{font-style:normal;width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;font-size:17px;font-weight:900;background:var(--mc);color:#fff;line-height:1}
+.stb #stM button.on .cu{background:#fff;color:var(--mc)}
 .stt{flex:none;display:flex;gap:4px;margin:0;align-items:flex-end}
 .stt button{flex:1;height:40px;border:2px solid var(--tc);border-bottom:none;border-radius:12px 12px 0 0;font-size:13.5px;font-weight:900;cursor:pointer;background:var(--tl);color:var(--tc);padding:0 4px;position:relative;top:0}
 .stt button.on{background:var(--tc);color:#fff;height:44px}
@@ -230,7 +236,7 @@ header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.94);backdrop-fi
 .stdet>summary::-webkit-details-marker{display:none}
 .stdet>summary .rq{flex:none;background:#e11d2e;color:#fff;border-radius:8px;padding:3px 9px;font-size:12.5px;font-weight:900;letter-spacing:.5px}
 .stdet>summary small{display:block;font-size:11.5px;font-weight:700;color:#b4232f;margin-top:1px}
-.stdet>summary::after{content:'▾';margin-left:auto;font-size:20px;color:#e11d2e}.stdet[open]>summary::after{content:'▴'}
+.stdet>summary::after{content:'열기';margin-left:auto;flex:none;min-width:60px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:17px;background:#e11d2e;color:#fff;font-size:14px;font-weight:900;padding:0 14px}.stdet[open]>summary::after{content:'닫기';background:#1d1a14}
 .stdet>.stg2{border-top:1.5px dashed #e8a0a6}
 .stgb{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:74px;height:34px;border-radius:17px;background:#1d1a14;color:#f4efe4;font-size:13px;font-weight:800;font-style:normal;padding:0 12px}
 .stgb::before{content:'펼치기 ▾'}.stg[open]>summary .stgb{background:#e11d2e}.stg[open]>summary .stgb::before{content:'접기 ▴'}
@@ -1073,7 +1079,7 @@ function stGuide(m){
   +'</div></details>';
 }
 function stWarn(){
-  return '<details class="stdet" open><summary><span class="rq">필독</span><span>투자 전 꼭 확인하세요<small>매수·매도 추천이 아닙니다</small></span></summary><div class="stg2"><ul style="margin:0;padding-left:17px">'
+  return '<details class="stdet"><summary><span class="rq">필독</span><span>투자 전 꼭 확인하세요<small>터치하여 꼭 읽어보세요 · 매수·매도 추천이 아닙니다</small></span></summary><div class="stg2"><ul style="margin:0;padding-left:17px">'
   +'<li>이 목록은 규칙으로 계산한 <b>참고용 분류</b>이며 <b>매수·매도 추천이 아닙니다</b>. 투자 판단과 책임은 본인에게 있습니다.</li>'
   +'<li><b>높은 단계 ≠ 상승 보장, 낮은 단계 ≠ 하락 보장.</b> 단계는 “조건 충족 비율”일 뿐 예측이 아니며, 🚨위험은 매도 신호가 아닙니다.</li>'
   +'<li>과거 통계(갭·수익률·이동평균 등)는 미래를 보장하지 않고, 표본이 적으면 신뢰도가 낮습니다.</li>'
@@ -1092,7 +1098,7 @@ function stRows(m,k){
 function stRow(x,l,n){return '<div class="str" data-id="'+esc(x.id)+'" data-n="'+esc(x.name)+'"><b>'+esc(x.name)+'</b><span>'+esc(x.sym)+' · 통과 '+x.p+'/'+x.t+(x.chg==null?'':' <em class="'+(x.chg>0?'pu':x.chg<0?'pd':'')+'">'+(x.chg>0?'+':'')+x.chg.toFixed(2)+'%</em>')+'</span></div>'}
 function stRender(){
   var L=saEl('stL'),M=saEl('stM'),S=saEl('stS'),I=saEl('stI');
-  M.innerHTML=[['kr','국내주식'],['us','미국주식']].map(function(a){return '<button type="button" data-m="'+a[0]+'" class="'+(a[0]===STM?'on':'')+'">'+a[1]+'</button>'}).join('');
+  M.innerHTML=[['kr','₩','국내주식'],['us','$','미국주식']].map(function(a){return '<button type="button" data-m="'+a[0]+'" class="'+(a[0]===STM?'on':'')+'"><i class="cu">'+a[1]+'</i>'+a[2]+'</button>'}).join('');
   S.innerHTML=STKS.map(function(a){return '<button type="button" data-k="'+a[0]+'" class="'+(a[0]===STK?'on':'')+'">'+a[1]+'</button>'}).join('');
   if(!STD){I.innerHTML='';L.innerHTML='<div class="stg2">분석통계를 불러오지 못했습니다. 잠시 후 다시 열어 주세요. (통계는 평일 06:30·15:10 자동 생성되며, 처음 설정 직후에는 아직 없을 수 있습니다.)</div>'+stWarn();return}
   var mt=(STD.meta&&STD.meta[STM])||{},ks=STKS.filter(function(a){return a[0]===STK})[0],g=stRows(STM,STK);
