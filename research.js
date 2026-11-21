@@ -95,8 +95,10 @@
     var r = pass / total;
     return r >= 0.84 ? 5 : r >= 0.67 ? 4 : r >= 0.4 ? 3 : r >= 0.2 ? 2 : 1;
   }
+  var _m = [];
   function head(title, sub, pass, total) {
     var lv = level(pass, total), L = LV[lv];
+    _m.push(total >= 3 ? { lv: lv, p: pass, t: total } : null);
     return '<div class="rnh"><div><b>' + esc(title) + '</b><small>' + esc(sub) + '</small></div>' +
       '<div class="rnb l' + lv + '"><span>' + L[0] + '</span>' + L[1] + '<em>' + pass + '/' + total + '</em></div></div>';
   }
@@ -147,6 +149,7 @@
 
   /* ---------- 메인 ---------- */
   function build(o) {
+    _m = [];
     var us = !!o.us, ti = {};
     (o.totalInfos || []).forEach(function (x) { ti[x.code] = x.value; });
     var H = series(o.hist), N = H.length, last = N ? H[N - 1] : null;
@@ -379,9 +382,10 @@
       h += warn(risks);
       out[2] = h + DISC;
     })();
+    out.meta = _m.slice(0, 3);
     return out;
   }
 
-  var api = { build: build, _t: { num: num, series: series, stats: stats, rsi: rsi, macd: macd, atr: atr, cagr: cagr, frame: frame } };
+  var api = { build: build, LV: LV, level: level, _t: { num: num, series: series, stats: stats, rsi: rsi, macd: macd, atr: atr, cagr: cagr, frame: frame } };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.SaPro = api;
 })(typeof window !== 'undefined' ? window : this);
