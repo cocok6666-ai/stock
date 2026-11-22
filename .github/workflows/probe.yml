@@ -1,0 +1,11 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for c in .VIX .N225 .SSEC .HSI .SOX .NDX .RUT; do
+            curl -sS -m 25 -o /tmp/s.json -w "$c %{http_code} " -H "User-Agent: Mozilla/5.0" "https://api.stock.naver.com/index/$c/basic" || true
+            python3 -c "import json;d=json.load(open('/tmp/s.json'));print(d.get('indexName'),d.get('closePrice'),d.get('fluctuationsRatio'),d.get('message'))" || true
+          done
