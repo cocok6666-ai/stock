@@ -33,6 +33,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .ttl{flex:1;min-width:0}.visn{flex:none;font-style:normal;font-size:12px;font-weight:inherit;color:inherit}
 .ttl b{display:block;font-size:25px;font-weight:900;letter-spacing:-.6px;white-space:nowrap}
 .ttl span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ttl b span{display:inline;overflow:visible;font-size:inherit}
 .ttl span{font-size:11.5px;color:var(--mut)}
 .wrap{max-width:520px;margin:0 auto;padding:12px 12px 56px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden}
@@ -611,7 +612,8 @@ function titleText(){var n=userName();return n?n.slice(1)+'주식딸랑이':'주
 function applyName(){
   var n=userName();
   document.getElementById('logo').textContent=n?n.charAt(0):'M';
-  document.getElementById('ttl').textContent=titleText();
+  var PC=['#ffb3ba','#ffd6a5','#fff3a8','#bdf2c0','#9fe8ff','#a9c4ff','#d9b8ff'];
+  document.getElementById('ttl').innerHTML=Array.from(titleText()).map(function(c,i){return '<span style="color:'+PC[i%7]+'">'+esc(c)+'</span>'}).join('');
   document.title=titleText();
 }
 function unOpen(){var e=document.getElementById('unI');e.value=userName();document.getElementById('unE').textContent='';document.getElementById('unm').classList.add('on')}
