@@ -1,0 +1,25 @@
+name: ppi
+on:
+  schedule:
+    - cron: '20 0 * * *'    # 매일 09:20 KST (BLS는 월 1회 발표, 하루 1번이면 충분)
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: ppi
+  cancel-in-progress: false
+jobs:
+  ppi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/fetch_ppi.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ppi.json
+          if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
+          git commit -qm "ppi.json 갱신(미국 PPI)"
+          git pull -q --rebase origin main
+          git push -q origin HEAD:main
