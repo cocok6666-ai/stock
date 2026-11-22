@@ -94,7 +94,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .empty{color:var(--mut)}
 .rb{margin-left:auto;flex:none;border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:12px;height:46px;width:52px;padding:0;font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1;cursor:pointer}
 .rb:active{background:#1a2640}.rb[disabled]{opacity:.6}
-.rb .ic{display:inline-block;font-size:18px}.rb .un2{font-size:10.5px;font-weight:300;line-height:1.15;letter-spacing:-.2px}
+.rb .ic{display:inline-block;font-size:18px}#refBtn{width:88px}#refBtn .lb2{white-space:nowrap}.rb .un2{font-size:10.5px;font-weight:300;line-height:1.15;letter-spacing:-.2px}
 .spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
 .stat{max-width:520px;margin:0 auto;padding:6px 14px 8px;font-size:12px;line-height:1.5;color:var(--mut);display:flex;align-items:center;gap:8px}.stat #stTx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat.err{color:#ffb4a8}.stat.busy{color:var(--acc)}
@@ -209,7 +209,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .snw a:last-child{border-bottom:0}.snw span{display:block;font-size:11px;color:var(--mut)}
 .schip{display:inline-block;margin:0 6px 6px 0;padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:var(--tile);color:var(--tx);font-size:13px;cursor:pointer}
 
-.rb{width:46px}.hd{gap:8px}.ttl b{font-size:22px;overflow:hidden;text-overflow:ellipsis}
+.rb{width:46px}#refBtn{width:84px}.hd{gap:8px}.ttl b{font-size:22px;overflow:hidden;text-overflow:ellipsis}
 .sec.secr{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:6px}
 .nfchip.sm{margin:0;padding:5px 10px;font-size:12px;flex:none;white-space:nowrap}
 
@@ -315,7 +315,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 </head>
 <body>
-<header><div class="hd"><div class="logo" id="logo">M</div><div class="ttl"><b id="ttl">주식딸랑이</b></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간</span></button><button class="rb" id="unBtn" type="button" aria-label="사용자 이름 입력"><span class="ic" style="font-size:15px">👤</span><span class="lb2 un2">사용자<br>등록</span></button></div><div class="stat" id="stat"><span id="stTx"></span><em id="visN" class="visn" title="오늘 접속한 기기 수"></em></div></header>
+<header><div class="hd"><div class="logo" id="logo">M</div><div class="ttl"><b id="ttl">주식딸랑이</b></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간 갱신</span></button><button class="rb" id="unBtn" type="button" aria-label="사용자 이름 입력"><span class="ic" style="font-size:15px">👤</span><span class="lb2 un2">사용자<br>등록</span></button></div><div class="stat" id="stat"><span id="stTx"></span><em id="visN" class="visn" title="오늘 접속한 기기 수"></em></div></header>
 <div class="wrap" id="app"></div>
 <div class="nfm" id="nfm" role="dialog" aria-modal="true" aria-labelledby="nfT">
   <div class="nfb">
