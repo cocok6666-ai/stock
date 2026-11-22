@@ -428,7 +428,7 @@ function render(B){
     h+='<div class="mg mg'+(gi%2)+'"><div class="sec'+(grp.nf&&B.nfBtn?' secr':'')+'"><span>'+esc(grp.g)+'</span>'+(grp.nf&&B.nfBtn?'<button class="nfchip sm" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>':'')+'</div>';
     h+='<div class="grid">';
     (grp.items||[]).forEach(function(it){
-      var c0=sign(it.p),c=grp.inv?(c0==='up'?'dn':c0==='dn'?'up':c0):c0,hv=String(it.v||'').trim(),has=hv||String(it.p||'').trim();
+      var c0=sign(it.p),c=(grp.inv||it.i)?(c0==='up'?'dn':c0==='dn'?'up':c0):c0,hv=String(it.v||'').trim(),has=hv||String(it.p||'').trim();
       h+='<div class="tile"><div class="lb">'+nl(it.n)+'</div><div class="val '+(has?c:'flat')+'">'+(hv?esc(it.v)+(it.u?'<small class="cu2">'+esc(it.u)+'</small>':''):'—')+'</div><div class="chg '+c+'">'+(has?pct(it.p):'미확인')+'</div>'+(it.t?'<div class="tm">'+esc(it.t)+'</div>':'')+'</div>';
     });
     h+='</div></div>';
@@ -451,7 +451,7 @@ function render(B){
 var QURL='https://raw.githubusercontent.com/cocok6666-ai/stock/data/quotes.json';
 var STRUCT={
  market:[
-  {g:'지수 · 선물',nf:1,items:[['코스피','KOSPI'],['코스닥','KOSDAQ'],['코스피200 야간선물','K200NF'],['다우존스','DJI'],['나스닥','IXIC'],['S&P500','SPX'],['미국 반도체지수','SOX'],['VIX 공포지수','VIX'],['닛케이225','N225']]},
+  {g:'지수 · 선물',nf:1,items:[['코스피','KOSPI'],['코스닥','KOSDAQ'],['코스피200 야간선물','K200NF'],['다우존스','DJI'],['나스닥','IXIC'],['S&P500','SPX'],['미국 반도체지수','SOX'],['나스닥100','NDX'],['VIX 공포지수','VIX','','inv']]},
   {g:'유가 · 금 · 환율 · 금리',inv:1,items:[['WTI','WTI','USD/배럴'],['브렌트유','BRENT','USD/배럴'],['미국 PPI','USPPI','% 전년비'],['국제 금','GOLD','USD'],['원/달러','USDKRW','원'],['미국 10년물','US10Y','%']]}
  ],
  kr:[['KODEX 200','ETF','069500'],['KODEX AI반도체TOP2플러스','ETF','395160'],['삼성전자','반도체','005930'],['SK하이닉스','반도체','000660']],
@@ -468,7 +468,7 @@ async function loadPpi(){
 }
 function build(){
   var B={date:BR.date,asof:BR.asof,headline:BR.headline,gap:BR.gap,facts:BR.facts,semi:BR.semi,picks:BR.picks,sources:BR.sources};
-  B.market=STRUCT.market.map(function(g){return {g:g.g,nf:g.nf,inv:g.inv,items:g.items.map(function(a){var x=q(a[1]);return {n:a[0],v:x.v||'',p:x.p||'',t:x.t||'',u:a[2]||''}})}});
+  B.market=STRUCT.market.map(function(g){return {g:g.g,nf:g.nf,inv:g.inv,items:g.items.map(function(a){var x=q(a[1]);return {n:a[0],v:x.v||'',p:x.p||'',t:x.t||'',u:a[2]||'',i:a[3]?1:0}})}});
   B.kr=STRUCT.kr.map(function(a){var x=q(a[2]);return {n:a[0],s:(x.t?a[1]+' · '+x.t:a[1]),v:x.v||'—',p:x.p||'',d:x.d||'',x:x.x||''}});
   B.us=STRUCT.us.map(function(a){var x=q(a[1]);return {n:a[0],s:a[1]+(x.t?' · '+x.t:''),v:x.v||'—',p:x.p||'',d:x.d||''}});
   B.krAsof=Q&&Q.updated?'시세 '+Q.updated.slice(11,19)+' 갱신':'시세 없음';
