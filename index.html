@@ -39,6 +39,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden}
 .card h2{margin:0;padding:12px 14px;font-size:15px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
 .card h2 i{font-style:normal;background:var(--acc);color:#06231d;border-radius:6px;font-size:11px;font-weight:800;padding:2px 7px}
+.cu2{font-size:.68em;font-weight:600;margin-left:2px;opacity:.8}
 .card h2 small{margin-left:auto;color:var(--mut);font-weight:500;font-size:11.5px}
 .sum{padding:14px}
 .card.csum{background:linear-gradient(135deg,#4a3f2e 0%,#3a3124 55%,#2e281e 100%);border:1px solid rgba(190,158,96,.5);box-shadow:0 4px 18px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,236,190,.12)}
@@ -410,7 +411,7 @@ function stocks(arr,vol){
   return arr.map(function(it){
     var c=sign(it.p);
     var sub=esc(it.s||'')+(vol&&it.x?' · 거래량 '+esc(it.x):'');
-    return '<div class="row"><div class="nm"><b>'+nl(it.n)+'</b><span>'+sub+'</span></div><div class="px"><b class="'+c+'">'+esc(it.v)+'</b><span class="'+c+'">'+pct(it.p)+' '+dif(it.d,c)+'</span></div></div>';
+    return '<div class="row"><div class="nm"><b>'+nl(it.n)+'</b><span>'+sub+'</span></div><div class="px"><b class="'+c+'">'+esc(it.v)+(it.u?'<small class="cu2">'+it.u+'</small>':'')+'</b><span class="'+c+'">'+pct(it.p)+' '+dif(it.d,c)+'</span></div></div>';
   }).join('');
 }
 function render(B){
@@ -658,7 +659,7 @@ function pkRows(k){
   var kr=k==='kr';
   return PK[k].map(function(p){
     var key=pkKey(k,p),x=(key&&((Q&&Q.items&&Q.items[key])||CQ[key]))||null,nm=(!kr&&US_KO[key])||p.name||(!kr&&US_KO[pkNorm(p.q)])||p.q;
-    if(x)return {n:nm,s:(kr?'':String(key||'')+' · ')+x.t,v:x.v,p:x.p,d:x.d,x:x.x||''};
+    if(x)return {n:nm,s:(kr?'':String(key||'')+' · ')+x.t,v:x.v,p:x.p,d:x.d,x:x.x||'',u:kr?'원':'USD'};
     return {n:nm,s:p.err?('⚠️ '+p.err):'시세 확인 중…',v:'—',p:'',d:'',x:''};
   });
 }
