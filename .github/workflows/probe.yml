@@ -1,0 +1,10 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -s -m 25 -H "User-Agent: Mozilla/5.0" "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PPIFIS" | tail -4
+          echo ----
+          curl -s -m 25 -H "User-Agent: Mozilla/5.0" "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PPIFIS" | wc -l
