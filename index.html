@@ -479,7 +479,7 @@ function build(){
   var nf=nfData();
   B.gap=nfGap(BR.gap,nf);
   B.nfBtn=nf?(nf.src==='수동입력'?'✎ 수동입력 수정':''):'＋ 야간선물 등락률 입력';
-  if(nf)B.market.forEach(function(g){g.items.forEach(function(it){if(it.n==='코스피200 야간선물'){it.v=nf.close||'';it.p=nf.pct;it.t=(nf.src==='수동입력'?'수동입력':'마감 · '+nf.src)}})});
+  if(nf)B.market.forEach(function(g){g.items.forEach(function(it){if(it.n==='코스피200 야간선물'){it.v=nf.close||'';it.p=nf.pct;it.t=(nf.src==='수동입력'?'수동입력':'마감 · 자동')}})});
   return B;
 }
 /* ---------- 야간선물 마감값: night.json(자동수집) / 수동입력 팝업 ---------- */
