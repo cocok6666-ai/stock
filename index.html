@@ -396,7 +396,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
     <div class="sarl" style="margin:12px 0 4px"><button id="saSim" type="button" class="sast sasim">🎮 5거래일 종가매매 시뮬레이터 <small>종목당 1천만원 · 종가매수 → 다음날 시가매도 · 재미로 해보기</small></button></div>
   </div>
 </div>
-<script src="research.js?v=5"></script>
+<script src="research.js?v=6"></script>
 <script>
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function sign(p){var s=String(p||'').trim();if(!s)return 'flat';if(/^[-−▼]/.test(s))return 'dn';if(/^[+▲]?0([.,]0+)?%?$/.test(s))return 'flat';return 'up'}
@@ -823,7 +823,7 @@ function saSignals(c,m){
   var S=[];function add(t,h,b){S.push({t:t,h:h,b:b})}
   var ctx=[];if(isFinite(m.kospi))ctx.push('코스피 '+saSp(m.kospi)+'%');if(isFinite(m.ixic))ctx.push('나스닥 '+saSp(m.ixic)+'%');if(isFinite(m.krw))ctx.push('원/달러 '+saSp(m.krw)+'%');if(isFinite(m.wti))ctx.push('WTI '+saSp(m.wti)+'%');
   var ctxs=ctx.length?' ('+ctx.join(' · ')+')':'';
-  var fd=c.us?2:0,cur=c.us?'달러':'원';
+  var fd=c.us?2:0,cur=c.us?' USD':'원';
   if(c.us){var ixm=m.ixic;
     if(!isFinite(ixm))add('info','시장: 나스닥 시세 없음','미국 지수 시세를 읽지 못했습니다.'+ctxs);
     else if(ixm<=-2)add('warn','시장: 나스닥 '+saSp(ixm)+'% 급락','미국 증시 약세 구간입니다. 한국 시장 갭다운과 변동성 확대에 유의하세요.'+ctxs);
@@ -918,14 +918,14 @@ function saRender(code,nm,bs,ig,nw,errs,us){
   function stars(n,ch,cl){n=Math.min(5,n);var o='';for(var i=0;i<5;i++)o+='<span class="ar '+cl+(i<n?'':' off')+'">'+ch+'</span>';return o}
   function sigs(a){return a.map(function(x){return '<div class="sig"><i>'+ic[x.t]+'</i><p><b>'+esc(x.h)+'</b>'+esc(x.b)+'</p></div>'}).join('')}
   var h='<div class="sas"><div class="sat"><b><a href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(name)+'</a></b><span>'+esc(mkt)+(mkt?' · ':'')+esc(code)+(SA_SEC?' <em class="sec">('+esc(SA_SEC)+')</em>':'')+'</span></div>'
-    +'<div class="spx '+cl+'">'+saF(price,us?2:0)+(us?'<small style="margin-right:4px">USD</small>':'')+'<small>'+(isFinite(chg)?arrow(cl)+saF(Math.abs(chg),us?2:0):'')+' '+(isFinite(rt)?'('+saSp(rt)+'%)':'')+'</small></div>'
+    +'<div class="spx '+cl+'">'+saF(price,us?2:0)+'<small style="margin:0 4px 0 2px">'+(us?'USD':'원')+'</small>'+'<small>'+(isFinite(chg)?arrow(cl)+saF(Math.abs(chg),us?2:0):'')+' '+(isFinite(rt)?'('+saSp(rt)+'%)':'')+'</small></div>'
     +'<div style="font-size:11.5px;color:var(--mut);margin-top:2px">'+esc(saD(bs&&bs.localTradedAt))+' '+(us?'(미국 현지) ':'')+(bs&&String(bs.marketStatus||'').toUpperCase()==='OPEN'?'장중':'종가 기준')+(us&&bs&&bs.overMarketPriceInfo&&bs.overMarketPriceInfo.overPrice?' · 시간외 '+esc(bs.overMarketPriceInfo.overPrice)+' ('+esc(saSp(saN(bs.overMarketPriceInfo.fluctuationsRatio)))+'%)':'')+'</div></div>';
   h+='<div class="sas"><div class="svh"><h4 class="svt">종합 판단 <span class="ico svi2">'+vd[1]+'</span><span class="svs">'+STARS(vl)+'</span></h4></div>'
     +'<b style="font-size:12.5px">핵심 3가지</b><div style="margin-top:6px">'+sigs(S.slice(0,3))+'</div>'
     +(S.length>3?'<b style="font-size:12.5px">추가 체크</b><div style="margin-top:6px">'+sigs(S.slice(3))+'</div>':'')+'</div>';
   var kv=[['시가총액',saInfo(ig,['marketValue'],/시총|시가총액/)],['PER',saInfo(ig,['per'],/^PER/i)],['PBR',saInfo(ig,['pbr'],/^PBR/i)],['EPS',saInfo(ig,['eps'],/^EPS/i)],['배당수익률',saInfo(ig,['dividendYieldRatio'],/배당수익률/)],['외국인소진율',saInfo(ig,['foreignRate'],/외[인국]인?\s*소진율/)],['52주 최고',saInfo(ig,['highPriceOf52Weeks'],/52주\s*최고/)],['52주 최저',saInfo(ig,['lowPriceOf52Weeks'],/52주\s*최저/)]].filter(function(x){return String(x[1]||'').trim()});
   h+='<div class="sas"><h4>투자 지표</h4>'+(kv.length?'<div class="skv">'+kv.map(function(x){return '<div><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>'}).join('')+'</div>':'<span style="color:var(--mut)">지표를 읽지 못했습니다.</span>')
-    +(isFinite(c.tp)?'<div style="margin-top:8px;font-size:12.5px;color:var(--mut)">증권사 평균 목표주가 '+esc(saF(c.tp,us?2:0))+(us?'달러':'원')+(cons.recommMean?' · 투자의견 평균 '+esc(cons.recommMean):'')+'</div>':'')+'</div>';
+    +(isFinite(c.tp)?'<div style="margin-top:8px;font-size:12.5px;color:var(--mut)">증권사 평균 목표주가 '+esc(saF(c.tp,us?2:0))+(us?' USD':'원')+(cons.recommMean?' · 투자의견 평균 '+esc(cons.recommMean):'')+'</div>':'')+'</div>';
   if(us)h+='<div class="sas" style="color:var(--mut);font-size:12px">미국 종목은 외국인·기관 수급 데이터가 제공되지 않아 수급 항목은 생략합니다.</div>';
   else{h+='<div class="sas sdl"><h4>투자자별 순매수 (최근 '+deal.length+'거래일, 주)</h4>';
   if(deal.length){h+='<table><tr><th>일자</th><th>외국인</th><th>기관</th><th>개인</th></tr>'+deal.map(function(x){return '<tr><td>'+esc(saD(x.d))+'</td><td class="'+scl(x.f)+'">'+saSn(x.f)+'</td><td class="'+scl(x.o)+'">'+saSn(x.o)+'</td><td class="'+scl(x.p)+'">'+saSn(x.p)+'</td></tr>'}).join('')+'</table>'}

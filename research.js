@@ -154,7 +154,7 @@
     (o.totalInfos || []).forEach(function (x) { ti[x.code] = x.value; });
     var H = series(o.hist), N = H.length, last = N ? H[N - 1] : null;
     var P = fin(o.price) && o.price > 0 ? o.price : (last ? last.c : NaN);
-    function PR(n, d) { return fin(n) ? (us ? '$' + F(n, d == null ? 2 : d) : F(n, 0) + '원') : '—'; }
+    function PR(n, d) { return fin(n) ? (us ? F(n, d == null ? 2 : d) + ' USD' : F(n, 0) + '원') : '—'; }
     var cons = o.cons || {}, tp = num(cons.priceTargetMean), up = fin(tp) && P > 0 ? (tp / P - 1) * 100 : NaN, rec = num(cons.recommMean);
     var deal = (o.deal || []).slice(0, 5).map(function (x) { return { f: num(x.foreignerPureBuyQuant), i: num(x.organPureBuyQuant), p: num(x.individualPureBuyQuant), hr: num(x.foreignerHoldRatio) }; });
     var A = fin(N) && N > 14 ? atr(H, 14) : NaN, atrp = fin(A) && P > 0 ? A / P * 100 : NaN;
@@ -328,7 +328,7 @@
 
       function money(v) {
         if (!fin(v)) return '—';
-        if (us) return Math.abs(v) >= 1000 ? '$' + F(v / 1000, 1) + 'B' : '$' + F(v, 0) + 'M';
+        if (us) return Math.abs(v) >= 1000 ? F(v / 1000, 1) + 'B USD' : F(v, 0) + 'M USD';
         return Math.abs(v) >= 10000 ? F(v / 10000, 1) + '조' : F(v, 0) + '억';
       }
       var rowsF = [], showCols = allc.slice(-5);
