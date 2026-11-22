@@ -131,6 +131,7 @@ for code in ["069500", "395160", "005930", "000660"]:
 attempt("DJI", lambda: naver(f"{A}/index/.DJI/basic", "DJI"))
 attempt("IXIC", lambda: naver(f"{A}/index/.IXIC/basic", "IXIC"))
 attempt("SPX", lambda: naver(f"{A}/index/.INX/basic", "SPX"), lambda: naver(f"{A}/index/.SPX/basic", "SPX"))
+attempt("SOX", lambda: naver(f"{A}/index/.SOX/basic", "SOX"))
 attempt("USDKRW", lambda: naver(f"{A}/marketindex/exchange/FX_USDKRW", "USDKRW"))
 attempt("WTI", lambda: naver(f"{A}/marketindex/energy/CLcv1", "WTI"))
 attempt("BRENT", lambda: naver(f"{A}/marketindex/energy/LCOcv1", "BRENT"))
