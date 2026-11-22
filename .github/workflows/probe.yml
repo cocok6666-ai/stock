@@ -5,6 +5,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -s -m 25 -H "User-Agent: Mozilla/5.0" "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PPIFIS" | tail -4
-          echo ----
-          curl -s -m 25 -H "User-Agent: Mozilla/5.0" "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PPIFIS" | wc -l
+          curl -sS -m 25 -o /tmp/f.csv -w "FRED %{http_code}\n" -H "User-Agent: Mozilla/5.0" "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PPIFIS" || true
+          tail -3 /tmp/f.csv
+          curl -sS -m 25 -o /tmp/b.json -w "BLS %{http_code}\n" "https://api.bls.gov/publicAPI/v1/timeseries/data/WPSFD4" || true
+          head -c 600 /tmp/b.json; echo
+          curl -sS -m 25 -o /tmp/n.json -w "NAVER %{http_code}\n" -H "User-Agent: Mozilla/5.0" "https://api.stock.naver.com/marketindex/economy" || true
+          head -c 300 /tmp/n.json
