@@ -454,14 +454,20 @@ var QURL='https://raw.githubusercontent.com/cocok6666-ai/stock/data/quotes.json'
 var STRUCT={
  market:[
   {g:'지수 · 선물',nf:1,items:[['코스피','KOSPI'],['코스닥','KOSDAQ'],['코스피200 야간선물','K200NF'],['다우존스','DJI'],['나스닥','IXIC'],['S&P500','SPX']]},
-  {g:'유가 · 금 · 환율 · 금리',inv:1,items:[['WTI','WTI','USD/배럴'],['브렌트유','BRENT','USD/배럴'],['두바이유','DUBAI','USD/배럴'],['국제 금','GOLD','USD'],['원/달러','USDKRW','원'],['미국 10년물','US10Y','%']]}
+  {g:'유가 · 금 · 환율 · 금리',inv:1,items:[['WTI','WTI','USD/배럴'],['브렌트유','BRENT','USD/배럴'],['미국 PPI','USPPI','% 전년비'],['국제 금','GOLD','USD'],['원/달러','USDKRW','원'],['미국 10년물','US10Y','%']]}
  ],
  kr:[['KODEX 200','ETF','069500'],['KODEX AI반도체TOP2플러스','ETF','395160'],['삼성전자','반도체','005930'],['SK하이닉스','반도체','000660']],
  us:[['엔비디아','NVDA'],['SK하이닉스(ADR)','SKHY'],['마이크론 테크놀로지','MU'],['샌디스크','SNDK'],['브로드컴','AVGO'],['에이엠디','AMD'],['미국 반도체 3배 ETF','SOXL']]
 };
 var BR=null,Q=null,busy=false;
 function hhmm(){return new Date().toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',hour12:false})}
-function q(k){return (Q&&Q.items&&Q.items[k])||{}}
+var PPIQ=null;
+function q(k){if(k==='USPPI')return PPIQ||{};return (Q&&Q.items&&Q.items[k])||{}}
+async function loadPpi(){
+  try{var r=await fetch('ppi.json?_='+Math.floor(Date.now()/3600000),{cache:'no-store'});if(!r.ok)throw 0;var j=await r.json();
+    if(j&&isFinite(j.yoy))PPIQ={v:j.yoy.toFixed(1),p:isFinite(j.mom)?(j.mom>0?'+':j.mom<0?'-':'')+Math.abs(j.mom).toFixed(1):'',t:j.month+'월 · 위 변동은 전월비'};
+  }catch(e){}
+}
 function build(){
   var B={date:BR.date,asof:BR.asof,headline:BR.headline,gap:BR.gap,facts:BR.facts,semi:BR.semi,picks:BR.picks,sources:BR.sources};
   B.market=STRUCT.market.map(function(g){return {g:g.g,nf:g.nf,inv:g.inv,items:g.items.map(function(a){var x=q(a[1]);return {n:a[0],v:x.v||'',p:x.p||'',t:x.t||'',u:a[2]||''}})}});
@@ -785,7 +791,7 @@ async function pkRefresh(force){
   app.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target&&ev.target.classList&&ev.target.classList.contains('pki')){var c=ev.target.closest('.card'),s=c&&c.querySelector('.pksave');if(s)s.click()}});
 })();
 document.getElementById('refBtn').addEventListener('click',function(){loadQ(true)});
-(async function(){await loadBrief();await loadNight();await loadQ(false);setInterval(function(){loadNight().then(function(){loadQ(false)})},20000)})();
+(async function(){await loadBrief();await loadNight();await loadPpi();await loadQ(false);setInterval(function(){loadNight().then(function(){loadQ(false)})},20000)})();
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&BR)loadNight().then(function(){loadQ(false)})});
 /* ---------- 종목분석: Cloudflare Worker(네이버 조회 프록시) 경유 ---------- */
 var SA_DEFAULT_WORKER='';
