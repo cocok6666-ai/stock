@@ -420,8 +420,10 @@ function render(B){
   var h='';
   var g=B.gap||{};
   var DM=dayMode(),WK=!!DM,DT=DMT[DM]||{};
-  h+='<div class="card csum"><div class="sum"><div class="hl">'+(WK?DT.hl:esc(B.headline||''))+'</div>'
-    +(WK?'<div class="gap flat"><b>'+DT.tag+'</b>'+DT.gap+'</div>':g.dir?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'')
+  var BD=String(B.date||'').slice(0,10),STALE=!WK&&BD!==kst().d,EARLY=STALE&&kst().hm<'07:00';
+  var STM=EARLY?'<b>⏳ 오전 7시에 새 시황 브리핑이 게시됩니다</b> 직전 브리핑('+esc(B.date||'날짜 미상')+') 내용은 오래된 수치라 숨겼습니다.':'<b>⚠️ 오늘 브리핑이 아직 갱신되지 않았습니다</b> 잘못된 수치 방지를 위해 지난 브리핑('+esc(B.date||'날짜 미상')+') 내용을 숨겼습니다. 아래 시세는 실시간 수집값입니다.';
+  h+='<div class="card csum"><div class="sum"><div class="hl">'+(WK?DT.hl:STALE?(EARLY?'⏳ 새 브리핑 대기 중':'⚠️ 브리핑 갱신 지연'):esc(B.headline||''))+'</div>'
+    +(WK?'<div class="gap flat"><b>'+DT.tag+'</b>'+DT.gap+'</div>':STALE?'<div class="gap flat">'+STM+'</div>':g.dir?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'')
     +'</div></div>';
   h+='<div class="card c1"><h2><i>1</i>시장지표</h2>';
   (B.market||[]).forEach(function(grp,gi){
@@ -436,7 +438,7 @@ function render(B){
   h+='</div>';
   h+=pkCard('kr',B)+pkCard('us',B);
   h+='<div class="card c4"><h2><i>4</i>오늘의 시황 브리핑</h2><div class="memo">';
-  if(WK){h+='<div class="fact" style="border:0"><i>'+DT.ic+'</i><p><b>'+DT.b+'</b>'+DT.p+'</p></div></div></div>';}else{
+  if(WK){h+='<div class="fact" style="border:0"><i>'+DT.ic+'</i><p><b>'+DT.b+'</b>'+DT.p+'</p></div></div></div>';}else if(STALE){h+='<p class="empty" style="margin:0">'+STM+'</p></div></div>';}else{
   h+='<h3>핵심 3가지</h3>';
   (B.facts||[]).slice(0,3).forEach(function(f,i){h+='<div class="fact"><i>'+(i+1)+'</i><p><b>'+esc(f.h)+'</b>'+esc(f.b)+'</p></div>'});
   h+='<h3>반도체 · 미국↔국내 연동</h3><p style="margin:0">'+esc(B.semi||'')+'</p>';
@@ -475,7 +477,7 @@ function build(){
   B.usAsof=B.krAsof;
   /* 야간선물: night.json(자동) 또는 팝업 수동입력 → 시장현황 칸과 갭 카드에 반영 */
   var nf=nfData();
-  B.gap=nfGap(BR.gap,nf);
+  B.gap=nfGap(BR.gap,nf)||{};
   B.nfBtn=nf?(nf.src==='수동입력'?'✎ 수동입력 수정':''):'＋ 야간선물 등락률 입력';
   if(nf)B.market.forEach(function(g){g.items.forEach(function(it){if(it.n==='코스피200 야간선물'){it.v=nf.close||'';it.p=nf.pct;it.t=(nf.src==='수동입력'?'수동입력':'마감 · 자동')}})});
   return B;
@@ -510,7 +512,9 @@ function nfManual(){
   return null;
 }
 function nfData(){return nfManual()||nfAuto()}
+function briefFresh(){return !!BR&&(!!dayMode()||String(BR.date||'').slice(0,10)===kst().d)}
 function nfGap(g,nf){
+  if(!briefFresh())g=null;
   if(!nf)return g;
   var x=parseFloat(nf.pct);if(!isFinite(x))return g;
   var dir=x>=0.3?'갭상승 예상':x<=-0.3?'갭하락 예상':'보합 출발 예상',tone=x>=0.3?'up':x<=-0.3?'dn':'flat';
