@@ -458,7 +458,7 @@ function stocks(arr,vol){
 }
 function render(B){
   document.title=titleText();
-  setSub(dayMode()?DMT[dayMode()].sub:(B.date||'')+' · '+(B.asof||''));
+  setSub(dayMode()?DMT[dayMode()].sub:'브리핑 평일 06:30 · 16:00 게시');
   var h='';
   var g=B.gap||{};
   var DM=dayMode(),WK=!!DM,DT=DMT[DM]||{};
@@ -757,7 +757,7 @@ function setSub(t){SUBT=t;renderStat()}
 function ageMin(){if(!Q||!Q.updated)return null;return (Date.now()-new Date(Q.updated).getTime())/60000}
 function paint(force){
   var B=build();if(force||!pkBusy())render(B);
-  setSub((Q&&Q.updated?Q.updated.slice(5,10).replace('-','/')+' '+Q.updated.slice(11,16)+' 시세 · ':'시세 없음 · ')+(dayMode()?DMT[dayMode()].sub:(BR.asof||'')));
+  setSub((Q&&Q.updated?Q.updated.slice(5,10).replace('-','/')+' '+Q.updated.slice(11,16)+' 시세 · ':'시세 없음 · ')+(dayMode()?DMT[dayMode()].sub:'브리핑 평일 06:30·16:00 게시'));
   var a=ageMin();
   if(a==null)setStat('⚠️ 시세를 아직 받지 못했어요','err');
   else if(a>20)setStat('⚠️ 시세가 '+Math.round(a)+'분 전 데이터예요 · 수집 지연 중','err');
