@@ -542,27 +542,20 @@ function closeBox(){
 function liveFlow(){
   var t=kst(),w=new Date().toLocaleDateString('en-US',{timeZone:'Asia/Seoul',weekday:'short'});
   if(w==='Sat'||w==='Sun'||t.hm<'09:00'||t.hm>='15:40')return '';
-  var age=ageMin(),upd=Q&&Q.updated?Q.updated.slice(11,16):'--:--';
-  if(age==null||age>10)return '<div class="gap flat lvc"><b>📡 장중 흐름</b>⚠️ 시세 갱신 지연 · 마지막 '+upd+' (아래 시장지표는 지연된 값일 수 있습니다)</div>';
-  var H=Q.hist,out=[];
-  function one(n,k){
-    var x=q(k),p=fnum(k);if(!x.v||!isFinite(p))return;
-    var cur=parseFloat(String(x.v).replace(/,/g,'')),s=n+' '+esc(x.v)+' <span class="'+fcl(p)+'">'+fsp(p)+'</span>';
-    var a=H&&H.d===t.d&&H[k]&&H[k].length?H[k]:null;
-    if(a&&isFinite(cur)){
-      var nowM=(+t.hm.slice(0,2))*60+(+t.hm.slice(3));
-      function back(m){var r=null;a.forEach(function(e){var em=(+e[0].slice(0,2))*60+(+e[0].slice(3));if(em<=nowM-m)r=e});return r}
-      var b10=back(10),b30=back(30);
-      function dl(l,e){if(!e)return '';var d=(cur/e[1]-1)*100;return ' · '+l+' <span class="'+fcl(d)+'">'+(d>0?'+':d<0?'-':'')+Math.abs(d).toFixed(2)+'%</span>'}
-      s+=dl('10분',b10)+dl('30분',b30);
-      var hi=Math.max.apply(null,a.map(function(e){return e[1]})),lo=Math.min.apply(null,a.map(function(e){return e[1]}));
-      if(a.length>=3)s+=' · 장중 고점 '+hi.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' / 저점 '+lo.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    }
-    out.push(s);
+  var age=ageMin();
+  if(age==null||age>10)return '⚠️ 시세 갱신 지연 · 마지막 '+(Q&&Q.updated?Q.updated.slice(11,16):'--:--');
+  var H=Q.hist,x=q('KOSPI'),p=fnum('KOSPI');if(!x.v||!isFinite(p))return '';
+  var cur=parseFloat(String(x.v).replace(/,/g,'')),s='코스피 '+esc(x.v)+' <span class="'+fcl(p)+'">'+fsp(p)+'</span>';
+  var a=H&&H.d===t.d&&H.KOSPI&&H.KOSPI.length?H.KOSPI:null;
+  if(a&&isFinite(cur)){
+    var nowM=(+t.hm.slice(0,2))*60+(+t.hm.slice(3));
+    function back(m){var r=null;a.forEach(function(e){var em=(+e[0].slice(0,2))*60+(+e[0].slice(3));if(em<=nowM-m)r=e});return r}
+    function dl(l,e){if(!e)return '';var d=(cur/e[1]-1)*100;return ' · '+l+' <span class="'+fcl(d)+'">'+(d>0?'+':d<0?'-':'')+Math.abs(d).toFixed(2)+'%</span>'}
+    s+=dl('10분',back(10))+dl('30분',back(30));
+    if(a.length>=3){var hi=Math.max.apply(null,a.map(function(e){return e[1]})),lo=Math.min.apply(null,a.map(function(e){return e[1]}));
+      s+=' · 장중 고점 '+hi.toLocaleString('en-US',{maximumFractionDigits:0})+' / 저점 '+lo.toLocaleString('en-US',{maximumFractionDigits:0})}
   }
-  one('코스피','KOSPI');one('코스닥','KOSDAQ');
-  if(!out.length)return '';
-  return '<div class="gap flat lvc"><b>📡 장중 흐름 · '+upd+' 시세 기준</b>'+out.join('<br>')+'</div>';
+  return s;
 }
 function liveAlert(){
   var t=kst(),w=new Date().toLocaleDateString('en-US',{timeZone:'Asia/Seoul',weekday:'short'});
@@ -579,12 +572,16 @@ function liveAlert(){
   return '<div class="gap lvc lva"><b>⚡ 실시간 변동 알림 · '+upd+' 시세 기준</b>'+it.slice(0,3).map(esc).join('<br>')+'</div>';
 }
 function liveComment(){
-  if(!LV||!LV.text)return '';
-  var t=kst(),m=/^(\d{2}):(\d{2})$/.exec(LV.asof||'');
-  if(!m||String(LV.date||'').slice(0,10)!==t.d)return '';
-  var mins=(+t.hm.slice(0,2))*60+(+t.hm.slice(3))-(+m[1]*60+ +m[2]);
-  if(mins<0||mins>150)return '';
-  return '<div class="gap flat lvc"><b>🗣 장중 시황 · '+esc(LV.asof)+' 기준</b>'+esc(LV.text).replace(/\n/g,'<br>')+'</div>';
+  var t=kst(),fl=liveFlow(),news='',nm='';
+  var m=LV&&LV.text?/^(\d{2}):(\d{2})$/.exec(LV.asof||''):null;
+  if(m&&String(LV.date||'').slice(0,10)===t.d){
+    var mins=(+t.hm.slice(0,2))*60+(+t.hm.slice(3))-(+m[1]*60+ +m[2]);
+    if(mins>=0&&mins<=150){news=esc(LV.text).replace(/\n/g,'<br>');nm=LV.asof}
+  }
+  if(!fl&&!news)return '';
+  var upd=Q&&Q.updated&&fl&&fl.indexOf('⚠️')<0?Q.updated.slice(11,16):'';
+  var head='🗣 장중 시황 · '+(upd?upd+' 기준'+(nm?' (뉴스 '+esc(nm)+')':''):esc(nm)+' 기준');
+  return '<div class="gap flat lvc"><b>'+head+'</b>'+(fl?fl+(news?'<br>':''):'')+news+'</div>';
 }
 var DMT={we:{sub:'주말 · 시황분석 없음',hl:'📅 주말(토·일)에는 시황분석을 하지 않습니다',tag:'주말 휴장',gap:'월요일 오전 6시 30분에 새 시황분석을 게시합니다. 아래 시세는 직전 거래일(금요일) 종가 기준입니다.',ic:'📅',b:'주말(토·일)에는 시황분석을 하지 않습니다.',p:'주말에는 새 자료가 없어 지난 금요일 분석을 보여드리지 않습니다. 월요일 오전 6시 30분 브리핑부터 다시 게시됩니다. (시장지표의 시세는 금요일 종가입니다.)'},
  mp:{sub:'월요일 새벽 · 오전 6시 30분 게시 예정',hl:'⏳ 월요일 오전 6시 30분에 시황분석을 게시합니다',tag:'준비중',gap:'시장지표 등 분석자료를 준비해 오전 6시 30분에 게시합니다. 시장지표는 수집되는 대로 아래에 표시됩니다.',ic:'⏳',b:'월요일 새벽에는 분석자료를 준비하고 있습니다.',p:'시장지표 등 분석자료를 정리해 오전 6시 30분에 게시합니다. 7시 이후 새로고침하면 오늘의 브리핑이 나타납니다. (그 전에는 지난 금요일 분석을 보여드리지 않습니다.)'}};
