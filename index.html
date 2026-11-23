@@ -422,11 +422,11 @@ function render(B){
   var DM=dayMode(),WK=!!DM,DT=DMT[DM]||{};
   var BD=String(B.date||'').slice(0,10),STALE=!WK&&BD!==kst().d,EARLY=STALE&&kst().hm<'07:00';
   var STM=EARLY?'<b>⏳ 오전 6시 30분경 새 시황 브리핑이 게시됩니다</b> 직전 브리핑('+esc(B.date||'날짜 미상')+') 내용은 오래된 수치라 숨겼습니다.':'<b>⚠️ 오늘 브리핑이 아직 갱신되지 않았습니다</b> 잘못된 수치 방지를 위해 지난 브리핑('+esc(B.date||'날짜 미상')+') 내용을 숨겼습니다. 아래 시세는 실시간 수집값입니다.';
-  var LL=WK?null:liveLine(),LC=WK?'':liveComment();
+  var LC=WK?'':liveComment();
   var gapBox=WK?'<div class="gap flat"><b>'+DT.tag+'</b>'+DT.gap+'</div>':STALE?'<div class="gap flat">'+STM+'</div>':(!LC&&g.dir&&kst().hm<'09:00')?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'';
   h+='<div class="card csum"><div class="sum">'
-    +(WK?'<div class="hl">'+DT.hl+'</div>':'<div class="lvh">'+LL.tag+'</div><div class="hl">'+LL.txt+'</div>')
-    +LC+gapBox+'</div></div>';
+    +(WK?'<div class="hl">'+DT.hl+'</div>':'')
+    +LC+gapBox+((!WK&&!LC&&!gapBox)?'<div class="gap flat lvc"><b>🗣 장중 시황</b>'+(kst().hm<'09:30'?'장 시작 후 9시 30분경부터 게시됩니다.':'다음 장중 시황을 준비하고 있습니다. 시세는 아래 시장지표를 확인하세요.')+'</div>':'')+'</div></div>';
   h+='<div class="card c1"><h2><i>1</i>시장지표</h2>';
   (B.market||[]).forEach(function(grp,gi){
     h+='<div class="mg mg'+(gi%2)+'"><div class="sec'+(grp.nf&&B.nfBtn?' secr':'')+'"><span>'+esc(grp.g)+'</span>'+(grp.nf&&B.nfBtn?'<button class="nfchip sm" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>':'')+'</div>';
