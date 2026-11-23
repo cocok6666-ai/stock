@@ -427,7 +427,7 @@ function render(B){
   var gapBox=WK?'<div class="gap flat"><b>'+DT.tag+'</b>'+DT.gap+'</div>':STALE?'<div class="gap flat">'+STM+'</div>':(!LC&&g.dir&&kst().hm<'09:00')?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'';
   h+='<div class="card csum"><div class="sum">'
     +(WK?'<div class="hl">'+DT.hl+'</div>':'')
-    +(WK?'':liveAlert())+LC+gapBox+((!WK&&!LC&&!gapBox)?'<div class="gap flat lvc"><b>🗣 장중 시황</b>'+(kst().hm<'09:30'?'장 시작 후 9시 30분경부터 게시됩니다.':'다음 장중 시황을 준비하고 있습니다. 시세는 아래 시장지표를 확인하세요.')+'</div>':'')+'</div></div>';
+    +(WK?'':liveFlow()+liveAlert())+LC+gapBox+((!WK&&!LC&&!gapBox)?'<div class="gap flat lvc"><b>🗣 장중 시황</b>'+(kst().hm<'09:30'?'장 시작 후 9시 30분경부터 게시됩니다.':'다음 장중 시황을 준비하고 있습니다. 시세는 아래 시장지표를 확인하세요.')+'</div>':'')+'</div></div>';
   h+='<div class="card c1"><h2><i>1</i>시장지표</h2>';
   (B.market||[]).forEach(function(grp,gi){
     h+='<div class="mg mg'+(gi%2)+'"><div class="sec'+(grp.nf&&B.nfBtn?' secr':'')+'"><span>'+esc(grp.g)+'</span>'+(grp.nf&&B.nfBtn?'<button class="nfchip sm" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>':'')+'</div>';
@@ -538,6 +538,31 @@ function closeBox(){
   var sr='';(CB.sources||[]).forEach(function(s){if(/^https?:\/\//.test(s.u||''))sr+='· <a href="'+esc(s.u)+'" target="_blank" rel="noopener">'+esc(s.t||s.u)+'</a><br>'});
   if(sr)h+='<div class="src" style="margin-top:6px">'+sr+'</div>';
   return h;
+}
+function liveFlow(){
+  var t=kst(),w=new Date().toLocaleDateString('en-US',{timeZone:'Asia/Seoul',weekday:'short'});
+  if(w==='Sat'||w==='Sun'||t.hm<'09:00'||t.hm>='15:40')return '';
+  var age=ageMin(),upd=Q&&Q.updated?Q.updated.slice(11,16):'--:--';
+  if(age==null||age>10)return '<div class="gap flat lvc"><b>📡 장중 흐름</b>⚠️ 시세 갱신 지연 · 마지막 '+upd+' (아래 시장지표는 지연된 값일 수 있습니다)</div>';
+  var H=Q.hist,out=[];
+  function one(n,k){
+    var x=q(k),p=fnum(k);if(!x.v||!isFinite(p))return;
+    var cur=parseFloat(String(x.v).replace(/,/g,'')),s=n+' '+esc(x.v)+' <span class="'+fcl(p)+'">'+fsp(p)+'</span>';
+    var a=H&&H.d===t.d&&H[k]&&H[k].length?H[k]:null;
+    if(a&&isFinite(cur)){
+      var nowM=(+t.hm.slice(0,2))*60+(+t.hm.slice(3));
+      function back(m){var r=null;a.forEach(function(e){var em=(+e[0].slice(0,2))*60+(+e[0].slice(3));if(em<=nowM-m)r=e});return r}
+      var b10=back(10),b30=back(30);
+      function dl(l,e){if(!e)return '';var d=(cur/e[1]-1)*100;return ' · '+l+' <span class="'+fcl(d)+'">'+(d>0?'+':d<0?'-':'')+Math.abs(d).toFixed(2)+'%</span>'}
+      s+=dl('10분',b10)+dl('30분',b30);
+      var hi=Math.max.apply(null,a.map(function(e){return e[1]})),lo=Math.min.apply(null,a.map(function(e){return e[1]}));
+      if(a.length>=3)s+=' · 장중 고점 '+hi.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' / 저점 '+lo.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    }
+    out.push(s);
+  }
+  one('코스피','KOSPI');one('코스닥','KOSDAQ');
+  if(!out.length)return '';
+  return '<div class="gap flat lvc"><b>📡 장중 흐름 · '+upd+' 시세 기준</b>'+out.join('<br>')+'</div>';
 }
 function liveAlert(){
   var t=kst(),w=new Date().toLocaleDateString('en-US',{timeZone:'Asia/Seoul',weekday:'short'});

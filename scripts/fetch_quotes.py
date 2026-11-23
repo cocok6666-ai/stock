@@ -144,7 +144,30 @@ for key, codes in [("NVDA", ["NVDA.O"]), ("SKHY", ["SKHY.O", "SKHY.K", "SKHY"]),
                    ("SNDK", ["SNDK.O"]), ("AVGO", ["AVGO.O"]), ("AMD", ["AMD.O"]), ("SOXL", ["SOXL.K"])]:
     attempt(key, *[(lambda c=c, k=key: naver(f"{A}/stock/{c}/basic", k)) for c in codes])
 
-out = {"updated": datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00"), "items": items, "errors": errors}
+# 장중 흐름용 이력(코스피·코스닥, 당일만): 이전 게시본을 읽어 이어 붙임
+def build_hist(now):
+    day, hm = now.strftime("%Y-%m-%d"), now.strftime("%H:%M")
+    h = {"d": day, "KOSPI": [], "KOSDAQ": []}
+    try:
+        r = urllib.request.urlopen(urllib.request.Request(
+            "https://raw.githubusercontent.com/cocok6666-ai/stock/data/quotes.json?_=%d" % int(time.time()), headers=UA), timeout=15)
+        old = json.loads(r.read().decode("utf-8")).get("hist") or {}
+        if old.get("d") == day:
+            h = {"d": day, "KOSPI": old.get("KOSPI", []), "KOSDAQ": old.get("KOSDAQ", [])}
+    except Exception:
+        pass
+    if now.weekday() < 5 and "09:00" <= hm <= "15:40":
+        for k in ("KOSPI", "KOSDAQ"):
+            it = items.get(k) or {}
+            v = num(it.get("v")) if it.get("v") else None
+            if v is not None and "현재" in str(it.get("t", "")):
+                if not h[k] or h[k][-1][0] != hm:
+                    h[k].append([hm, v])
+            h[k] = h[k][-120:]
+    return h
+
+now_kst = datetime.now(KST)
+out = {"updated": datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00"), "items": items, "errors": errors, "hist": build_hist(now_kst)}
 with open(sys.argv[1] if len(sys.argv) > 1 else "quotes.json", "w", encoding="utf-8") as f:
     json.dump(out, f, ensure_ascii=False, indent=1)
 print(f"ok={len(items)} errors={len(errors)}")
