@@ -19,9 +19,16 @@ jobs:
               for k,v in j.items():
                   if k in("stockEndType","itemCode","stockName","closePrice","localTradedAt","marketStatus","compareToPreviousClosePrice","fluctuationsRatio") or "ver" in k.lower() or "nxt" in k.lower() or "pre" in k.lower() or "after" in k.lower():
                       print(k,"=",json.dumps(v,ensure_ascii=False)[:700])
-          show("KR 005930 m.stock basic",g("https://m.stock.naver.com/api/stock/005930/basic"))
-          show("KR 005930 polling",g("https://polling.finance.naver.com/api/realtime/domestic/stock/005930"))
-          show("KR 005930 integration keys",{k:("..." ) for k in g("https://m.stock.naver.com/api/stock/005930/integration").keys()})
-          show("US NVDA.O basic",g("https://api.stock.naver.com/stock/NVDA.O/basic"))
-          show("US MU.O basic",g("https://api.stock.naver.com/stock/MU.O/basic"))
+          j=g("https://polling.finance.naver.com/api/realtime/domestic/stock/005930")
+          print("POLL",json.dumps(j,ensure_ascii=False)[:2500])
+          b=g("https://m.stock.naver.com/api/stock/005930/basic")
+          print("BASIC",json.dumps(b,ensure_ascii=False)[:2500])
+          t=g("https://m.stock.naver.com/api/stock/005930/integration")
+          print("INTEG tradeInfo/dealTrend keys",[k for k in t.keys()])
+          for k in ("totalInfos","dealTrendInfos"):
+              print(k,json.dumps(t.get(k),ensure_ascii=False)[:1500])
+          e=g("https://m.stock.naver.com/api/stock/069500/basic")
+          print("ETF069500",json.dumps({k:e.get(k) for k in ("closePrice","localTradedAt","marketStatus","overMarketPriceInfo")},ensure_ascii=False))
+          idx=g("https://m.stock.naver.com/api/index/KOSPI/basic")
+          print("KOSPIidx",json.dumps({k:idx.get(k) for k in ("closePrice","localTradedAt","marketStatus","overMarketPriceInfo")},ensure_ascii=False))
           PY
