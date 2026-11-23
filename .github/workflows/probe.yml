@@ -1,0 +1,27 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: probe
+        run: |
+          python3 - <<'PY'
+          import json,urllib.request
+          UA={"User-Agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile Safari/604.1","Accept":"application/json"}
+          def g(u):
+              try:
+                  return json.loads(urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=15).read().decode())
+              except Exception as e: return {"ERR":str(e)}
+          def show(n,j):
+              print("=====",n)
+              if "ERR" in j: print(j); return
+              for k,v in j.items():
+                  if k in("stockEndType","itemCode","stockName","closePrice","localTradedAt","marketStatus","compareToPreviousClosePrice","fluctuationsRatio") or "ver" in k.lower() or "nxt" in k.lower() or "pre" in k.lower() or "after" in k.lower():
+                      print(k,"=",json.dumps(v,ensure_ascii=False)[:700])
+          show("KR 005930 m.stock basic",g("https://m.stock.naver.com/api/stock/005930/basic"))
+          show("KR 005930 polling",g("https://polling.finance.naver.com/api/realtime/domestic/stock/005930"))
+          show("KR 005930 integration keys",{k:("..." ) for k in g("https://m.stock.naver.com/api/stock/005930/integration").keys()})
+          show("US NVDA.O basic",g("https://api.stock.naver.com/stock/NVDA.O/basic"))
+          show("US MU.O basic",g("https://api.stock.naver.com/stock/MU.O/basic"))
+          PY
