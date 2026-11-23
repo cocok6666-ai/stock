@@ -12,6 +12,7 @@
 <link rel="apple-touch-icon" href="icons/icon-180.png?v=4">
 <link rel="icon" href="icons/icon-192.png?v=4">
 <title>주식딸랑이</title>
+<script>try{if(localStorage.getItem('thm')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}</script>
 <style>
 :root{--bg:#0b1220;--card:#121b2e;--tile:#0e1626;--line:#1f2b44;--tx:#e8edf7;--mut:#8b98b3;--up:#ff5a62;--dn:#4d8dff;--acc:#2dd4a7}
 *{box-sizing:border-box;min-width:0}
@@ -321,6 +322,27 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .sast .sd{display:grid;grid-template-columns:20px auto;column-gap:6px;row-gap:1px;justify-content:center;align-items:center;margin-top:3px;text-align:left}.sast .sd i{font-style:normal;font-size:11px;text-align:center}.sast .sd em{font-style:normal;font-size:10.5px;font-weight:600;color:#cdbf9f;line-height:1.25}.sast .sd em b{color:#f4efe4;font-weight:800}
 .lva{background:#fff4f4!important;border-color:#f3c4c4!important}.lva b{color:#d6334a}
 .lr{margin-top:3px}.lt{display:inline-block;font-size:10.5px;font-weight:700;color:#5a6b8c;background:#eef2fa;border-radius:4px;padding:0 5px;margin-right:3px}
+
+/* 밝은 화면 테마 */
+.thm{margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px 0 4px;border-radius:999px;border:1px solid rgba(255,255,255,.55);background:rgba(0,0,0,.22);color:#fff;font:700 11.5px/1 inherit;cursor:pointer;text-shadow:none;-webkit-tap-highlight-color:transparent}
+.thm .kn{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#fff;font-size:12px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+html[data-theme=light]{--bg:#eef1f7;--card:#ffffff;--tile:#f3f5fa;--line:#dde3ef;--tx:#1a2238;--mut:#667290;--up:#e5232f;--dn:#2a62d9;--acc:#12a37f}
+html[data-theme=light] header{background:rgba(255,255,255,.94)}
+html[data-theme=light] .thm{background:rgba(255,255,255,.28)}
+html[data-theme=light] .mg .tile,html[data-theme=light] #pk-kr .tile,html[data-theme=light] #pk-us .tile{background:#fff;border:1px solid #e3e8f2;box-shadow:0 1px 2px rgba(20,30,60,.05)}
+html[data-theme=light] .mg0{background:linear-gradient(180deg,rgba(110,140,205,.14),rgba(110,140,205,.03))}html[data-theme=light] .mg0 .sec{color:#3d5aa8}
+html[data-theme=light] .mg1{background:linear-gradient(180deg,rgba(206,176,118,.2),rgba(206,176,118,.04))}html[data-theme=light] .mg1 .sec{color:#8a6a22}
+html[data-theme=light] .card.csum{background:linear-gradient(135deg,#fff7e3 0%,#fdeec9 60%,#fae6b8 100%);border-color:rgba(190,150,70,.55);box-shadow:0 3px 12px rgba(120,90,30,.16)}
+html[data-theme=light] .csum .hl,html[data-theme=light] .csum .gap{color:#4a3a18}
+html[data-theme=light] .csum .gap.lvc{color:#3a2f16}
+html[data-theme=light] .csum .gap{background:rgba(255,255,255,.55);border-color:rgba(190,150,70,.45)}
+html[data-theme=light] .csum .gap.lvc{background:none}
+html[data-theme=light] .csum .hl .up{color:#d11f2c}html[data-theme=light] .csum .hl .dn{color:#2a62d9}html[data-theme=light] .csum .hl .flat{color:#5a4a28}
+html[data-theme=light] .csum .lvh{color:#7a6535}
+html[data-theme=light] .lt{background:#f3e3b8;color:#6b5420}
+html[data-theme=light] .gap{background:#f0f3fa}
+html[data-theme=light] #ttl span{filter:brightness(.6) saturate(2.4)}html[data-theme=light] .stat.err{color:#c0392b}html[data-theme=light] .rb{box-shadow:0 1px 3px rgba(20,30,60,.12)}
+html[data-theme=light] #pk-kr{background:linear-gradient(180deg,rgba(64,160,130,.14),rgba(64,160,130,.02) 70%),#fff}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 </head>
@@ -435,7 +457,7 @@ function render(B){
   h+='<div class="card csum"><div class="sum">'
     +(WK?'<div class="hl">'+DT.hl+'</div>':'')
     +LC+gapBox+((!WK&&!LC&&!gapBox)?'<div class="gap flat lvc"><b>🗣 장중 시황</b>'+(kst().hm<'09:30'?'장 시작 후 9시 30분경부터 게시됩니다.':'다음 장중 시황을 준비하고 있습니다. 시세는 아래 시장지표를 확인하세요.')+'</div>':'')+'</div></div>';
-  h+='<div class="card c1"><h2><i>1</i>시장지표</h2>';
+  h+='<div class="card c1"><h2><i>1</i>시장지표<button class="thm" id="thmBtn" type="button" aria-label="화면 밝기 전환">'+thmInner()+'</button></h2>';
   (B.market||[]).forEach(function(grp,gi){
     h+='<div class="mg mg'+(gi%2)+'"><div class="sec'+(grp.nf&&B.nfBtn?' secr':'')+'"><span>'+esc(grp.g)+'</span>'+(grp.nf&&B.nfBtn?'<button class="nfchip sm" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>':'')+'</div>';
     h+='<div class="grid">';
@@ -578,6 +600,12 @@ function liveAlert(){
   var upd=Q&&Q.updated?Q.updated.slice(11,16):'';
   return '<div class="gap lvc lva"><b>⚡ 실시간 변동 알림 · '+upd+' 시세 기준</b>'+it.slice(0,3).map(esc).join('<br>')+'</div>';
 }
+function thmIsLight(){return document.documentElement.getAttribute('data-theme')==='light'}
+function thmInner(){return thmIsLight()?'<span class="kn">🌙</span>어두운 화면':'<span class="kn">☀️</span>밝은 화면'}
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('#thmBtn');if(!b)return;
+  var L=!thmIsLight();if(L)document.documentElement.setAttribute('data-theme','light');else document.documentElement.removeAttribute('data-theme');
+  try{localStorage.setItem('thm',L?'light':'dark')}catch(x){}
+  b.innerHTML=thmInner();var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',L?'#eef1f7':'#0b1220')});
 function liveStock(){
   var t=kst(),w=new Date().toLocaleDateString('en-US',{timeZone:'Asia/Seoul',weekday:'short'});
   if(w==='Sat'||w==='Sun'||t.hm<'09:00'||t.hm>='15:40')return '';
