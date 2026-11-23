@@ -1195,21 +1195,25 @@ function saClose(){saEl('sam').classList.remove('on')}
     setInterval(chk,1500);chk();
   })();
   (function(){
-    var NS='ddalrangi-stock',API='https://abacus.jasoncameron.dev/',el=saEl('visN'),last=0;
+    var NS='ddalrangi-stock',API='https://abacus.jasoncameron.dev/',el=saEl('visN'),last=0,tries=0;
     function circ(n){n=Math.round(n);return n>0?'('+n+')':''}
     function day(){return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'}).replace(/-/g,'')}
+    function show(n){if(el&&typeof n==='number'&&n>0){el.textContent=circ(n);lsSet('vis_n',String(n));lsSet('vis_nd',day())}}
+    async function call(mode,k){var r=await fetch(API+mode+'/'+NS+'/'+k,{cache:'no-store'});if(r.status===404)return null;var j=await r.json();return j&&typeof j.value==='number'?j.value:undefined}
     async function run(){
       if(!el)return;last=Date.now();
       try{
-        var d=day(),k='d'+d,done=lsGet('vis_day')===d,u=API+(done?'get/':'hit/')+NS+'/'+k;
-        var r=await fetch(u,{cache:'no-store'});
-        if(r.status===404&&done){el.textContent='';return}
-        var j=await r.json();
-        if(j&&typeof j.value==='number'){el.textContent=circ(j.value);if(!done)lsSet('vis_day',d);lsSet('vis_n',String(j.value))}
-      }catch(e){var c=+lsGet('vis_n');if(c)el.textContent=circ(c)}
+        var d=day(),k='d'+d,done=lsGet('vis_day')===d,v;
+        if(done){v=await call('get',k);if(v===null)v=await call('hit',k)}else{v=await call('hit',k);if(v!==undefined&&v!==null)lsSet('vis_day',d)}
+        if(typeof v==='number'){show(v);tries=0;return}
+        throw 0;
+      }catch(e){if(tries++<3)setTimeout(run,45000)}
     }
+    /* 값이 한번 보이면 사라지지 않게: 오늘 값이 저장돼 있으면 즉시 표시, 실패해도 마지막 값을 유지 */
+    if(el&&lsGet('vis_nd')===day()){var c0=+lsGet('vis_n');if(c0)el.textContent=circ(c0)}
     run();
-    document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-last>300000)run()});
+    setInterval(function(){if(!document.hidden)run()},300000);
+    document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-last>120000)run()});
   })();
   saEl('saFab').addEventListener('click',saOpen);
   saEl('saX').addEventListener('click',saClose);
