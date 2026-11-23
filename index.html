@@ -440,7 +440,7 @@ function render(B){
   h+='</div>';
   h+=pkCard('kr',B)+pkCard('us',B);
   h+='<div class="card c4"><h2><i>4</i>오늘의 시황 브리핑</h2><div class="memo">';
-  if(WK){h+='<div class="fact" style="border:0"><i>'+DT.ic+'</i><p><b>'+DT.b+'</b>'+DT.p+'</p></div></div></div>';}else if(STALE){h+='<p class="empty" style="margin:0">'+STM+'</p></div></div>';}else{
+  if(WK){h+='<div class="fact" style="border:0"><i>'+DT.ic+'</i><p><b>'+DT.b+'</b>'+DT.p+'</p></div></div></div>';}else if(STALE){h+='<p class="empty" style="margin:0">'+STM+'</p>'+closeBox()+'</div></div>';}else{
   h+='<h3>🌅 아침 브리핑 · '+esc(B.asof||'')+'</h3><p style="margin:0;font-weight:700">'+esc(B.headline||'')+'</p>'+(g.dir?'<p style="margin:4px 0 0"><b>'+esc(g.dir)+'</b> '+esc(g.why||'')+'</p>':'');
   h+='<h3>핵심 3가지</h3>';
   (B.facts||[]).slice(0,3).forEach(function(f,i){h+='<div class="fact"><i>'+(i+1)+'</i><p><b>'+esc(f.h)+'</b>'+esc(f.b)+'</p></div>'});
@@ -448,7 +448,7 @@ function render(B){
   h+='<h3>기간별 투자 참고</h3><p style="margin:0">단기·중기·장기별 자세한 투자 내용은 <b>📊 종목분석</b>에서 종목별 분석을 참고해 보세요.</p>';
   h+='<h3>출처</h3><div class="src">';
   (B.sources||[]).forEach(function(s){if(/^https?:\/\//.test(s.u||''))h+='· <a href="'+esc(s.u)+'" target="_blank" rel="noopener">'+esc(s.t||s.u)+'</a><br>'});
-  h+='</div></div></div>';}
+  h+='</div>'+closeBox()+'</div></div>';}
   h+='<div class="note">종목명을 누르면 네이버에서 열립니다.<br>참고용 정보이며 투자 판단의 근거 자료가 아닙니다. 투자 책임은 본인에게 있습니다.</div>';
   document.getElementById('app').innerHTML=h;
 }
@@ -495,6 +495,8 @@ function isWeekend(){return !!dayMode()}
 function usPubTxt(){var dst=/D/.test(new Date().toLocaleString('en-US',{timeZone:'America/New_York',timeZoneName:'short'}).slice(-3));return dst?['새벽 4시 50분','새벽 4시 40분']:['새벽 5시 50분','새벽 5시 40분']}
 function stPubHtml(){var u=usPubTxt();return '<i>⭐</i><em>세 종류 투자방식, 별 개수로 평가</em><i>🕒</i><em>분석자료 자동 게시 (평일, 지연될 수 있음)</em><i>🇰🇷</i><em>국내 <b>오후 3시 10분경</b></em><i>🇺🇸</i><em>미국 <b>'+u[0]+'경</b> (미국장 마감 10분 전)</em>'}
 /* ---------- 실시간 한 줄 요약(시세로 자동 생성) + 장중 코멘트(live.json) ---------- */
+var CB=null;
+async function loadClose(){try{var r=await fetch('close.json?_='+Date.now(),{cache:'no-store'});CB=r.ok?await r.json():null}catch(e){CB=null}}
 var LV=null;
 async function loadLive(){try{var r=await fetch('live.json?_='+Date.now(),{cache:'no-store'});LV=r.ok?await r.json():null}catch(e){LV=null}}
 function fnum(k){var x=q(k);var v=parseFloat(String(x.p||'').replace(/[,+−]/g,function(m){return m==='−'?'-':''}));return isFinite(v)?v:NaN}
@@ -521,6 +523,20 @@ function liveLine(){
   if(stale&&(ph==='kr'||ph==='cl'))return {tag:'⚠️ 시세 갱신 지연',txt:'마지막 시세 '+upd+' · 아래 시장지표는 지연된 값일 수 있습니다'};
   if(!parts.length)return {tag:tag,txt:'시세를 불러오는 중입니다'};
   return {tag:tag,txt:parts.join(' · ')+mood};
+}
+function closeBox(){
+  var t=kst();
+  if(t.hm<'15:30')return '';
+  var ok=CB&&String(CB.date||'').slice(0,10)===t.d&&CB.headline;
+  var h='<h3 style="margin-top:14px;border-top:1px solid #e3e6ee;padding-top:10px">🌇 마감 브리핑'+(ok&&CB.asof?' · '+esc(CB.asof):'')+'</h3>';
+  if(!ok)return h+'<p class="empty" style="margin:0">'+(t.hm<'17:00'?'정규장 마감 후 오후 4시경 게시됩니다. 새로고침하면 나타납니다.':'오늘 마감 브리핑이 아직 게시되지 않았습니다.')+'</p>';
+  h+='<p style="margin:0;font-weight:700">'+esc(CB.headline)+'</p>';
+  (CB.facts||[]).slice(0,3).forEach(function(f,i){h+='<div class="fact"><i>'+(i+1)+'</i><p><b>'+esc(f.h)+'</b>'+esc(f.b)+'</p></div>'});
+  if(CB.semi)h+='<p style="margin:6px 0 0"><b>반도체</b> '+esc(CB.semi)+'</p>';
+  if(CB.next)h+='<p style="margin:6px 0 0"><b>내일 체크</b> '+esc(CB.next)+'</p>';
+  var sr='';(CB.sources||[]).forEach(function(s){if(/^https?:\/\//.test(s.u||''))sr+='· <a href="'+esc(s.u)+'" target="_blank" rel="noopener">'+esc(s.t||s.u)+'</a><br>'});
+  if(sr)h+='<div class="src" style="margin-top:6px">'+sr+'</div>';
+  return h;
 }
 function liveComment(){
   if(!LV||!LV.text)return '';
@@ -834,7 +850,7 @@ async function pkRefresh(force){
   app.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target&&ev.target.classList&&ev.target.classList.contains('pki')){var c=ev.target.closest('.card'),s=c&&c.querySelector('.pksave');if(s)s.click()}});
 })();
 document.getElementById('refBtn').addEventListener('click',function(){loadQ(true)});
-(async function(){await loadBrief();loadLive();setInterval(function(){loadLive().then(paint)},300000);await loadNight();await loadPpi();await loadQ(false);setInterval(function(){loadNight().then(function(){loadQ(false)})},20000)})();
+(async function(){await loadBrief();loadLive();loadClose();setInterval(function(){Promise.all([loadLive(),loadClose()]).then(paint)},300000);await loadNight();await loadPpi();await loadQ(false);setInterval(function(){loadNight().then(function(){loadQ(false)})},20000)})();
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&BR)loadNight().then(function(){loadQ(false)})});
 /* ---------- 종목분석: Cloudflare Worker(네이버 조회 프록시) 경유 ---------- */
 var SA_DEFAULT_WORKER='';
