@@ -1,7 +1,7 @@
 name: stocks
 on:
   schedule:
-    - cron: '0 21 * * 0-4'
+    - cron: '0 6 * * 1-5'    # 평일 15:00 KST — 종목 목록(시세) 갱신, 15:10 분석통계가 이어서 계산
   workflow_dispatch:
 permissions:
   contents: write

@@ -312,6 +312,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .pkf a{color:var(--acc);text-decoration:underline;cursor:pointer}
 .unmsg{font-size:12px;color:#ffb4a8;min-height:18px;margin:2px 2px 8px}
 .unin{width:100%;font-size:22px;font-weight:700;text-align:center;border-radius:12px;border:1px solid var(--line);background:var(--tile);color:var(--tx);padding:12px 8px}
+.stpub{margin:6px 2px 0;text-align:center;font-size:12px;color:var(--mut,#8a8f98);line-height:1.5}.stpub b{color:var(--tx,inherit)}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 </head>
@@ -377,7 +378,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
     <div class="sah"><h3 id="saT">📊 종목분석</h3><button class="sax" id="saX" type="button" aria-label="닫기">창닫기</button></div>
     <div class="sar"><input id="saI" type="text" placeholder="예: 삼성전자 또는 005930" autocomplete="off" enterkeyhint="search" aria-label="종목명 또는 종목코드"><button id="saGo" type="button">분석</button></div>
     <div class="sarl" style="display:flex;gap:8px"><button id="saPick" type="button" class="sapk kr"><i>₩</i>국내주식 찾기</button><button id="saPickUs" type="button" class="sapk us"><i>$</i>미국주식 찾기</button></div>
-    <div class="sarl"><button id="saStat" type="button" class="sast">📊 전체 종목 분석 자료 보기 <small>세 종류 투자방식, 별 개수로 평가</small></button></div>
+    <div class="sarl"><button id="saStat" type="button" class="sast">📊 전체 종목 분석 자료 보기 <small>세 종류 투자방식, 별 개수로 평가</small></button></div><div class="stpub">🕒 평일 오후 3시 시세로 분석해 <b>15시 10분경</b> 자동 게시됩니다</div>
     <div class="sahelp" id="saHelp">
       <b>🔎 종목 선택 방법</b>
       <ol><li>위 <u>국내/미국주식 찾기</u> 버튼 → 검색하거나 목록에서 선택</li>
@@ -1228,7 +1229,7 @@ function stRender(){
   var L=saEl('stL'),M=saEl('stM'),S=saEl('stS'),I=saEl('stI');
   M.innerHTML=[['kr','₩','국내주식'],['us','$','미국주식']].map(function(a){return '<button type="button" data-m="'+a[0]+'" class="'+(a[0]===STM?'on':'')+'"><i class="cu">'+a[1]+'</i>'+a[2]+'</button>'}).join('');
   S.innerHTML=STKS.map(function(a){return '<button type="button" data-k="'+a[0]+'" class="'+(a[0]===STK?'on':'')+'">'+a[1]+'<small>'+a[4]+'</small></button>'}).join('');
-  if(!STD){I.innerHTML='';L.innerHTML='<div class="stg2">분석통계를 불러오지 못했습니다. 잠시 후 다시 열어 주세요. (통계는 평일 06:30·15:10 자동 생성되며, 처음 설정 직후에는 아직 없을 수 있습니다.)</div>'+stWarn();return}
+  if(!STD){I.innerHTML='';L.innerHTML='<div class="stg2">분석통계를 불러오지 못했습니다. 잠시 후 다시 열어 주세요. (통계는 평일 15:10경 자동 생성되며, 처음 설정 직후에는 아직 없을 수 있습니다.)</div>'+stWarn();return}
   var mt=(STD.meta&&STD.meta[STM])||{},ks=STKS.filter(function(a){return a[0]===STK})[0],g=stRows(STM,STK);
   var d=(mt.asof||'').slice(5).replace('-','/'),at=(mt.at||'').slice(5,16).replace('-','/').replace('T',' ');
   I.className='stinfo c'+STK;S.className='stt c'+STK;

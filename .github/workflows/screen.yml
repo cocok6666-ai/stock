@@ -1,8 +1,7 @@
 name: screen
 on:
   schedule:
-    - cron: '30 21 * * 0-4'   # 평일 06:30 KST — 국내+미국 전체(전 거래일 종가 기준)
-    - cron: '10 6 * * 1-5'    # 평일 15:10 KST — 국내만 재계산(장 마감 직전 값 반영)
+    - cron: '10 6 * * 1-5'    # 평일 15:10 KST — 15:00 시세 기준 국내+미국 전체 계산·게시
   workflow_dispatch:
     inputs:
       mode:
@@ -31,7 +30,7 @@ jobs:
         run: |
           MODE="${{ github.event.inputs.mode }}"
           if [ -z "$MODE" ]; then
-            if [ "${{ github.event.schedule }}" = "10 6 * * 1-5" ]; then MODE=kr; else MODE=all; fi
+            MODE=all
           fi
           echo "mode=$MODE"
           node scripts/screen.js "$MODE"
