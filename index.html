@@ -327,6 +327,9 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .bhd{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:11px 13px;font-size:14.5px;font-weight:800;color:var(--tx);background:rgba(128,140,170,.12);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .bhd span{min-width:0}.bhd small{display:inline-block;margin-left:7px;font-size:11px;font-weight:600;color:var(--mut);white-space:nowrap}.bhd i{font-style:normal;font-size:18px;line-height:1;transition:transform .2s}.bsec.open .bhd i{transform:rotate(180deg)}
 .bbd{display:none;padding:2px 13px 12px}.bsec.open .bbd{display:block}
+.rowg{border-bottom:1px solid var(--line)}.rowg>.row{border-bottom:0}.rowg:last-child{border-bottom:0}
+.rowx{display:flex;align-items:center;gap:7px;margin:-3px 14px 10px;padding:5px 9px;border-radius:8px;background:rgba(128,140,170,.12);font-size:12.5px;line-height:1.2}
+.rowx .xl{font-size:11px;font-weight:800;color:var(--mut);white-space:nowrap}.rowx b{font-weight:800}.rowx i{margin-left:auto;font-style:normal;font-size:10.5px;color:var(--mut);white-space:nowrap}
 /* 밝은 화면 테마 */
 .thm{margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px 0 4px;border-radius:999px;border:1px solid rgba(255,255,255,.55);background:rgba(0,0,0,.22);color:#fff;font:700 11.5px/1 inherit;cursor:pointer;text-shadow:none;-webkit-tap-highlight-color:transparent}
 .thm .kn{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#fff;font-size:12px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.35)}
@@ -448,7 +451,8 @@ function stocks(arr,vol){
   return arr.map(function(it){
     var c=sign(it.p);
     var sub=esc(it.s||'')+(vol&&it.x?' · 거래량 '+esc(it.x):'');
-    return '<div class="row"><div class="nm"><b>'+nl(it.n)+'</b><span>'+sub+'</span></div><div class="px"><b class="'+c+'">'+esc(it.v)+(it.u?'<small class="cu2">'+it.u+'</small>':'')+'</b><span class="'+c+'">'+pct(it.p)+' '+dif(it.d,c)+'</span></div></div>';
+    var ex=it.e?'<div class="rowx"><span class="xl">'+esc(it.e.l)+'</span><b class="'+sign(it.e.p)+'">'+esc(it.e.v)+'</b><span class="'+sign(it.e.p)+'">'+pct(it.e.p)+'</span><i>'+esc(it.e.t)+'</i></div>':'';
+    return '<div class="rowg"><div class="row"><div class="nm"><b>'+nl(it.n)+'</b><span>'+sub+'</span></div><div class="px"><b class="'+c+'">'+esc(it.v)+(it.u?'<small class="cu2">'+it.u+'</small>':'')+'</b><span class="'+c+'">'+pct(it.p)+' '+dif(it.d,c)+'</span></div></div>'+ex+'</div>';
   }).join('');
 }
 function render(B){
@@ -832,7 +836,7 @@ function pkRows(k){
   var kr=k==='kr';
   return PK[k].map(function(p){
     var key=pkKey(k,p),x=(key&&((Q&&Q.items&&Q.items[key])||CQ[key]))||null,nm=(!kr&&US_KO[key])||p.name||(!kr&&US_KO[pkNorm(p.q)])||p.q;
-    if(x)return {n:nm,s:(kr?'':String(key||'')+' · ')+x.t,v:x.v,p:x.p,d:x.d,x:x.x||'',u:kr?'원':'USD'};
+    if(x)return {n:nm,s:(kr?'':String(key||'')+' · ')+x.t,v:x.v,p:x.p,d:x.d,x:x.x||'',u:kr?'원':'USD',e:x.e||null};
     return {n:nm,s:p.err?('⚠️ '+p.err):'시세 확인 중…',v:'—',p:'',d:'',x:''};
   });
 }
@@ -900,6 +904,15 @@ function pkParse(d,vol,nd){
   var f=function(x,n){return x.toLocaleString('en-US',{minimumFractionDigits:n,maximumFractionDigits:n})},sg=function(x,n){return (x>0?'+':x<0?'-':'')+f(Math.abs(x),n)};
   var o={v:f(price,nd),p:sg(ratio,2),d:sg(chg,nd),t:t},vv=num(d.accumulatedTradingVolume);
   if(vol&&isFinite(vv)&&vv>0)o.x=f(vv,0);
+  var xo=d.overMarketPriceInfo;
+  if(xo&&/^(PRE|AFTER)_MARKET$/.test(xo.tradingSessionType||'')&&xo.localTradedAt){
+    var xp=num(xo.overPrice),xc=num(xo.compareToPreviousClosePrice),xr=num(xo.fluctuationsRatio),xd=new Date(xo.localTradedAt),xa=(Date.now()-xd.getTime())/1000,xt=String((xo.compareToPreviousPrice||{}).name||'').toUpperCase(),xdn=/FALLING|LOWER_LIMIT/.test(xt),xup=/RISING|UPPER_LIMIT/.test(xt);
+    if(isFinite(xp)&&isFinite(xr)&&xa<36000){
+      xr=xdn?-Math.abs(xr):xup?Math.abs(xr):xr;xc=isFinite(xc)?(xdn?-Math.abs(xc):xup?Math.abs(xc):xc):0;
+      var xl=xd.toLocaleString('sv-SE',{timeZone:'Asia/Seoul'}).slice(11,16),xlive=xo.overMarketStatus==='OPEN';
+      o.e={l:(nd===0?'NXT ':'')+(/^PRE/.test(xo.tradingSessionType)?'프리마켓':'애프터마켓'),v:f(xp,nd),p:sg(xr,2),d:sg(xc,nd),t:xl+(xlive?(xa<900?' 현재':' 지연'):' 마감')};
+    }
+  }
   return o;
 }
 async function pkQuote(k,p){

@@ -21,7 +21,14 @@ jobs:
         run: |
           in_window() {
             d=$(TZ=Asia/Seoul date +%u); hm=$(TZ=Asia/Seoul date +%H%M); hm=$((10#$hm))
-            if [ "$d" -le 5 ] && [ "$hm" -ge 650 ] && [ "$hm" -le 1545 ]; then return 0; fi
+            # 월 06:50 ~ 토 06:50 연속(국내 NXT 프리·애프터, 미국 프리·정규·애프터 포함)
+            if [ "$d" -le 5 ] && [ "$hm" -ge 650 ]; then return 0; fi
+            if [ "$d" -ge 2 ] && [ "$d" -le 6 ] && [ "$hm" -lt 650 ]; then return 0; fi
+            return 1
+          }
+          core() {  # 정규장 시간대는 촘촘히, 그 밖(NXT·프리·애프터)은 느슨하게
+            d=$(TZ=Asia/Seoul date +%u); hm=$(TZ=Asia/Seoul date +%H%M); hm=$((10#$hm))
+            if [ "$d" -le 5 ] && [ "$hm" -ge 850 ] && [ "$hm" -le 1545 ]; then return 0; fi
             if [ "$d" -le 5 ] && [ "$hm" -ge 2220 ]; then return 0; fi
             if [ "$d" -ge 2 ] && [ "$d" -le 6 ] && [ "$hm" -le 610 ]; then return 0; fi
             return 1
@@ -43,7 +50,7 @@ jobs:
             [ -s /tmp/quotes.json ] && publish
             in_window || exit 0
             [ "$SECONDS" -ge "$LIMIT" ] && break
-            sleep 5
+            if core; then sleep 5; else sleep 40; fi
           done
           gh workflow run quotes.yml --ref main || true
       - name: 갱신 감시 (멈춘 작업 재실행)

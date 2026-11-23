@@ -9,6 +9,10 @@ UA = {"User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/1
 errors, items = [], {}
 
 
+KR_EXT = {"069500", "395160", "005930", "000660"}
+EXT_KEYS = KR_EXT | {"NVDA", "SKHY", "MU", "SNDK", "AVGO", "AMD", "SOXL"}
+
+
 def get(url, tries=2):
     last = None
     for i in range(tries):
@@ -87,7 +91,41 @@ def naver(url, key, nd=2, vol=False):
         v = num(d.get("accumulatedTradingVolume"))
         if v:
             it["x"] = fmt(v, 0)
+    if key in EXT_KEYS:
+        e = ext_info(j, key in KR_EXT)
+        if e:
+            it["e"] = e
     items[key] = it
+
+
+
+def ext_info(d, kr):
+    """정규장 밖 세션(국내 NXT 프리/애프터, 미국 프리/애프터) 시세. 없으면 None."""
+    o = d.get("overMarketPriceInfo") or {}
+    sess = (o.get("tradingSessionType") or "").upper()
+    price = num(o.get("overPrice"))
+    if sess not in ("PRE_MARKET", "AFTER_MARKET") or price is None or not o.get("localTradedAt"):
+        return None
+    try:
+        dt = datetime.fromisoformat(o["localTradedAt"]).astimezone(KST)
+    except Exception:
+        return None
+    age = (datetime.now(KST) - dt).total_seconds()
+    if age > 10 * 3600:
+        return None
+    ftype = ((o.get("compareToPreviousPrice") or {}).get("name") or "").upper()
+    down, up = ftype in ("FALLING", "LOWER_LIMIT"), ftype in ("RISING", "UPPER_LIMIT")
+    chg = num(o.get("compareToPreviousClosePrice"))
+    ratio = num(o.get("fluctuationsRatio"))
+    if chg is None or ratio is None:
+        return None
+    chg = -abs(chg) if down else abs(chg) if up else chg
+    ratio = -abs(ratio) if down else abs(ratio) if up else ratio
+    nd = 0 if kr else 2
+    live = (o.get("overMarketStatus") or "").upper() == "OPEN"
+    label = ("NXT " if kr else "") + ("프리마켓" if sess == "PRE_MARKET" else "애프터마켓")
+    return {"l": label, "v": fmt(price, nd), "p": sgn(ratio), "d": sgn(chg, nd),
+            "t": dt.strftime("%H:%M") + (" 현재" if live and age < 900 else " 마감" if not live else " 지연")}
 
 
 def polling_stock(code):
@@ -108,6 +146,9 @@ def polling_stock(code):
     v = num(d.get("accumulatedTradingVolume"))
     if v:
         it["x"] = fmt(v, 0)
+    e = ext_info(d, True)
+    if e:
+        it["e"] = e
     items[code] = it
 
 

@@ -80,7 +80,7 @@ for back in range(0, 4):
 # ---- 시세(quotes): 장 시간대 15분 이상 정체 ----
 def in_window(n):
     d, hm = n.isoweekday(), n.hour * 100 + n.minute
-    return (d <= 5 and 650 <= hm <= 1545) or (d <= 5 and hm >= 2220) or (2 <= d <= 6 and hm <= 610)
+    return (d <= 5 and hm >= 650) or (2 <= d <= 6 and hm < 650)
 
 if in_window(now):
     import base64, os
