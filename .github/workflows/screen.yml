@@ -1,7 +1,9 @@
 name: screen
 on:
   schedule:
-    - cron: '10 6 * * 1-5'    # 평일 15:10 KST — 15:00 시세 기준 국내+미국 전체 계산·게시
+    - cron: '10 6 * * 1-5'    # 평일 15:10 KST — 국내 분석통계 게시
+    - cron: '50 20 * * 1-5'   # 미국 마감 10분 전 (겨울 05:50 KST, EST)
+    - cron: '50 19 * * 1-5'   # 미국 마감 10분 전 (여름 04:50 KST, EDT)
   workflow_dispatch:
     inputs:
       mode:
@@ -21,20 +23,30 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: 서머타임 확인
+        id: gate
+        run: |
+          s="${{ github.event.schedule }}"; off=$(TZ=America/New_York date +%z); run=1
+          if [ "$s" = "50 20 * * 1-5" ] && [ "$off" != "-0500" ]; then run=0; fi
+          if [ "$s" = "50 19 * * 1-5" ] && [ "$off" != "-0400" ]; then run=0; fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+      - if: steps.gate.outputs.run == '1'
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: 계산
+        if: steps.gate.outputs.run == '1'
         env:
           LIMIT: ${{ github.event.inputs.limit || '0' }}
         run: |
           MODE="${{ github.event.inputs.mode }}"
           if [ -z "$MODE" ]; then
-            MODE=all
+            if [ "${{ github.event.schedule }}" = "10 6 * * 1-5" ]; then MODE=kr; elif [ -n "${{ github.event.schedule }}" ]; then MODE=us; else MODE=all; fi
           fi
           echo "mode=$MODE"
           node scripts/screen.js "$MODE"
-      - run: |
+      - if: steps.gate.outputs.run == '1'
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add stats.json

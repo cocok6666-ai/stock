@@ -1,0 +1,23 @@
+name: watchdog
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+  push:
+    paths: ['trigger/**']
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: watchdog
+  cancel-in-progress: false
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: 갱신 감시 (멈춘 작업 재실행)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/watchdog.py

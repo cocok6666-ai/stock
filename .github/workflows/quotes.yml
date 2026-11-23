@@ -46,3 +46,8 @@ jobs:
             sleep 5
           done
           gh workflow run quotes.yml --ref main || true
+      - name: 갱신 감시 (멈춘 작업 재실행)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/watchdog.py || true

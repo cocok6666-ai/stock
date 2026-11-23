@@ -1,7 +1,9 @@
 name: stocks
 on:
   schedule:
-    - cron: '0 6 * * 1-5'    # 평일 15:00 KST — 종목 목록(시세) 갱신, 15:10 분석통계가 이어서 계산
+    - cron: '0 6 * * 1-5'    # 평일 15:00 KST — 국내 목록 갱신(15:10 통계가 이어서)
+    - cron: '40 20 * * 1-5'  # 미국 마감 20분 전 (겨울 05:40 KST, EST)
+    - cron: '40 19 * * 1-5'  # 미국 마감 20분 전 (여름 04:40 KST, EDT)
   workflow_dispatch:
 permissions:
   contents: write
@@ -14,8 +16,17 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/fetch_stocks.py stocks.json
-      - run: |
+      - name: 서머타임 확인
+        id: gate
+        run: |
+          s="${{ github.event.schedule }}"; off=$(TZ=America/New_York date +%z); run=1
+          if [ "$s" = "40 20 * * 1-5" ] && [ "$off" != "-0500" ]; then run=0; fi
+          if [ "$s" = "40 19 * * 1-5" ] && [ "$off" != "-0400" ]; then run=0; fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+      - if: steps.gate.outputs.run == '1'
+        run: python3 scripts/fetch_stocks.py stocks.json
+      - if: steps.gate.outputs.run == '1'
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add stocks.json stocks_us.json
