@@ -463,7 +463,7 @@ function render(B){
   var g=B.gap||{};
   var DM=dayMode(),WK=!!DM,DT=DMT[DM]||{};
   var BD=String(B.date||'').slice(0,10),STALE=!WK&&BD!==kst().d,EARLY=STALE&&kst().hm<'07:00';
-  var STM=EARLY?'<b>⏳ 오전 6시 30분경 새 시황 브리핑이 게시됩니다</b> 직전 브리핑('+esc(B.date||'날짜 미상')+') 내용은 오래된 수치라 숨겼습니다.':'<b>⚠️ 오늘 브리핑이 아직 갱신되지 않았습니다</b> 잘못된 수치 방지를 위해 지난 브리핑('+esc(B.date||'날짜 미상')+') 내용을 숨겼습니다. 아래 시세는 실시간 수집값입니다.';
+  var STM=staleMsg(B,EARLY);
   var LC=WK?'':liveComment();
   var gapBox=WK?'<div class="gap flat"><b>'+DT.tag+'</b>'+DT.gap+'</div>':STALE?'<div class="gap flat">'+STM+'</div>':(!LC&&g.dir&&kst().hm<'09:00')?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'';
   h+='<div class="card csum"><div class="sum">'
@@ -538,6 +538,8 @@ function isWeekend(){return !!dayMode()}
 function usPubTxt(){var dst=/D/.test(new Date().toLocaleString('en-US',{timeZone:'America/New_York',timeZoneName:'short'}).slice(-3));return dst?['새벽 4시 50분','새벽 4시 40분']:['새벽 5시 50분','새벽 5시 40분']}
 function stPubHtml(){var u=usPubTxt();return '<i>⭐</i><em>세 종류 투자방식, 별 개수로 평가</em><i>🕒</i><em>분석자료 자동 게시 (평일, 지연될 수 있음)</em><i>🇰🇷</i><em>국내 <b>오후 3시 10분경</b></em><i>🇺🇸</i><em>미국 <b>'+u[0]+'경</b> (미국장 마감 10분 전)</em>'}
 /* ---------- 실시간 한 줄 요약(시세로 자동 생성) + 장중 코멘트(live.json) ---------- */
+var BS=null;
+async function loadBS(){try{var r=await fetch('brief_status.json?_='+Date.now(),{cache:'no-store'});BS=r.ok?await r.json():null}catch(e){BS=null}}
 var CB=null;
 async function loadClose(){try{var r=await fetch('close.json?_='+Date.now(),{cache:'no-store'});CB=r.ok?await r.json():null}catch(e){CB=null}}
 var LV=null;
@@ -566,6 +568,13 @@ function liveLine(){
   if(stale&&(ph==='kr'||ph==='cl'))return {tag:'⚠️ 시세 갱신 지연',txt:'마지막 시세 '+upd+' · 아래 시장지표는 지연된 값일 수 있습니다'};
   if(!parts.length)return {tag:tag,txt:'시세를 불러오는 중입니다'};
   return {tag:tag,txt:parts.join(' · ')+mood};
+}
+function staleMsg(B,early){
+  var t=kst(),hm=t.hm,old=esc(B.date||'날짜 미상'),why='';
+  if(BS&&String(BS.date||'').slice(0,10)===t.d&&BS.state==='failed'&&BS.reason)why=' <b>사유:</b> '+esc(BS.reason);
+  if(hm<'06:30')return '<b>⏳ 오전 6시 30분경 새 시황 브리핑이 게시됩니다</b> 직전 브리핑('+old+') 내용은 오래된 수치라 숨겼습니다.';
+  if(hm<'07:15')return '<b>⏳ 오늘 브리핑 작성이 지연되고 있습니다</b> 06:30 자동 게시가 아직 끝나지 않았습니다.'+why+' 07:00에 자동 점검·복구가 실행되며, 완료되면 새로고침 시 나타납니다. 직전 브리핑('+old+')은 오래된 수치라 숨겼습니다. 시세·장중 시황은 정상 갱신 중입니다.';
+  return '<b>⚠️ 오늘 브리핑이 자동 게시되지 못했습니다</b>'+(why||' <b>사유:</b> 예약 작업이 실행되지 않았거나 중간에 멈췄습니다.')+' 자동 복구를 계속 시도 중이며, 잘못된 수치 방지를 위해 지난 브리핑('+old+') 내용은 숨겼습니다. 시세·장중 시황은 정상 갱신 중입니다.';
 }
 var BOP={ph:'',m:null,c:null},NOTE={m:'평일 오전 6:30경 게시',c:'평일 오후 4시경 게시'};
 function closeReady(){var t=kst();return !!(CB&&String(CB.date||'').slice(0,10)===t.d&&CB.headline&&t.hm>='15:30')}
@@ -972,7 +981,7 @@ async function pkRefresh(force){
   app.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target&&ev.target.classList&&ev.target.classList.contains('pki')){var c=ev.target.closest('.card'),s=c&&c.querySelector('.pksave');if(s)s.click()}});
 })();
 document.getElementById('refBtn').addEventListener('click',function(){loadQ(true)});
-(async function(){await loadBrief();loadLive();loadClose();setInterval(function(){Promise.all([loadLive(),loadClose()]).then(paint)},300000);await loadNight();await loadPpi();await loadQ(false);setInterval(function(){loadNight().then(function(){loadQ(false)})},20000)})();
+(async function(){await loadBrief();loadLive();loadClose();loadBS();setInterval(function(){Promise.all([loadLive(),loadClose(),loadBS()]).then(paint)},300000);await loadNight();await loadPpi();await loadQ(false);setInterval(function(){loadNight().then(function(){loadQ(false)})},20000)})();
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&BR)loadNight().then(function(){loadQ(false)})});
 /* ---------- 종목분석: Cloudflare Worker(네이버 조회 프록시) 경유 ---------- */
 var SA_DEFAULT_WORKER='';
