@@ -313,6 +313,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .unmsg{font-size:12px;color:#ffb4a8;min-height:18px;margin:2px 2px 8px}
 .unin{width:100%;font-size:22px;font-weight:700;text-align:center;border-radius:12px;border:1px solid var(--line);background:var(--tile);color:var(--tx);padding:12px 8px}
 .sast .sd{display:grid;grid-template-columns:20px auto;column-gap:6px;row-gap:1px;justify-content:center;align-items:center;margin-top:3px;text-align:left}.sast .sd i{font-style:normal;font-size:11px;text-align:center}.sast .sd em{font-style:normal;font-size:10.5px;font-weight:600;color:#cdbf9f;line-height:1.25}.sast .sd em b{color:#f4efe4;font-weight:800}
+.lva{background:#fff4f4!important;border-color:#f3c4c4!important}.lva b{color:#d6334a}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 </head>
@@ -426,7 +427,7 @@ function render(B){
   var gapBox=WK?'<div class="gap flat"><b>'+DT.tag+'</b>'+DT.gap+'</div>':STALE?'<div class="gap flat">'+STM+'</div>':(!LC&&g.dir&&kst().hm<'09:00')?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'';
   h+='<div class="card csum"><div class="sum">'
     +(WK?'<div class="hl">'+DT.hl+'</div>':'')
-    +LC+gapBox+((!WK&&!LC&&!gapBox)?'<div class="gap flat lvc"><b>🗣 장중 시황</b>'+(kst().hm<'09:30'?'장 시작 후 9시 30분경부터 게시됩니다.':'다음 장중 시황을 준비하고 있습니다. 시세는 아래 시장지표를 확인하세요.')+'</div>':'')+'</div></div>';
+    +(WK?'':liveAlert())+LC+gapBox+((!WK&&!LC&&!gapBox)?'<div class="gap flat lvc"><b>🗣 장중 시황</b>'+(kst().hm<'09:30'?'장 시작 후 9시 30분경부터 게시됩니다.':'다음 장중 시황을 준비하고 있습니다. 시세는 아래 시장지표를 확인하세요.')+'</div>':'')+'</div></div>';
   h+='<div class="card c1"><h2><i>1</i>시장지표</h2>';
   (B.market||[]).forEach(function(grp,gi){
     h+='<div class="mg mg'+(gi%2)+'"><div class="sec'+(grp.nf&&B.nfBtn?' secr':'')+'"><span>'+esc(grp.g)+'</span>'+(grp.nf&&B.nfBtn?'<button class="nfchip sm" id="nfOpen" type="button">'+esc(B.nfBtn)+'</button>':'')+'</div>';
@@ -537,6 +538,20 @@ function closeBox(){
   var sr='';(CB.sources||[]).forEach(function(s){if(/^https?:\/\//.test(s.u||''))sr+='· <a href="'+esc(s.u)+'" target="_blank" rel="noopener">'+esc(s.t||s.u)+'</a><br>'});
   if(sr)h+='<div class="src" style="margin-top:6px">'+sr+'</div>';
   return h;
+}
+function liveAlert(){
+  var t=kst(),w=new Date().toLocaleDateString('en-US',{timeZone:'Asia/Seoul',weekday:'short'});
+  if(w==='Sat'||w==='Sun'||t.hm<'09:00'||t.hm>='15:40')return '';
+  var age=ageMin();if(age==null||age>10)return '';
+  var it=[],a;
+  a=fnum('KOSPI');if(isFinite(a)&&Math.abs(a)>=3)it.push('코스피 '+fsp(a)+(Math.abs(a)>=8?' · 서킷브레이커 기준(8%) 도달':Math.abs(a)>=5?' · 극심한 변동':a<0?' · 급락권':' · 급등권'));
+  a=fnum('K200F');if(isFinite(a)&&Math.abs(a)>=4)it.push('코스피200선물 '+fsp(a)+(Math.abs(a)>=5?' · 사이드카 발동 기준(5%) 도달':' · 사이드카 기준(5%) 근접'));
+  a=fnum('KOSDAQ');if(isFinite(a)&&Math.abs(a)>=3)it.push('코스닥 '+fsp(a)+(Math.abs(a)>=6?' · 사이드카 기준(6%) 근접':a<0?' · 급락권':' · 급등권'));
+  [['삼성전자','005930'],['SK하이닉스','000660']].forEach(function(p){a=fnum(p[1]);if(isFinite(a)&&Math.abs(a)>=5)it.push(p[0]+' '+fsp(a))});
+  a=fnum('USDKRW');if(isFinite(a)&&Math.abs(a)>=1)it.push('원/달러 '+fsp(a));
+  if(!it.length)return '';
+  var upd=Q&&Q.updated?Q.updated.slice(11,16):'';
+  return '<div class="gap lvc lva"><b>⚡ 실시간 변동 알림 · '+upd+' 시세 기준</b>'+it.slice(0,3).map(esc).join('<br>')+'</div>';
 }
 function liveComment(){
   if(!LV||!LV.text)return '';
