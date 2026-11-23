@@ -325,7 +325,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 
 .bsec{margin:10px 0 0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .bhd{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:11px 13px;font-size:14.5px;font-weight:800;color:var(--tx);background:rgba(128,140,170,.12);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.bhd i{font-style:normal;font-size:18px;line-height:1;transition:transform .2s}.bsec.open .bhd i{transform:rotate(180deg)}
+.bhd span{min-width:0}.bhd small{display:inline-block;margin-left:7px;font-size:11px;font-weight:600;color:var(--mut);white-space:nowrap}.bhd i{font-style:normal;font-size:18px;line-height:1;transition:transform .2s}.bsec.open .bhd i{transform:rotate(180deg)}
 .bbd{display:none;padding:2px 13px 12px}.bsec.open .bbd{display:block}
 /* 밝은 화면 테마 */
 .thm{margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px 0 4px;border-radius:999px;border:1px solid rgba(255,255,255,.55);background:rgba(0,0,0,.22);color:#fff;font:700 11.5px/1 inherit;cursor:pointer;text-shadow:none;-webkit-tap-highlight-color:transparent}
@@ -562,7 +562,7 @@ function liveLine(){
   if(!parts.length)return {tag:tag,txt:'시세를 불러오는 중입니다'};
   return {tag:tag,txt:parts.join(' · ')+mood};
 }
-var BOP={ph:'',m:null,c:null};
+var BOP={ph:'',m:null,c:null},NOTE={m:'평일 오전 6:30경 게시',c:'평일 오후 4시경 게시'};
 function closeReady(){var t=kst();return !!(CB&&String(CB.date||'').slice(0,10)===t.d&&CB.headline&&t.hm>='15:30')}
 function bOpen(k,solo){
   var ph=closeReady()?'c':'m';
@@ -572,7 +572,7 @@ function bOpen(k,solo){
 }
 function bsec(k,title,body,solo){
   var o=bOpen(k,solo);
-  return '<div class="bsec'+(o?' open':'')+'" data-b="'+k+'"><button type="button" class="bhd" aria-expanded="'+o+'"><span>'+title+'</span><i>⌄</i></button><div class="bbd">'+body+'</div></div>';
+  return '<div class="bsec'+(o?' open':'')+'" data-b="'+k+'"><button type="button" class="bhd" aria-expanded="'+o+'"><span>'+title+(NOTE[k]?'<small>'+NOTE[k]+'</small>':'')+'</span><i>⌄</i></button><div class="bbd">'+body+'</div></div>';
 }
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.bhd');if(!b)return;
   var sec=b.parentNode,k=sec.getAttribute('data-b'),o=!sec.classList.contains('open');
