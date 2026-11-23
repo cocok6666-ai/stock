@@ -242,6 +242,11 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .stb #stM button.on{background:var(--mg);color:#fff;border-color:var(--mc);box-shadow:0 4px 12px rgba(0,0,0,.25)}
 .stb #stM .cu{font-style:normal;width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;font-size:17px;font-weight:900;background:var(--mc);color:#fff;line-height:1}
 .stb #stM button.on{border-color:#c9a24a;color:#f6e7bd}.stb #stM button.on .cu{background:linear-gradient(145deg,#f3d98a,#c9a24a);color:#4a3200}
+
+.stb #stM button,.stb #stM button.on{background:#fff;color:#8a93a6;border:2px solid #cfd4de;box-shadow:none;font-weight:800}
+.stb #stM .cu,.stb #stM button.on .cu{width:30px;height:30px;border-radius:50%;background:#fff;border:2.5px solid #c3c9d6;color:#fff;font-size:21px;font-weight:900;line-height:1}
+.stb #stM button.on{color:#111;border:3px solid #111;font-weight:900}
+.stb #stM button.on .cu{background:#111;border-color:#111;color:#fff;background-image:none}
 .stt{flex:none;display:flex;gap:4px;margin:0;align-items:flex-end}
 .stt button{flex:1;height:50px;line-height:1.15;border:2px solid var(--tc);border-bottom:none;border-radius:12px 12px 0 0;font-size:13.5px;font-weight:900;cursor:pointer;background:var(--tl);color:var(--tc);padding:0 4px;position:relative;top:0}
 .stt button.on{background:var(--tc);color:#fff;height:54px}.stt button small{display:block;font-size:10.5px;font-weight:600;opacity:.85;margin-top:1px}
@@ -1335,7 +1340,7 @@ function stRows(m,k){
 function stRow(x,l,n){return '<div class="str" data-id="'+esc(x.id)+'" data-n="'+esc(x.name)+'"><b>'+esc(x.name)+'</b><span>'+esc(x.sym)+' · 통과 '+x.p+'/'+x.t+(x.chg==null?'':' <em class="'+(x.chg>0?'pu':x.chg<0?'pd':'')+'">'+(x.chg>0?'+':'')+x.chg.toFixed(2)+'%</em>')+'</span></div>'}
 function stRender(){
   var L=saEl('stL'),M=saEl('stM'),S=saEl('stS'),I=saEl('stI');
-  M.innerHTML=[['kr','₩','국내주식'],['us','$','미국주식']].map(function(a){return '<button type="button" data-m="'+a[0]+'" class="'+(a[0]===STM?'on':'')+'"><i class="cu">'+a[1]+'</i>'+a[2]+'</button>'}).join('');
+  M.innerHTML=[['kr','₩','국내주식'],['us','$','미국주식']].map(function(a){return '<button type="button" data-m="'+a[0]+'" class="'+(a[0]===STM?'on':'')+'" aria-pressed="'+(a[0]===STM)+'"><i class="cu">'+(a[0]===STM?'✓':'')+'</i>'+a[2]+'</button>'}).join('');
   S.innerHTML=STKS.map(function(a){return '<button type="button" data-k="'+a[0]+'" class="'+(a[0]===STK?'on':'')+'">'+a[1]+'<small>'+a[4]+'</small></button>'}).join('');
   if(!STD){I.innerHTML='';L.innerHTML='<div class="stg2">분석통계를 불러오지 못했습니다. 잠시 후 다시 열어 주세요. (국내는 평일 15:10경, 미국은 미국장 마감 10분 전에 자동 생성되며, 처음 설정 직후에는 아직 없을 수 있습니다.)</div>'+stWarn();return}
   var mt=(STD.meta&&STD.meta[STM])||{},ks=STKS.filter(function(a){return a[0]===STK})[0],g=stRows(STM,STK);
