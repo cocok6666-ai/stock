@@ -49,7 +49,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .csum .gap b{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .csum .gap.dn b{background:#2a72ff;color:#fff}.csum .gap.up b{background:#e5232f;color:#fff}.csum .gap.flat b{background:#8a7a58;color:#fff}
 .sum .hl{font-size:16px;font-weight:700;line-height:1.5}.csum .lvh{font-size:11.5px;font-weight:700;color:#cdbf9f;margin-bottom:3px}.csum .hl{font-size:14.5px;line-height:1.7}.csum .hl .up{color:#ff7a80}.csum .hl .dn{color:#7fb0ff}.csum .hl .flat{color:#e3d5b6}.csum .mood{display:inline-block;padding:0 7px;border-radius:9px;font-size:12px;margin-left:2px;background:#8a7a58;color:#fff}.csum .mood.up{background:#e5232f;color:#fff}.csum .mood.dn{background:#2a72ff;color:#fff}.csum .gap.lvc b{display:block;background:#8a7a58;margin-bottom:4px;width:fit-content}
-.csum .gap.lvc{background:none;border:0;padding:0;margin:0;border-radius:0}.csum .sum{padding:12px 14px}.csum .gap.lvc+.gap{margin-top:8px}
+.csum .gap.bsm .bst{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.csum .gap.bsm .bsr{display:block;margin-top:3px;font-size:12px;opacity:.8}.csum .gap.lvc{background:none;border:0;padding:0;margin:0;border-radius:0}.csum .sum{padding:12px 14px}.csum .gap.lvc+.gap{margin-top:8px}
 .gap{margin-top:10px;border-radius:12px;padding:11px 13px;font-size:13.5px;line-height:1.6;background:#16223a;border:1px solid var(--line)}
 .gap b{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:6px;font-size:12.5px}
 .gap.dn b{background:var(--dn);color:#06121f}.gap.up b{background:var(--up);color:#2a0709}.gap.flat b{background:var(--mut);color:#0b1220}
@@ -475,7 +475,7 @@ function render(B){
   var BD=String(B.date||'').slice(0,10),STALE=!WK&&BD!==kst().d,EARLY=STALE&&kst().hm<'07:00';
   var STM=staleMsg(B,EARLY);
   var LC=WK?'':liveComment();
-  var gapBox=WK?'<div class="gap flat"><b>'+DT.tag+'</b>'+DT.gap+'</div>':STALE?'<div class="gap flat">'+STM+'</div>':(!LC&&g.dir&&kst().hm<'09:00')?'<div class="gap '+esc(g.tone||'flat')+'"><b>'+esc(g.dir)+'</b>'+esc(g.why||'')+'</div>':'';
+  var gapBox=WK?'<div class="gap flat"><b>'+DT.tag+'</b>'+DT.gap+'</div>':STALE?'<div class="gap flat">'+STM+'</div>':(!LC&&g.dir&&kst().hm<'09:00')?'<div class="gap bsm '+esc(g.tone||'flat')+'"><span class="bst"><b>'+esc(g.dir)+'</b>'+esc(B.short||String(B.headline||'').split(' — ')[0])+'</span><span class="bsr">📋 자세한 수치·근거는 아래 <u>아침 브리핑</u>을 참고하세요</span></div>':'';
   h+='<div class="card csum"><div class="sum">'
     +(WK?'<div class="hl">'+DT.hl+'</div>':'')
     +LC+gapBox+((!WK&&!LC&&!gapBox)?'<div class="gap flat lvc"><b>🗣 장중 시황</b>'+(kst().hm<'09:30'?'장 시작 후 9시 30분경부터 게시됩니다.':'다음 장중 시황을 준비하고 있습니다. 시세는 아래 시장지표를 확인하세요.')+'</div>':'')+'</div></div>';
@@ -527,7 +527,7 @@ async function loadPpi(){
   }catch(e){}
 }
 function build(){
-  var B={date:BR.date,asof:BR.asof,headline:BR.headline,gap:BR.gap,facts:BR.facts,semi:BR.semi,picks:BR.picks,sources:BR.sources};
+  var B={date:BR.date,asof:BR.asof,headline:BR.headline,short:BR.short,gap:BR.gap,facts:BR.facts,semi:BR.semi,picks:BR.picks,sources:BR.sources};
   B.market=STRUCT.market.map(function(g){return {g:g.g,nf:g.nf,inv:g.inv,items:g.items.map(function(a){var x=q(a[1]);return {n:a[0],v:x.v||'',p:x.p||'',t:x.t||'',u:a[2]||'',i:a[3]==='inv'?1:0,pos:a[3]==='pos'?1:0,ln:a[3]==='line'?1:0}})}});
   B.kr=STRUCT.kr.map(function(a){var x=q(a[2]);return {n:a[0],s:(x.t?a[1]+' · '+x.t:a[1]),v:x.v||'—',p:x.p||'',d:x.d||'',x:x.x||''}});
   B.us=STRUCT.us.map(function(a){var x=q(a[1]);return {n:a[0],s:a[1]+(x.t?' · '+x.t:''),v:x.v||'—',p:x.p||'',d:x.d||''}});
