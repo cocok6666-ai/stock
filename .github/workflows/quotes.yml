@@ -41,20 +41,21 @@ jobs:
             git init -q -b data
             git config user.name "quotes-bot"; git config user.email "quotes-bot@users.noreply.github.com"
             git add . && git commit -q -m "quotes $(date -u +%FT%TZ)"
-            git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data || true
+            timeout 25 git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data || true
             cd "$GITHUB_WORKSPACE"
           }
           LIMIT=$((SECONDS+270))
           while true; do
-            python3 scripts/fetch_quotes.py /tmp/quotes.json || true
+            timeout 90 python3 scripts/fetch_quotes.py /tmp/quotes.json || true
             [ -s /tmp/quotes.json ] && publish
             in_window || exit 0
             [ "$SECONDS" -ge "$LIMIT" ] && break
             if core; then sleep 5; else sleep 40; fi
           done
-          gh workflow run quotes.yml --ref main || true
+          # 다음 회차 예약: 접속 장애에 대비해 최대 6회(약 2분) 재시도
+          for i in 1 2 3 4 5 6; do timeout 20 gh workflow run quotes.yml --ref main && break; sleep 15; done || true
       - name: 갱신 감시 (멈춘 작업 재실행)
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/watchdog.py || true
+        run: timeout 120 python3 scripts/watchdog.py || true
