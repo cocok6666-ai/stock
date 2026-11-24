@@ -44,6 +44,19 @@ jobs:
             timeout 25 git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data || true
             cd "$GITHUB_WORKSPACE"
           }
+          night_try() {  # 야간선물 마감값: 화~토 06:00~10:30, 못 구했으면 1분마다 재시도(정기 실행이 늦거나 빠져도 안전)
+            d=$(TZ=Asia/Seoul date +%u); hm=$(TZ=Asia/Seoul date +%H%M); hm=$((10#$hm))
+            if [ "$d" -ge 1 ] && [ "$d" -le 6 ] && [ "$hm" -ge 600 ] && [ "$hm" -le 1030 ]; then
+              if [ -f /tmp/night.at ] && [ $(( $(date +%s) - $(cat /tmp/night.at) )) -lt 55 ]; then return 0; fi
+              date +%s > /tmp/night.at
+              timeout 80 python3 scripts/fetch_night.py || true
+              if ! git diff --quiet night.json 2>/dev/null; then
+                git config user.name "quotes-bot"; git config user.email "quotes-bot@users.noreply.github.com"
+                git add night.json && git commit -q -m "night.json 갱신(야간선물 마감 자동수집)" \
+                  && git pull -q --rebase origin main && timeout 25 git push -q origin HEAD:main || true
+              fi
+            fi
+          }
           LIMIT=$((SECONDS+270))
           while true; do
             timeout 90 python3 scripts/fetch_quotes.py /tmp/quotes.json || true
@@ -52,6 +65,7 @@ jobs:
               timeout 60 python3 scripts/fetch_rt.py /tmp/rt.new.json && mv /tmp/rt.new.json /tmp/rt.json || true
             fi
             [ -s /tmp/quotes.json ] && publish
+            night_try
             in_window || exit 0
             [ "$SECONDS" -ge "$LIMIT" ] && break
             if core; then sleep 5; else sleep 40; fi
