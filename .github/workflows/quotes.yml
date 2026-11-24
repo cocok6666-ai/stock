@@ -37,7 +37,7 @@ jobs:
             mkdir -p /tmp/keep
             cp /tmp/quotes.json "/tmp/keep/q$(( $(date +%s) / 15 )).json"
             ls -1t /tmp/keep | tail -n +9 | while read f; do rm -f "/tmp/keep/$f"; done
-            rm -rf /tmp/out && mkdir /tmp/out && cp /tmp/keep/*.json /tmp/out/ && cp /tmp/quotes.json /tmp/out/quotes.json && cd /tmp/out
+            rm -rf /tmp/out && mkdir /tmp/out && cp /tmp/keep/*.json /tmp/out/ && cp /tmp/quotes.json /tmp/out/quotes.json && { [ -s /tmp/rt.json ] && cp /tmp/rt.json /tmp/out/rt.json; true; } && cd /tmp/out
             git init -q -b data
             git config user.name "quotes-bot"; git config user.email "quotes-bot@users.noreply.github.com"
             git add . && git commit -q -m "quotes $(date -u +%FT%TZ)"
@@ -47,6 +47,10 @@ jobs:
           LIMIT=$((SECONDS+270))
           while true; do
             timeout 90 python3 scripts/fetch_quotes.py /tmp/quotes.json || true
+            # 종목 목록용 전 종목 등락률: 1분마다 (실패해도 무시)
+            if [ ! -s /tmp/rt.json ] || [ $(( $(date +%s) - $(stat -c %Y /tmp/rt.json) )) -ge 55 ]; then
+              timeout 60 python3 scripts/fetch_rt.py /tmp/rt.new.json && mv /tmp/rt.new.json /tmp/rt.json || true
+            fi
             [ -s /tmp/quotes.json ] && publish
             in_window || exit 0
             [ "$SECONDS" -ge "$LIMIT" ] && break
