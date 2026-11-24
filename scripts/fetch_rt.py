@@ -28,19 +28,24 @@ def page(a):
     j = get(f"{base}?page={p}&pageSize=100")
     return (j or {}).get("stocks") or [], (j or {}).get("totalCount")
 
-out = {}
-for base in BASES:
-    first, total = page((base, 1))
-    n = max(1, -(-(total or len(first)) // 100))
-    with ThreadPoolExecutor(max_workers=8) as ex:
-        rest = list(ex.map(page, [(base, p) for p in range(2, n + 1)]))
-    for st in [first] + [r[0] for r in rest]:
-        for s in st:
-            c, g = s.get("itemCode"), fn(s.get("fluctuationsRatio"))
-            if c and g is not None:
-                out[c] = round(g, 2)
+def collect(bases, key):
+    res = {}
+    for base in bases:
+        first, total = page((base, 1))
+        n = max(1, -(-(total or len(first)) // 100))
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            rest = list(ex.map(page, [(base, p) for p in range(2, n + 1)]))
+        for st in [first] + [r[0] for r in rest]:
+            for s in st:
+                c, g = s.get(key), fn(s.get("fluctuationsRatio"))
+                if c and g is not None:
+                    res[c] = round(g, 2)
+    return res
+
+out = collect(BASES, "itemCode")
+us = collect(["https://api.stock.naver.com/stock/exchange/%s/marketValue" % e for e in ("NASDAQ", "NYSE", "AMEX")], "reutersCode")
 if len(out) < 500:
     print("수집 부족", len(out)); sys.exit(1)
 with open(sys.argv[1] if len(sys.argv) > 1 else "rt.json", "w", encoding="utf-8") as f:
-    json.dump({"t": datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00"), "kr": out}, f, ensure_ascii=False, separators=(",", ":"))
-print("rt", len(out))
+    json.dump({"t": datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00"), "kr": out, "us": us if len(us) >= 500 else {}}, f, ensure_ascii=False, separators=(",", ":"))
+print("rt", len(out), len(us))
