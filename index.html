@@ -1671,19 +1671,26 @@ function simOpen(){
   });
 })();
 
-/* ---------- 폰 뒤로가기: 팝업을 열 때마다 기록을 1개씩 쌓아, 뒤로가기가 열린 순서의 역순으로 팝업을 닫게 함 ----------
-   스택: [base, main(첫 터치 때 생성), 팝업1, 팝업2 …]. 팝업을 버튼으로 닫으면 그 기록도 함께 걷어낸다.
-   팝업이 하나도 없는 상태에서 뒤로가기 → 종료 확인창 → "종료" 누르면 가드를 걷어 다음 뒤로가기가 종료. */
+/* ---------- 폰 뒤로가기 ----------
+   규칙: ① 팝업이 열려 있으면 뒤로가기는 가장 나중에 연 팝업부터 닫는다.
+         ② 팝업이 없는 첫 화면에서 뒤로가기 → 어떤 경우에도 다른 화면으로 가지 않고 "앱을 종료할까요?" 창만 띄운다.
+         ③ 그 창이 떠 있는 상태에서 뒤로가기를 한 번 더 누르면 종료. "계속 사용"을 누르면 닫힌다.
+   기록 구조: [base, main, 팝업1, 팝업2 …]. 새로고침·복귀 등으로 기록이 어긋나도 ②가 깨지지 않도록
+   첫 화면으로 돌아올 때마다 main 가드를 다시 쌓는다. */
 (function(){
-  var exiting=false,PS=[],ign=0,IDS=['sam','pkm','stm','sim','nfm','unm'];
+  var PS=[],ign=0,ignT=0,IDS=['sam','pkm','stm','sim','nfm','unm'];
   function el(i){return document.getElementById(i)}
   function st(){try{return history.state&&history.state.r}catch(e){return null}}
   function push(r){try{history.pushState({r:r},'')}catch(e){}}
-  try{history.replaceState({r:'base'},'')}catch(e){}
-  function arm(){if(exiting||el('exm').classList.contains('on'))return;var s=st();if(!s||s==='base')push('main')}
-  ['touchend','click','pointerup'].forEach(function(t){document.addEventListener(t,arm,{capture:true,passive:true})});
-  function resume(){if(document.hidden)return;exiting=false;el('exm').classList.remove('on');arm()}
-  document.addEventListener('visibilitychange',resume);window.addEventListener('pageshow',resume);window.addEventListener('focus',resume);
+  function exmOn(){return el('exm').classList.contains('on')}
+  function openCnt(){return IDS.filter(function(i){return el(i).classList.contains('on')}).length}
+  /* 새로 열릴 때마다 맨 아래에 base 를 깔고 바로 main 가드를 쌓는다(새로고침으로 어긋난 기록 보정) */
+  try{history.replaceState({r:'base'},'');push('main')}catch(e){}
+  function ensure(){var s=st();if(s!=='main'&&s!=='pop')push('main')}
+  function arm(){if(exmOn())return;ensure()}
+  ['touchend','click','pointerup','keydown'].forEach(function(t){document.addEventListener(t,arm,{capture:true,passive:true})});
+  function resume(){if(document.hidden)return;if(exmOn())el('exm').classList.remove('on');ensure()}
+  document.addEventListener('visibilitychange',resume);window.addEventListener('pageshow',resume);window.addEventListener('focus',function(){if(!exmOn())ensure()});
   /* 팝업이 열리면 기록 1개 추가, 버튼으로 닫히면 그 기록 제거 */
   IDS.forEach(function(id){
     var e=el(id),was=e.classList.contains('on');
@@ -1694,20 +1701,20 @@ function simOpen(){
       else{
         var k=PS.indexOf(id);if(k<0)return;           /* 뒤로가기로 이미 걷어낸 경우 */
         var top=k===PS.length-1;PS.splice(k,1);
-        if(top){ign++;try{history.back()}catch(x){ign--}}
+        if(top&&st()==='pop'){ign++;clearTimeout(ignT);ignT=setTimeout(function(){ign=0},600);try{history.back()}catch(x){ign=0}}
       }
     }).observe(e,{attributes:true,attributeFilter:['class']});
   });
   window.addEventListener('popstate',function(){
     if(ign>0){ign--;return}
-    if(exiting)return;
-    var m=el('exm');
-    if(m.classList.contains('on'))return;   /* 안내창이 떠 있는 상태의 뒤로가기 = 종료 */
-    if(PS.length){var id=PS.pop();el(id).classList.remove('on');return}
-    /* 팝업 없음: 종료 확인 */
-    m.classList.add('on');
+    if(exmOn()){try{history.back()}catch(e){}return}      /* 종료 확인창이 떠 있을 때의 뒤로가기 = 종료 */
+    if(PS.length){var id=PS.pop();el(id).classList.remove('on');if(!PS.length&&st()!=='main')push('main');return}
+    if(openCnt()){return}                                   /* 목록에 없는 팝업이 열려 있으면 건드리지 않음 */
+    el('exm').classList.add('on');                          /* 첫 화면: 다른 화면으로 가지 않고 종료 확인만 */
+    push('main');
   });
-  el('exNo').addEventListener('click',function(){exiting=false;el('exm').classList.remove('on');arm()});
+  el('exNo').addEventListener('click',function(){el('exm').classList.remove('on');ensure()});
+  el('exm').addEventListener('click',function(e){if(e.target===el('exm')){el('exm').classList.remove('on');ensure()}});
 })();
 
 /* 팝업을 폰 입력기(키보드) 위쪽 보이는 영역에 맞춰 배치 */
