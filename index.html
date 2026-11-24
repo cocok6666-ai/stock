@@ -275,7 +275,7 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .stg .stars{font-size:17px;margin-left:4px;letter-spacing:2px}
 .rnb .stars{display:block;font-size:13px;letter-spacing:1px;margin-top:1px;color:#ffe08a}.rnb .stars i{color:rgba(255,255,255,.35)}
 .sasim{background:linear-gradient(135deg,#0f766e,#0a4f49)!important;border-color:#0a4f49!important}.sasim small{color:#bfe9e3!important}
-.sib .stl{padding:0 0 10px}
+.sib .stl{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:0 0 10px}
 .siw{margin:10px 12px;border:1.5px solid #c9a24a;border-radius:16px;background:linear-gradient(180deg,#fffaf0,#faf1d9);padding:12px 14px;font-size:12.5px;line-height:1.65;color:#3d2c08;box-shadow:0 3px 10px rgba(120,84,10,.14),inset 0 0 0 3px #fffdf6,inset 0 0 0 4px rgba(201,162,74,.45)}.siw b{color:#8a5a00}
 .sisum{margin:10px 12px;border-radius:14px;background:#1d1a14;color:#f4efe4;padding:12px 14px}.sisum .r{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:2px 0}.sisum .big{font-size:22px;font-weight:900}
 .sid{margin:10px 12px;border:2px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
@@ -1485,7 +1485,7 @@ function stClose(){saEl('stm').classList.remove('on')}
 
 
 /* ---------- 5거래일 종가매매 시뮬레이터 (재미용 · 국내주식) ---------- */
-var SIMK='sim_v1',SIM=null,SIMSEL=[null,null,null,null,null],SIMBUSY=false,SIMMSG='';
+var SIMK='sim_v1',SIM=null,SIMSEL=[null,null,null,null,null],SIMBUSY=false,SIMBUSYAT=0,SIMMSG='';
 var SIM_INV=10000000;
 function simLoad(){try{var o=JSON.parse(lsGet(SIMK)||'null');if(o&&Array.isArray(o.days))return o}catch(e){}return {v:1,days:[]}}
 function simSave(){lsSet(SIMK,JSON.stringify(SIM))}
@@ -1571,7 +1571,7 @@ function simSelHtml(){
 function simRender(){
   var B=saEl('siB');
   if(!SIM)SIM=simLoad();
-  var h=simInfoBox()+simSumHtml();
+  var h=simInfoBox()+(SIMBUSY?'<div class="simsg" style="background:rgba(80,140,255,.14)">⏳ 정산 자료를 확인하는 중입니다 (최대 20초). 화면은 그대로 사용할 수 있어요.</div>':'')+simSumHtml();
   SIM.days.forEach(function(d,i){h+=simDayHtml(d,i)});
   var allDone=SIM.days.length>=5&&SIM.days.every(function(d){return d.res});
   if(SIM.days.length<5)h+=simSelHtml();
@@ -1586,9 +1586,11 @@ function simRender(){
 }
 async function simSettleDay(i){
   var d=SIM.days[i];if(!d||d.res)return false;
+  var js=await Promise.all(d.picks.map(function(p){return saGet('https://m.stock.naver.com/api/stock/'+encodeURIComponent(p.c)+'/price?pageSize=60&page=1').catch(function(){return null})}));
   var rows=[],pend=false;
   for(var k=0;k<d.picks.length;k++){
-    var p=d.picks[k],j=await saGet('https://m.stock.naver.com/api/stock/'+encodeURIComponent(p.c)+'/price?pageSize=60&page=1');
+    var p=d.picks[k],j=js[k];
+    if(j===null){pend=true;break}
     var a=(Array.isArray(j)?j:[]).map(function(x){return {d:String(x.localTradedAt||'').slice(0,10),o:saN(x.openPrice),c:saN(x.closePrice)}}).filter(function(x){return x.d}).sort(function(x,y){return x.d<y.d?-1:1});
     var ix=-1;a.forEach(function(x,q){if(x.d===d.date)ix=q});
     if(ix<0){pend=true;break}
@@ -1603,18 +1605,17 @@ async function simSettleDay(i){
   simSave();return true;
 }
 async function simSettleAll(manualIdx){
-  if(SIMBUSY)return;
+  if(SIMBUSY&&Date.now()-SIMBUSYAT<25000)return;
   if(!saWorker()){SIMMSG='분석 서버(Worker) 주소가 설정되어 있어야 정산할 수 있어요. 종목분석 화면에서 먼저 설정해 주세요.';simRender();return}
-  SIMBUSY=true;simRender();var any=false,miss=false;
-  try{
-    for(var i=0;i<SIM.days.length;i++){
-      if(SIM.days[i].res)continue;
-      if(manualIdx!=null&&manualIdx!==i)continue;
-      if(SIM.days[i].date>=simToday().d&&manualIdx==null)continue;
-      try{var ok=await simSettleDay(i);if(ok)any=true;else miss=true}catch(e){miss=true}
-    }
-  }finally{SIMBUSY=false}
-  SIMMSG=any?'':(miss&&manualIdx!=null?'아직 다음 거래일 시가 자료가 없습니다. 다음 거래일 오전 9시 이후에 다시 확인해 주세요.':'');
+  SIMBUSY=true;SIMBUSYAT=Date.now();simRender();var any=false,miss=false,jobs=[];
+  SIM.days.forEach(function(dd,i){
+    if(dd.res)return;
+    if(manualIdx!=null&&manualIdx!==i)return;
+    if(dd.date>=simToday().d&&manualIdx==null)return;
+    jobs.push(simSettleDay(i).then(function(ok){if(ok)any=true;else miss=true}).catch(function(){miss=true}));
+  });
+  try{await Promise.race([Promise.all(jobs),new Promise(function(r){setTimeout(r,20000)})])}finally{SIMBUSY=false}
+  SIMMSG=any?'':(miss?(manualIdx!=null?'아직 다음 거래일 시가 자료가 없거나 서버 응답이 늦습니다. 잠시 뒤 다시 눌러 주세요.':'정산 자료를 아직 가져오지 못했습니다. 각 일차의 “정산 확인” 버튼으로 다시 시도해 주세요.'):'');
   simRender();
 }
 function simConfirm(picks,mode){
