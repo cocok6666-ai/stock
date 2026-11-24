@@ -468,7 +468,7 @@ function stocks(arr,vol){
 }
 function render(B){
   document.title=titleText();
-  setSub(dayMode()?DMT[dayMode()].sub:'브리핑 평일 06:30 · 16:00 게시');
+  setSub(dayMode()?DMT[dayMode()].sub:'브리핑 평일 07:00 · 16:00 게시');
   var h='';
   var g=B.gap||{};
   var DM=dayMode(),WK=!!DM,DT=DMT[DM]||{};
@@ -544,7 +544,7 @@ function build(){
 var NIGHT=null,nfShown=false,nfSign='';
 function dayMode(){var w=new Date().toLocaleDateString('en-US',{timeZone:'Asia/Seoul',weekday:'short'});
   if(w==='Sat'||w==='Sun')return 'we';
-  if(w==='Mon'&&kst().hm<'06:30')return 'mp';
+  if(w==='Mon'&&kst().hm<'06:05')return 'mp';
   return ''}
 function isWeekend(){return !!dayMode()}
 function usPubTxt(){var dst=/D/.test(new Date().toLocaleString('en-US',{timeZone:'America/New_York',timeZoneName:'short'}).slice(-3));return dst?['새벽 4시 50분','새벽 4시 40분']:['새벽 5시 50분','새벽 5시 40분']}
@@ -584,11 +584,11 @@ function liveLine(){
 function staleMsg(B,early){
   var t=kst(),hm=t.hm,old=esc(B.date||'날짜 미상'),why='';
   if(BS&&String(BS.date||'').slice(0,10)===t.d&&BS.state==='failed'&&BS.reason)why=' <b>사유:</b> '+esc(BS.reason);
-  if(hm<'06:30')return '<b>⏳ 오전 6시 30분경 새 시황 브리핑이 게시됩니다</b> 직전 브리핑('+old+') 내용은 오래된 수치라 숨겼습니다.';
-  if(hm<'07:15')return '<b>⏳ 오늘 브리핑 작성이 지연되고 있습니다</b> 06:30 자동 게시가 아직 끝나지 않았습니다.'+why+' 07:00에 자동 점검·복구가 실행되며, 완료되면 새로고침 시 나타납니다. 직전 브리핑('+old+')은 오래된 수치라 숨겼습니다. 시세·장중 시황은 정상 갱신 중입니다.';
+  if(hm<'07:00')return '<b>⏳ 오전 7시까지 새 시황 브리핑이 게시됩니다</b> 작성되는 대로 바로 올라옵니다. 직전 브리핑('+old+') 내용은 오래된 수치라 숨겼습니다.';
+  if(hm<'07:20')return '<b>⏳ 오늘 브리핑 작성이 지연되고 있습니다</b> 07:00 게시 시각이 지났지만 아직 끝나지 않았습니다.'+why+' 자동 점검·복구가 실행 중이며, 완료되면 새로고침 시 나타납니다. 직전 브리핑('+old+')은 오래된 수치라 숨겼습니다. 시세·장중 시황은 정상 갱신 중입니다.';
   return '<b>⚠️ 오늘 브리핑이 자동 게시되지 못했습니다</b>'+(why||' <b>사유:</b> 예약 작업이 실행되지 않았거나 중간에 멈췄습니다.')+' 자동 복구를 계속 시도 중이며, 잘못된 수치 방지를 위해 지난 브리핑('+old+') 내용은 숨겼습니다. 시세·장중 시황은 정상 갱신 중입니다.';
 }
-var BOP={ph:'',m:null,c:null},NOTE={m:'평일 오전 6:30경 게시',c:'평일 오후 4시경 게시'};
+var BOP={ph:'',m:null,c:null},NOTE={m:'평일 오전 7시까지 게시',c:'평일 오후 4시경 게시'};
 function closeReady(){var t=kst();return !!(CB&&String(CB.date||'').slice(0,10)===t.d&&CB.headline&&t.hm>='15:30')}
 function bOpen(k,solo){
   var ph=closeReady()?'c':'m';
@@ -680,8 +680,8 @@ function liveComment(){
   if(!rows.length)return '';
   return '<div class="gap flat lvc"><b>🗣 장중 시황</b>'+rows.map(function(r){return '<div class="lr"><span class="lt">'+(r[0]||'')+(r[1]?' '+r[1]:'')+'</span> '+r[2]+'</div>'}).join('')+'</div>';
 }
-var DMT={we:{sub:'주말 · 시황분석 없음',hl:'📅 주말(토·일)에는 시황분석을 하지 않습니다',tag:'주말 휴장',gap:'월요일 오전 6시 30분에 새 시황분석을 게시합니다. 아래 시세는 직전 거래일(금요일) 종가 기준입니다.',ic:'📅',b:'주말(토·일)에는 시황분석을 하지 않습니다.',p:'주말에는 새 자료가 없어 지난 금요일 분석을 보여드리지 않습니다. 월요일 오전 6시 30분 브리핑부터 다시 게시됩니다. (시장지표의 시세는 금요일 종가입니다.)'},
- mp:{sub:'월요일 새벽 · 오전 6시 30분 게시 예정',hl:'⏳ 월요일 오전 6시 30분에 시황분석을 게시합니다',tag:'준비중',gap:'시장지표 등 분석자료를 준비해 오전 6시 30분에 게시합니다. 시장지표는 수집되는 대로 아래에 표시됩니다.',ic:'⏳',b:'월요일 새벽에는 분석자료를 준비하고 있습니다.',p:'시장지표 등 분석자료를 정리해 오전 6시 30분에 게시합니다. 7시 이후 새로고침하면 오늘의 브리핑이 나타납니다. (그 전에는 지난 금요일 분석을 보여드리지 않습니다.)'}};
+var DMT={we:{sub:'주말 · 시황분석 없음',hl:'📅 주말(토·일)에는 시황분석을 하지 않습니다',tag:'주말 휴장',gap:'월요일 오전 7시까지 새 시황분석을 게시합니다. 아래 시세는 직전 거래일(금요일) 종가 기준입니다.',ic:'📅',b:'주말(토·일)에는 시황분석을 하지 않습니다.',p:'주말에는 새 자료가 없어 지난 금요일 분석을 보여드리지 않습니다. 월요일 오전 7시 브리핑부터 다시 게시됩니다. (시장지표의 시세는 금요일 종가입니다.)'},
+ mp:{sub:'월요일 새벽 · 오전 7시까지 게시 예정',hl:'⏳ 월요일 오전 7시까지 시황분석을 게시합니다',tag:'준비중',gap:'시장지표 등 분석자료를 준비해 오전 7시까지 게시합니다. 시장지표는 수집되는 대로 아래에 표시됩니다.',ic:'⏳',b:'월요일 새벽에는 분석자료를 준비하고 있습니다.',p:'시장지표 등 분석자료를 정리해 오전 7시까지 게시합니다. 게시되면 새로고침 시 오늘의 브리핑이 나타납니다. (그 전에는 지난 금요일 분석을 보여드리지 않습니다.)'}};
 function kst(){var s=new Date().toLocaleString('sv-SE',{timeZone:'Asia/Seoul'});return {d:s.slice(0,10),hm:s.slice(11,16)}}
 /* 가장 최근에 끝난 야간 세션의 종료일(KST). 세션은 화~토 06:00에 끝남 (월요일 아침 → 토요일) */
 function nfExpected(){
@@ -769,7 +769,7 @@ function setSub(t){SUBT=t;renderStat()}
 function ageMin(){if(!Q||!Q.updated)return null;return (Date.now()-new Date(Q.updated).getTime())/60000}
 function paint(force){
   var B=build();if(force||!pkBusy())render(B);
-  setSub((Q&&Q.updated?Q.updated.slice(5,10).replace('-','/')+' '+Q.updated.slice(11,16)+' 시세 · ':'시세 없음 · ')+(dayMode()?DMT[dayMode()].sub:'브리핑 평일 06:30·16:00 게시'));
+  setSub((Q&&Q.updated?Q.updated.slice(5,10).replace('-','/')+' '+Q.updated.slice(11,16)+' 시세 · ':'시세 없음 · ')+(dayMode()?DMT[dayMode()].sub:'브리핑 평일 07:00·16:00 게시'));
   var a=ageMin();
   if(a==null)setStat('⚠️ 시세를 아직 받지 못했어요','err');
   else if(a>20)setStat('⚠️ 시세가 '+Math.round(a)+'분 전 데이터예요 · 수집 지연 중','err');
