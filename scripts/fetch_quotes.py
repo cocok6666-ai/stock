@@ -185,6 +185,23 @@ for key, codes in [("NVDA", ["NVDA.O"]), ("SKHY", ["SKHY.O", "SKHY.K", "SKHY"]),
                    ("SNDK", ["SNDK.O"]), ("AVGO", ["AVGO.O"]), ("AMD", ["AMD.O"]), ("SOXL", ["SOXL.K"])]:
     attempt(key, *[(lambda c=c, k=key: naver(f"{A}/stock/{c}/basic", k)) for c in codes])
 
+def btc_yahoo():
+    j = get("https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?range=1d&interval=5m")
+    m = j["chart"]["result"][0]["meta"]
+    px, pct = m["regularMarketPrice"], m.get("regularMarketChangePercent")
+    if pct is None:
+        raise ValueError("no pct")
+    put("BTC", px, px / (1 + pct / 100), datetime.fromtimestamp(m["regularMarketTime"], KST), True, 0)
+
+
+def btc_gecko():
+    j = get("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true")["bitcoin"]
+    px = j["usd"]
+    put("BTC", px, px / (1 + j["usd_24h_change"] / 100), datetime.now(KST), True, 0)
+
+
+attempt("BTC", btc_yahoo, btc_gecko)
+
 # 장중 흐름용 이력(코스피·코스닥, 당일만): 이전 게시본을 읽어 이어 붙임
 def build_hist(now):
     day, hm = now.strftime("%Y-%m-%d"), now.strftime("%H:%M")
