@@ -3,6 +3,7 @@
 - 국내 종목분석: 평일 15:00 목록 / 15:10 통계 (마감 20분·10분 전 기준 아님, 사용자가 정한 시각)
 - 미국 종목분석: 미국장 마감 20분 전 목록 / 10분 전 통계 (서머타임 자동 반영)
 - 시세(quotes): 장 시간대에 15분 넘게 갱신 없으면 재실행
+국내 15:00/15:10 분은 시세 수집 루프가 1분마다 호출해 정각 직후 실행한다.
 이미 실행 중이거나 최근 12분 안에 실행된 워크플로는 건드리지 않는다. 호출: quotes.yml 끝, watchdog.yml(10분 주기·push)."""
 import json, subprocess, sys
 from datetime import datetime, timedelta, timezone
@@ -48,17 +49,17 @@ def dispatch(wf, why, mode=None):
 stats, stocks, stocks_us = load("stats.json"), load("stocks.json"), load("stocks_us.json")
 wd = now.weekday() < 5
 
-# ---- 국내: 15:10 통계, 15:00 목록 ----
+# ---- 국내: 15:00 목록 → 15:10 통계 (정각에 맞춰 즉시 실행; 정기 실행 지연에 의존하지 않음) ----
 if wd:
     d = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    if now >= d.replace(hour=15, minute=20):
-        at = parse(((stats.get("meta") or {}).get("kr") or {}).get("at", ""))
-        if not at or at < d.replace(hour=15, minute=5):
-            dispatch("screen.yml", "국내 분석통계 15:10 미갱신", "kr")
-    if now >= d.replace(hour=15, minute=15):
-        up = parse(stocks.get("updated", ""))
-        if not up or up < d.replace(hour=14, minute=55):
-            dispatch("stocks.yml", "종목 목록 15:00 미갱신")
+    t15, t1510 = d.replace(hour=15), d.replace(hour=15, minute=10)
+    up = parse(stocks.get("updated", ""))
+    at = parse(((stats.get("meta") or {}).get("kr") or {}).get("at", ""))
+    list_ok = bool(up and up >= t15)
+    if now >= t15 + timedelta(seconds=20) and not list_ok:
+        dispatch("stocks.yml", "종목 목록 15:00 미갱신")
+    if now >= t1510 and list_ok and (not at or at < t1510):
+        dispatch("screen.yml", "국내 분석통계 15:10 미갱신", "kr")
 
 # ---- 미국: 마감 20분 전 목록 / 10분 전 통계 ----
 e = now.astimezone(ET)

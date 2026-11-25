@@ -57,6 +57,15 @@ jobs:
               fi
             fi
           }
+          kr_kick() {  # 평일 15:00~15:45 국내 종목분석: 15:00 목록 → 15:10 통계를 정각에 맞춰 실행(1분마다 점검)
+            d=$(TZ=Asia/Seoul date +%u); hm=$(TZ=Asia/Seoul date +%H%M); hm=$((10#$hm))
+            if [ "$d" -le 5 ] && [ "$hm" -ge 1500 ] && [ "$hm" -le 1545 ]; then
+              if [ -f /tmp/kick.at ] && [ $(( $(date +%s) - $(cat /tmp/kick.at) )) -lt 50 ]; then return 0; fi
+              date +%s > /tmp/kick.at
+              mkdir -p /tmp/kk && git fetch -q origin main && for f in stocks.json stats.json stocks_us.json; do git show origin/main:$f > /tmp/kk/$f 2>/dev/null || echo '{}' > /tmp/kk/$f; done
+              ( cd /tmp/kk && GH_REPO="${{ github.repository }}" timeout 60 python3 "$GITHUB_WORKSPACE/scripts/watchdog.py" ) || true
+            fi
+          }
           LIMIT=$((SECONDS+270))
           while true; do
             timeout 90 python3 scripts/fetch_quotes.py /tmp/quotes.json || true
@@ -66,6 +75,7 @@ jobs:
             fi
             [ -s /tmp/quotes.json ] && publish
             night_try
+            kr_kick
             in_window || exit 0
             [ "$SECONDS" -ge "$LIMIT" ] && break
             if core; then sleep 5; else sleep 40; fi
