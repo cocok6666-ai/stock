@@ -61,21 +61,22 @@ if wd:
     if now >= t1510 and list_ok and (not at or at < t1510):
         dispatch("screen.yml", "국내 분석통계 15:10 미갱신", "kr")
 
-# ---- 미국: 마감 20분 전 목록 / 10분 전 통계 ----
+# ---- 미국: 마감 20분 전 목록 → 10분 전 통계 (정시에 맞춰 즉시 실행) ----
 e = now.astimezone(ET)
-for back in range(0, 4):
+for back in range(-1, 4):
     day = (e - timedelta(days=back)).date()
     if day.weekday() >= 5:
         continue
     close = datetime(day.year, day.month, day.day, 16, 0, tzinfo=ET).astimezone(KST)
-    if close <= now:
-        if now - close < timedelta(hours=20):
-            at = parse(((stats.get("meta") or {}).get("us") or {}).get("at", ""))
-            if not at or at < close - timedelta(minutes=15):
-                dispatch("screen.yml", f"미국 분석통계 미갱신(마감 {close:%m/%d %H:%M} KST)", "us")
-            up = parse(stocks_us.get("updated", ""))
-            if not up or up < close - timedelta(minutes=30):
-                dispatch("stocks.yml", f"미국 종목 목록 미갱신(마감 {close:%m/%d %H:%M} KST)")
+    t_list, t_stat = close - timedelta(minutes=20), close - timedelta(minutes=10)
+    if t_list <= now < close + timedelta(hours=20):
+        up = parse(stocks_us.get("updated", ""))
+        at = parse(((stats.get("meta") or {}).get("us") or {}).get("at", ""))
+        list_ok = bool(up and up >= t_list)
+        if now >= t_list + timedelta(seconds=20) and not list_ok:
+            dispatch("stocks.yml", f"미국 종목 목록 미갱신(마감 {close:%m/%d %H:%M} KST)")
+        if now >= t_stat and list_ok and (not at or at < t_stat):
+            dispatch("screen.yml", f"미국 분석통계 미갱신(마감 {close:%m/%d %H:%M} KST)", "us")
         break
 
 # ---- 시세(quotes): 장 시간대 15분 이상 정체 ----
@@ -83,7 +84,7 @@ def in_window(n):
     d, hm = n.isoweekday(), n.hour * 100 + n.minute
     return (d <= 5 and hm >= 650) or (2 <= d <= 6 and hm < 650)
 
-if in_window(now):
+if in_window(now) and not __import__('os').environ.get('WD_NO_QUOTES'):
     import base64, os
     repo = os.environ.get("GITHUB_REPOSITORY", "cocok6666-ai/stock")
     try:
