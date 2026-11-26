@@ -1509,7 +1509,7 @@ function stClose(){saEl('stm').classList.remove('on')}
 var SIMK='sim_v1',SIM=null,SIMSEL=[null,null,null,null,null],SIMBUSY=false,SIMBUSYAT=0,SIMMSG='';
 var SIM_INV=10000000;
 var SIM_SELL=[['open','시가 09:00'],['0930','09:30'],['1000','10:00'],['1030','10:30'],['1100','11:00'],['1300','13:00'],['1500','15:00'],['close','종가']];
-var SIMSELL='open';
+var SIMSELL='open',SIMAUTO=false;
 function simSellLbl(k){for(var i=0;i<SIM_SELL.length;i++)if(SIM_SELL[i][0]===k)return k==='open'?'시가':k==='close'?'종가':k.slice(0,2)+':'+k.slice(2);return '시가'}
 function simSellOptHtml(){
   return '<div style="margin-top:10px;font-weight:800;font-size:12.5px">⏰ 다음 거래일 매도 시간</div><div class="sisell" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">'
@@ -1587,13 +1587,13 @@ function simSelHtml(){
   else if(last&&last>=t.d)h+='<div class="simsg">'+n+'일차는 오늘 이미 선정했습니다. 다음 거래일에 '+(n+1)+'일차를 선정하세요.</div>';
   else{
     h+='<div style="color:var(--mut);font-size:12px">5종목을 정합니다. 종목당 1,000만원, 선정일 종가 매수 → 다음 거래일 선택한 시각 매도.</div>'
-     +'<button class="sibtn go" type="button" data-sim="auto">⭐ 별 많은 순 자동 선정 (5종목)</button>'
-     +simSellOptHtml()
-     +'<div style="margin-top:10px;font-weight:800;font-size:12.5px">✋ 직접 선택</div>';
+     +'<button class="sibtn go" type="button" data-sim="auto">⭐ 별 많은 순 자동 선정 (5종목 채우기)</button>'
+     +'<div style="margin-top:10px;font-weight:800;font-size:12.5px">✋ 직접 선택 (자동 선정 후 바꿀 수도 있어요)</div>';
     for(var i=0;i<5;i++){var s=SIMSEL[i];
       h+='<div class="sisl"><i>'+(i+1)+'</i><button type="button" data-sim="slot" data-i="'+i+'" class="'+(s?'f':'')+'">'+(s?esc(s.n)+' ('+s.c+')':'+ 종목 선택')+'</button>'+(s?'<button type="button" class="x" data-sim="clr" data-i="'+i+'">✕</button>':'')+'</div>'}
     var full=SIMSEL.every(function(x){return x});
-    h+='<button class="sibtn" type="button" data-sim="ok"'+(full?'':' disabled')+'>'+(full?'✅ 이 5종목으로 확정':'5종목을 모두 선택하면 확정할 수 있어요')+'</button>';
+    h+=simSellOptHtml();
+    h+='<button class="sibtn" type="button" data-sim="ok"'+(full?'':' disabled')+'>'+(full?'✅ 이 5종목 · 매도 '+simSellLbl(SIMSELL)+'로 확정':'5종목을 모두 선택하면 확정할 수 있어요')+'</button>';
   }
   if(SIMMSG)h+='<div class="simsg">'+SIMMSG+'</div>';
   return h+'</div></div>';
@@ -1685,13 +1685,13 @@ function simOpen(){
   saEl('siB').addEventListener('click',function(ev){
     var b=ev.target&&ev.target.closest&&ev.target.closest('[data-sim]');if(!b)return;
     var a=b.getAttribute('data-sim'),i=+b.getAttribute('data-i');
-    if(a==='auto'){var p=simAuto();if(p.length<5){SIMMSG='분석통계 자료가 부족해 자동 선정을 할 수 없어요. 직접 선택해 주세요.';simRender();return}simConfirm(p,'auto')}
+    if(a==='auto'){var p=simAuto();if(p.length<5){SIMMSG='분석통계 자료가 부족해 자동 선정을 할 수 없어요. 직접 선택해 주세요.';simRender();return}SIMSEL=p.map(function(x){return {c:x.c,n:x.n,lv:x.lv}});SIMMSG='';SIMAUTO=true;simRender()}
     else if(a==='slot'){pkPick('kr',function(it){
       if(SIMSEL.some(function(s,q){return s&&s.c===it.code&&q!==i})){SIMMSG='이미 선택한 종목입니다.';simRender();return}
       SIMMSG='';SIMSEL[i]={c:it.code,n:it.name,lv:simLv(it.code)};simRender()})}
-    else if(a==='clr'){SIMSEL[i]=null;simRender()}
+    else if(a==='clr'){SIMSEL[i]=null;SIMAUTO=false;simRender()}
     else if(a==='sell'){SIMSELL=b.getAttribute('data-k')||'open';simRender()}
-    else if(a==='ok'){if(SIMSEL.every(function(x){return x}))simConfirm(SIMSEL,'manual')}
+    else if(a==='ok'){if(SIMSEL.every(function(x){return x}))simConfirm(SIMSEL,SIMAUTO?'auto':'manual');SIMAUTO=false}
     else if(a==='settle'){simSettleAll(i)}
     else if(a==='reset'){
       if(b.getAttribute('data-c')==='1'){SIM={v:1,days:[]};simSave();SIMSEL=[null,null,null,null,null];SIMMSG='';simRender()}
