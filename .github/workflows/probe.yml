@@ -1,0 +1,9 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          H='User-Agent: Mozilla/5.0'
+          for u in "https://api.stock.naver.com/chart/domestic/item/005930/minute?startDateTime=202611260900&endDateTime=202611261000" "https://api.stock.naver.com/chart/domestic/item/005930?periodType=minute&startDateTime=202611260900&endDateTime=202611261000" "https://m.stock.naver.com/api/stock/005930/price?pageSize=2&page=1" "https://api.stock.naver.com/chart/domestic/item/005930/day?startDateTime=202611200000&endDateTime=202611260000"; do echo "== $u"; curl -s -m 20 -H "$H" "$u" | head -c 700; echo; done
