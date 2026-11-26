@@ -1508,6 +1508,14 @@ function stClose(){saEl('stm').classList.remove('on')}
 /* ---------- 5거래일 종가매매 시뮬레이터 (재미용 · 국내주식) ---------- */
 var SIMK='sim_v1',SIM=null,SIMSEL=[null,null,null,null,null],SIMBUSY=false,SIMBUSYAT=0,SIMMSG='';
 var SIM_INV=10000000;
+var SIM_SELL=[['open','시가 09:00'],['0930','09:30'],['1000','10:00'],['1030','10:30'],['1100','11:00'],['1300','13:00'],['1500','15:00'],['close','종가']];
+var SIMSELL='open';
+function simSellLbl(k){for(var i=0;i<SIM_SELL.length;i++)if(SIM_SELL[i][0]===k)return k==='open'?'시가':k==='close'?'종가':k.slice(0,2)+':'+k.slice(2);return '시가'}
+function simSellOptHtml(){
+  return '<div style="margin-top:10px;font-weight:800;font-size:12.5px">⏰ 다음 거래일 매도 시간</div><div class="sisell" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">'
+   +SIM_SELL.map(function(o){var on=o[0]===SIMSELL;return '<button type="button" data-sim="sell" data-k="'+o[0]+'" style="height:34px;padding:0 11px;border-radius:17px;border:1.5px solid '+(on?'#ff9a3c':'rgba(128,128,128,.4)')+';background:'+(on?'#ff9a3c':'transparent')+';color:'+(on?'#4a2300':'inherit')+';font-weight:800;font-size:12.5px">'+o[1]+'</button>'}).join('')
+   +'</div><div style="color:var(--mut);font-size:11.5px;margin-top:4px">선택한 시각의 1분봉 가격으로 매도한 것으로 계산해요. 선정 후에는 일차별로 고정됩니다.</div>';
+}
 function simLoad(){try{var o=JSON.parse(lsGet(SIMK)||'null');if(o&&Array.isArray(o.days))return o}catch(e){}return {v:1,days:[]}}
 function simSave(){lsSet(SIMK,JSON.stringify(SIM))}
 function F(n){return Math.round(n).toLocaleString('ko-KR')}
@@ -1524,11 +1532,11 @@ function simAuto(){
   return c.slice(0,5);
 }
 function simInfoBox(){
-  return '<div class="siw"><b>🎮 재미로 해보는 모의 시뮬레이션입니다.</b><br>실제 투자가 아니며 수익을 보장하지 않습니다. <b>매도 시점(시가·장중·종가)에 따라 결과가 완전히 달라질 수 있습니다.</b> 여기서는 항상 “종가에 사서 다음 거래일 정규장 시가에 파는” 경우만 계산합니다.</div>'
+  return '<div class="siw"><b>🎮 재미로 해보는 모의 시뮬레이션입니다.</b><br>실제 투자가 아니며 수익을 보장하지 않습니다. <b>매도 시점(시가·장중·종가)에 따라 결과가 완전히 달라질 수 있습니다.</b> 여기서는 “종가에 사서 다음 거래일 <b>선택한 시각</b>(기본 시가)에 파는” 경우만 계산합니다.</div>'
   +'<details class="stdet"><summary><span class="rq">필독</span><span>진행 방식 · 계산 기준<small>터치하여 꼭 읽어보세요</small></span></summary><div class="stg2"><ul>'
   +'<li><b>5거래일</b> 동안 매 거래일마다 <b>5종목</b>을 고르고, 종목당 <b>1,000만원</b>(1일 총 5,000만원)을 투자합니다. (국내 주식만)</li>'
   +'<li><b>종목 선정 방법 2가지:</b> ⭐별 많은 순 자동 선정(분석통계 단기(종가배팅) 단계가 높은 순 5종목) / ✋직접 5종목 선택.</li>'
-  +'<li><b>매수:</b> 선정한 날의 <b>종가</b>, <b>매도:</b> 다음 거래일 <b>정규장 시가</b>. 매수 수량은 1,000만원 ÷ 종가(소수점 버림)입니다.</li>'
+  +'<li><b>매수:</b> 선정한 날의 <b>종가</b>, <b>매도:</b> 다음 거래일 <b>정규장 시가</b>(기본) 또는 선정 때 고른 시각(09:30~15:00·종가). 매수 수량은 1,000만원 ÷ 종가(소수점 버림)입니다.</li>'
   +'<li>1일차 결과는 그대로 두고, 다음 거래일에 아래로 2일차 종목을 새로 고르며 5일간 반복합니다. 정산은 다음 거래일 시가가 나온 뒤(오전 9시 이후) 가능합니다.</li>'
   +'<li>종목 선정은 <b>거래일 장 마감 직전(15:10~15:20)</b>을 권장합니다. 주말·휴일에는 선정할 수 없습니다.</li>'
   +'<li><b>미반영:</b> 매매 수수료·세금, 호가 단위 체결 차이, 시가 단일가 체결 여부, 상·하한가 등. 실제 결과와 다릅니다.</li>'
@@ -1551,21 +1559,21 @@ function simAnalysis(res){
   if(res.pnl>0)s+=up.length>=3?'다수 종목이 시가에 갭상승하며 이익이 났습니다.':'일부 종목의 큰 상승이 손실을 메웠습니다. 종목 수가 적으면 한두 종목에 좌우됩니다.';
   else if(res.pnl<0)s+=dn.length>=3?'다수 종목이 시가에 갭하락해 손실이 났습니다.':'일부 종목의 큰 하락이 이익을 상쇄했습니다.';
   else s+='손익이 거의 없었습니다.';
-  s+=' <span style="color:var(--mut)">※ 시가 매도 가정이라, 장중 고가·저가나 종가에 팔았다면 결과는 전혀 달라질 수 있습니다.</span>';
+  s+=' <span style="color:var(--mut)">※ 선택한 매도 시각 기준이라, 다른 시각(장중 고가·저가·종가)에 팔았다면 결과는 전혀 달라질 수 있습니다.</span>';
   return s;
 }
 function simDayHtml(d,i){
-  var ttl=(i+1)+'일차 · '+d.date.slice(5).replace('-','/')+' 선정';
+  var ttl=(i+1)+'일차 · '+d.date.slice(5).replace('-','/')+' 선정 · 매도 '+simSellLbl(d.sell||'open');
   var b='';
   b+=d.picks.map(function(p){return esc(p.n)+(p.lv?' '+STARS(p.lv):'')}).join(' · ');
   if(d.res){
-    b='<table class="sit"><thead><tr><th>종목</th><th>매수(종가)</th><th>매도(시가)</th><th>수량</th><th>손익</th></tr></thead><tbody>'
+    b='<table class="sit"><thead><tr><th>종목</th><th>매수(종가)</th><th>매도('+simSellLbl(d.res.sellK||'open')+')</th><th>수량</th><th>손익</th></tr></thead><tbody>'
      +d.res.rows.map(function(x){return '<tr><td>'+esc(x.n)+(x.lv?'<br>'+STARS(x.lv):'')+'</td><td>'+F(x.buy)+'</td><td>'+F(x.sell)+'</td><td>'+F(x.sh)+'</td><td class="'+cc(x.pnl)+'">'+WS(x.pnl)+'<br><small>'+PCT(x.pct)+'</small></td></tr>'}).join('')
      +'</tbody></table>'
-     +'<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-top:4px"><span>투자금 '+W(d.res.inv)+' (매도 '+d.res.sellDate.slice(5).replace('-','/')+' 시가)</span><b class="'+cc(d.res.pnl)+'">'+WS(d.res.pnl)+' ('+PCT(d.res.pct)+')</b></div>'
+     +'<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-top:4px"><span>투자금 '+W(d.res.inv)+' (매도 '+d.res.sellDate.slice(5).replace('-','/')+' '+simSellLbl(d.res.sellK||'open')+')</span><b class="'+cc(d.res.pnl)+'">'+WS(d.res.pnl)+' ('+PCT(d.res.pct)+')</b></div>'
      +'<div class="sian">'+simAnalysis(d.res)+'</div>';
   }else{
-    b+='<div style="margin-top:6px;color:var(--mut)">정산 대기 중 — 다음 거래일 정규장 시가가 나온 뒤(오전 9시 이후) 정산할 수 있습니다.</div>'
+    b+='<div style="margin-top:6px;color:var(--mut)">정산 대기 중 — 다음 거래일 매도 시각('+simSellLbl(d.sell||'open')+')이 지난 뒤 정산할 수 있습니다.</div>'
      +'<button class="sibtn alt" type="button" data-sim="settle" data-i="'+i+'"'+(SIMBUSY?' disabled':'')+'>'+(SIMBUSY?'확인 중…':'정산 확인')+'</button>';
   }
   return '<div class="sid"><h5><span>'+ttl+'</span><small>'+(d.res?'정산 완료':'대기')+'</small></h5><div class="bd">'+b+'</div></div>';
@@ -1578,8 +1586,9 @@ function simSelHtml(){
   if(!t.wk)h+='<div class="simsg">오늘은 주말입니다. 다음 거래일(월~금)에 선정할 수 있어요.</div>';
   else if(last&&last>=t.d)h+='<div class="simsg">'+n+'일차는 오늘 이미 선정했습니다. 다음 거래일에 '+(n+1)+'일차를 선정하세요.</div>';
   else{
-    h+='<div style="color:var(--mut);font-size:12px">5종목을 정합니다. 종목당 1,000만원, 선정일 종가 매수 → 다음 거래일 시가 매도.</div>'
+    h+='<div style="color:var(--mut);font-size:12px">5종목을 정합니다. 종목당 1,000만원, 선정일 종가 매수 → 다음 거래일 선택한 시각 매도.</div>'
      +'<button class="sibtn go" type="button" data-sim="auto">⭐ 별 많은 순 자동 선정 (5종목)</button>'
+     +simSellOptHtml()
      +'<div style="margin-top:10px;font-weight:800;font-size:12.5px">✋ 직접 선택</div>';
     for(var i=0;i<5;i++){var s=SIMSEL[i];
       h+='<div class="sisl"><i>'+(i+1)+'</i><button type="button" data-sim="slot" data-i="'+i+'" class="'+(s?'f':'')+'">'+(s?esc(s.n)+' ('+s.c+')':'+ 종목 선택')+'</button>'+(s?'<button type="button" class="x" data-sim="clr" data-i="'+i+'">✕</button>':'')+'</div>'}
@@ -1617,12 +1626,31 @@ async function simSettleDay(i){
     if(ix<0){pend=true;break}
     var nx=a[ix+1];
     if(!nx||!(nx.o>0)){pend=true;break}
-    var buy=a[ix].c,sh=Math.floor(SIM_INV/buy),inv=sh*buy,pnl=sh*(nx.o-buy);
-    rows.push({c:p.c,n:p.n,lv:p.lv||null,buy:buy,sell:nx.o,sh:sh,inv:inv,pnl:pnl,pct:(nx.o/buy-1)*100,sd:nx.d});
+    var sk=d.sell||'open',sp=nx.o;
+    if(sk!=='open'){
+      var tn=simToday();
+      if(sk==='close'){if(nx.d>=tn.d&&tn.hm<'15:40'){pend=true;break}sp=nx.c}
+      else{
+        var hh=sk.slice(0,2)+':'+sk.slice(2);
+        if(nx.d>=tn.d&&tn.hm<=hh){pend=true;break}
+        var dd8=nx.d.replace(/-/g,'');
+        var mj=await saGet('https://api.stock.naver.com/chart/domestic/item/'+encodeURIComponent(p.c)+'/minute?startDateTime='+dd8+'0900&endDateTime='+dd8+sk).catch(function(){return null});
+        var mc=(Array.isArray(mj)?mj:[]).filter(function(x){return String(x.localDateTime||'').slice(0,12)===dd8+sk});
+        if(!mc.length){
+          var ml=(Array.isArray(mj)?mj:[]).filter(function(x){var t=String(x.localDateTime||'').slice(0,12);return t<=dd8+sk&&t>=dd8+'0900'});
+          mc=ml.length&&String(ml[ml.length-1].localDateTime).slice(8,12)>=String(parseInt(sk,10)-3).padStart(4,'0')?[ml[ml.length-1]]:[];
+        }
+        if(!mc.length||!(saN(mc[0].openPrice)>0)){pend=true;break}
+        sp=saN(mc[0].openPrice);
+      }
+    }
+    if(!(sp>0)){pend=true;break}
+    var buy=a[ix].c,sh=Math.floor(SIM_INV/buy),inv=sh*buy,pnl=sh*(sp-buy);
+    rows.push({c:p.c,n:p.n,lv:p.lv||null,buy:buy,sell:sp,sh:sh,inv:inv,pnl:pnl,pct:(sp/buy-1)*100,sd:nx.d});
   }
   if(pend)return false;
   var inv=rows.reduce(function(s,x){return s+x.inv},0),pnl=rows.reduce(function(s,x){return s+x.pnl},0);
-  d.res={rows:rows,inv:inv,pnl:pnl,pct:inv?pnl/inv*100:0,sellDate:rows[0].sd,at:Date.now()};
+  d.res={rows:rows,inv:inv,pnl:pnl,pct:inv?pnl/inv*100:0,sellDate:rows[0].sd,sellK:d.sell||'open',at:Date.now()};
   simSave();return true;
 }
 async function simSettleAll(manualIdx){
@@ -1643,7 +1671,7 @@ function simConfirm(picks,mode){
   var t=simToday();
   if(!t.wk){SIMMSG='주말에는 선정할 수 없어요.';simRender();return}
   var n=SIM.days.length;if(n&&SIM.days[n-1].date>=t.d){SIMMSG='오늘은 이미 선정했습니다.';simRender();return}
-  SIM.days.push({n:n+1,date:t.d,mode:mode,picks:picks.map(function(p){return {c:p.c,n:p.n,lv:p.lv||simLv(p.c)||null}}),res:null});
+  SIM.days.push({n:n+1,date:t.d,mode:mode,picks:picks.map(function(p){return {c:p.c,n:p.n,lv:p.lv||simLv(p.c)||null}}),res:null,sell:SIMSELL});
   simSave();SIMSEL=[null,null,null,null,null];SIMMSG='';simRender();
   var B=saEl('siB');setTimeout(function(){B.scrollTop=B.scrollHeight},50);
 }
@@ -1662,6 +1690,7 @@ function simOpen(){
       if(SIMSEL.some(function(s,q){return s&&s.c===it.code&&q!==i})){SIMMSG='이미 선택한 종목입니다.';simRender();return}
       SIMMSG='';SIMSEL[i]={c:it.code,n:it.name,lv:simLv(it.code)};simRender()})}
     else if(a==='clr'){SIMSEL[i]=null;simRender()}
+    else if(a==='sell'){SIMSELL=b.getAttribute('data-k')||'open';simRender()}
     else if(a==='ok'){if(SIMSEL.every(function(x){return x}))simConfirm(SIMSEL,'manual')}
     else if(a==='settle'){simSettleAll(i)}
     else if(a==='reset'){
