@@ -202,6 +202,13 @@ async function admin(request, env, c, path, ip) {
     await env.GATE.put('cfg:pw', await hmac(await pepper(env, true), 'admin|' + np));
     return J({ ok: 1 }, 200, c);
   }
+  if (act === 'find') {
+    const code = normCode(b.code);
+    if (!code) return J({ e: 'bad' }, 400, c);
+    const key = await codeKey(env, code, false);
+    const rec = key ? await env.GATE.get(key, { type: 'json' }) : null;
+    return rec ? J({ ok: 1, h: key.slice(2), n: rec.n }, 200, c) : J({ e: 'none' }, 404, c);
+  }
   if (act === 'ping') return J({ ok: 1 }, 200, c);
   return J({ e: 'unknown' }, 404, c);
 }

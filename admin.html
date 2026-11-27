@@ -46,6 +46,7 @@ button{border:0;border-radius:10px;background:#ff9a3c;color:#4a2300;font-weight:
    <div class="mut" style="margin-top:6px">끄면 코드 없이 열려요(안내 문구만 표시). 모두 코드를 받은 뒤 켜세요.</div></div>
   <details id="lw" class="card" style="padding:0">
     <summary style="padding:12px;cursor:pointer;font-weight:800;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center"><span>📋 코드 목록 <span id="cnt" class="mut"></span></span><span class="mut" id="lwT">펼치기 ▼</span></summary>
+    <div style="padding:10px 10px 0"><div class="row"><input id="fc" type="text" autocomplete="off" autocapitalize="characters" maxlength="9" placeholder="코드로 번호 찾기 (XXXX-XXXX)"><button class="s" id="fcB" type="button">찾기</button></div><div class="mut" id="fcM" style="margin-top:4px"></div></div>
     <div style="padding:0 10px 10px"><div class="mut">받은 사람 이름을 적어 두세요. 차단하면 즉시 사용이 막혀요.</div><div id="list"></div></div>
   </details>
   <h2>코드 추가</h2>
@@ -96,6 +97,14 @@ $('lg').onclick=function(){
     PW=p;if($('sv').checked)ls('ad_pw',p);else sessionStorage.setItem('ad_pw',p);
     ovApply(j);DATA=j;$('login').style.display='none';$('main').style.display='block';render()
   }).catch(function(){$('lm').textContent='서버에 연결하지 못했어요.'})
+};
+$('fcB').onclick=function(){
+  var v=$('fc').value.toUpperCase().replace(/[^A-Z0-9]/g,'');if(v.length!==8){$('fcM').textContent='코드 8자리를 입력해 주세요.';return}
+  api('find',{code:v}).then(function(j){
+    if(!j.ok){$('fcM').textContent=j._s===404?'등록되지 않은 코드예요.':'찾지 못했어요. (서버 코드가 최신인지 확인)';return}
+    $('fcM').textContent='→ #'+j.n+' 번 카드예요.';
+    var el=document.querySelector('#list .card[data-h="'+j.h+'"]');if(el){el.scrollIntoView({block:'center',behavior:'smooth'});el.style.outline='3px solid #ffd54a';setTimeout(function(){el.style.outline=''},3500)}
+  }).catch(function(){$('fcM').textContent='서버에 연결하지 못했어요.'})
 };
 $('lw').addEventListener('toggle',function(){$('lwT').textContent=$('lw').open?'접기 ▲':'펼치기 ▼'});
 $('list').onclick=function(ev){
