@@ -237,11 +237,17 @@ async function gate(request, env, ctx, c, path, ip) {
   }
   if (path === '/g/login' || path === '/g/check') {
     const has = rec.devs.some((d) => d.id === dev);
+    const uname = String(b.user || '').replace(/[\u0000-\u001f<>"]/g, '').trim().slice(0, 20);
     if (!has) {
       if (path === '/g/check') return J({ e: 'nodev' }, 401, c);
+      if (!uname) return J({ e: 'name' }, 400, c);
       if (rec.devs.length >= MAX_DEV) return J({ e: 'full', devs: rec.devs.map((d) => ({ s: d.id.slice(0, 6), name: d.name, at: d.at })) }, 409, c);
       rec.devs.push({ id: dev, name: String(b.name || '').slice(0, 30), at: kstDay() });
       rec.used = kstDay();
+      if (!rec.label && uname) rec.label = uname; // 사용자가 입력한 이름을 '받은 사람' 칸에 자동 입력 (관리자가 이미 적은 이름은 유지)
+      await putRec(env, key, rec);
+    } else if (path === '/g/login' && uname && !rec.label) {
+      rec.label = uname;
       await putRec(env, key, rec);
     }
     return J({ ok: 1 }, 200, c);
