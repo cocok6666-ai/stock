@@ -580,7 +580,7 @@ function render(B){
     (grp.items||[]).forEach(function(it){
       if(it.ln)return;
       var c0=sign(it.p),c=(!it.pos&&(grp.inv||it.i))?(c0==='up'?'dn':c0==='dn'?'up':c0):c0,hv=String(it.v||'').trim(),has=hv||String(it.p||'').trim();
-      h+='<div class="tile"><div class="lb">'+nl(it.n)+'</div><div class="val '+(has?c:'flat')+'">'+(hv?esc(it.v)+(it.u?'<small class="cu2">'+esc(it.u)+'</small>':''):'—')+'</div><div class="chg '+c+'">'+(has?(it.rw?(/^[+\-−]|순매/.test(String(it.d||''))?arrow(c):'')+esc(String(it.d||'').replace(/^[+\-−]/,''))+(it.rs||''):pct(it.p)):'미확인')+'</div>'+(it.t?'<div class="tm">'+esc(it.t)+'</div>':'')+'</div>';
+      h+='<div class="tile"><div class="lb">'+nl(it.n)+'</div><div class="val '+(has?c:'flat')+'">'+(hv?(it.br&&/ \/ /.test(hv)?'<span class="up">'+esc(hv.split(' / ')[0])+'</span> / <span class="dn">'+esc(hv.split(' / ')[1])+'</span>':esc(it.v))+(it.u?'<small class="cu2">'+esc(it.u)+'</small>':''):'—')+'</div><div class="chg '+c+'">'+(has?(it.rw?(/^[+\-−]|순매/.test(String(it.d||''))?arrow(c):'')+esc(String(it.d||'').replace(/^[+\-−]/,''))+(it.rs||''):pct(it.p)):'미확인')+'</div>'+(it.t?'<div class="tm">'+esc(it.t)+'</div>':'')+'</div>';
     });
     h+='</div></div>';
   });
@@ -605,7 +605,7 @@ function render(B){
 var QURL='https://raw.githubusercontent.com/cocok6666-ai/stock/data/quotes.json';
 var STRUCT={
  market:[
-  {g:'국내 지수 · 선물',nf:1,items:[['코스피','KOSPI'],['코스닥','KOSDAQ'],['코스피 선물','K200F'],['코스피200 야간선물','K200NF'],['코스피 상승/하락','KBRD','종목','pos raw'],['코스닥 상승/하락','QBRD','종목','pos raw']]},
+  {g:'국내 지수 · 선물',nf:1,items:[['코스피','KOSPI'],['코스닥','KOSDAQ'],['코스피 선물','K200F'],['코스피200 야간선물','K200NF'],['코스피 상승/하락','KBRD','','pos raw brd'],['코스닥 상승/하락','QBRD','','pos raw brd']]},
   {g:'국내 수급 · 순매수 (코스피 억원 / 선물 계약)',items:[['외국인 (코스피)','KFRGN','억','pos raw'],['기관 (코스피)','KINST','억','pos raw'],['개인 (코스피)','KPER','억','pos raw'],['외국인 (선물)','FFRGN','계약','pos raw'],['기관 (선물)','FINST','계약','pos raw'],['개인 (선물)','FPER','계약','pos raw']]},
   {g:'미국 지수 · 선물',items:[['다우존스','DJI'],['나스닥','IXIC'],['S&P500','SPX'],['미국 반도체지수','SOX'],['나스닥 선물 (CME)','NQF'],['VIX 공포지수','VIX','','inv']]},
   {g:'미국 금리',inv:1,items:[['미국 2년물','US2Y','%'],['미국 10년물','US10Y','%'],['장단기차 (10Y−2Y)','SPRD','%p','pos raw %p']]},
@@ -625,7 +625,7 @@ async function loadPpi(){
 }
 function build(){
   var B={date:BR.date,asof:BR.asof,headline:BR.headline,short:BR.short,gap:BR.gap,facts:BR.facts,semi:BR.semi,picks:BR.picks,sources:BR.sources};
-  B.market=STRUCT.market.map(function(g){return {g:g.g,nf:g.nf,inv:g.inv,items:g.items.map(function(a){var x=q(a[1]);return {n:a[0],v:x.v||'',p:x.p||'',t:x.t||'',u:a[2]||'',d:x.d||'',i:/\binv\b/.test(a[3]||'')?1:0,pos:/\bpos\b/.test(a[3]||'')?1:0,ln:/\bline\b/.test(a[3]||'')?1:0,rw:/\braw\b/.test(a[3]||'')?1:0,rs:/%p/.test(a[3]||'')?'%p':''}})}});
+  B.market=STRUCT.market.map(function(g){return {g:g.g,nf:g.nf,inv:g.inv,items:g.items.map(function(a){var x=q(a[1]);return {n:a[0],v:x.v||'',p:x.p||'',t:x.t||'',u:a[2]||'',d:x.d||'',i:/\binv\b/.test(a[3]||'')?1:0,pos:/\bpos\b/.test(a[3]||'')?1:0,ln:/\bline\b/.test(a[3]||'')?1:0,rw:/\braw\b/.test(a[3]||'')?1:0,br:/\bbrd\b/.test(a[3]||'')?1:0,rs:/%p/.test(a[3]||'')?'%p':''}})}});
   B.kr=STRUCT.kr.map(function(a){var x=q(a[2]);return {n:a[0],s:(x.t?a[1]+' · '+x.t:a[1]),v:x.v||'—',p:x.p||'',d:x.d||'',x:x.x||''}});
   B.us=STRUCT.us.map(function(a){var x=q(a[1]);return {n:a[0],s:a[1]+(x.t?' · '+x.t:''),v:x.v||'—',p:x.p||'',d:x.d||''}});
   B.krAsof=Q&&Q.updated?'시세 '+Q.updated.slice(11,19)+' 갱신':'시세 없음';
