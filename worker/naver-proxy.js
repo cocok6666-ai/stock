@@ -149,10 +149,12 @@ async function admin(request, env, c, path, ip) {
     const items = await listCodes(env);
     return J({ enforce: await enforced(env), max: MAX_DEV, items }, 200, c);
   }
-  async function add(codes) {
-    const have = new Set((await listCodes(env)).map((x) => x.h));
+  async function add(codes, start) {
+    const items = await listCodes(env);
+    const have = new Set(items.map((x) => x.h));
     const p = await pepper(env, true);
-    let n = parseInt((await env.GATE.get('cfg:n')) || '0', 10);
+    // 번호는 기존 최대 번호 다음부터. (같은 키를 연속으로 쓰면 1초 제한에 걸리므로 별도 카운터 키는 쓰지 않음)
+    let n = Math.max(0, (parseInt(start, 10) || 1) - 1, ...items.map((x) => x.n || 0));
     let added = 0;
     for (const code of codes) {
       const h = await hmac(p, 'code|' + code);
@@ -161,8 +163,7 @@ async function admin(request, env, c, path, ip) {
       await putRec(env, 'c:' + h, { n, label: '', off: false, created: kstDay(), used: '', devs: [] });
       added++;
     }
-    await env.GATE.put('cfg:n', String(n));
-    return added;
+    return { added, last: n };
   }
   if (act === 'gen') {
     const cnt = Math.max(1, Math.min(30, parseInt(b.count, 10) || 1));
@@ -171,12 +172,22 @@ async function admin(request, env, c, path, ip) {
       const x = newCode();
       if (!codes.includes(x)) codes.push(x);
     }
-    const added = await add(codes);
-    return J({ added, codes: codes.map(fmt) }, 200, c);
+    const r = await add(codes, b.start);
+    return J({ added: r.added, last: r.last, codes: codes.map(fmt) }, 200, c);
   }
   if (act === 'import') {
     const codes = [...new Set((Array.isArray(b.codes) ? b.codes : []).map(normCode).filter(Boolean))].slice(0, 30);
-    return J({ added: await add(codes), total: codes.length }, 200, c);
+    const r = await add(codes, b.start);
+    return J({ added: r.added, last: r.last, total: codes.length }, 200, c);
+  }
+  if (act === 'check') {
+    const codes = [...new Set((Array.isArray(b.codes) ? b.codes : []).map(normCode).filter(Boolean))].slice(0, 30);
+    const p = await pepper(env, true);
+    const missing = [];
+    for (const code of codes) {
+      if (!(await env.GATE.get('c:' + (await hmac(p, 'code|' + code))))) missing.push(code);
+    }
+    return J({ total: codes.length, missing }, 200, c);
   }
   if (act === 'set' || act === 'deldev') {
     const h = String(b.h || '');
