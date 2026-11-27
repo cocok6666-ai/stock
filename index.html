@@ -484,7 +484,7 @@ var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
       document.head.appendChild(st);
       box=document.createElement('div');box.id='gtL';document.body.appendChild(box);
     }
-    var h='<div class="c"><h2>🔒 승인된 분만 사용할 수 있어요</h2><p>제작자에게 받은 승인 코드를 입력해 주세요.<br>코드는 기기 2대까지 사용할 수 있어요.</p>'
+    var h='<div class="c"><h2>🔒 승인된 분만 사용할 수 있어요</h2><p>이 앱은 <b style="color:#f4efe4">무료</b>이지만, <b style="color:#f4efe4">개발자에게 승인 코드를 받은 분만</b> 사용할 수 있어요.<br>받은 승인 코드를 입력해 주세요. (코드 1개로 기기 2대까지)</p>'
      +'<input id="gtI" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="XXXX-XXXX" value="'+esc(tryCode||'')+'">'
      +'<button class="go" id="gtB" type="button">확인</button><div class="m" id="gtM">'+esc(msg||'')+'</div>';
     if(devs){h+='<div class="dv"><b>이 코드를 쓰는 기기 (하나를 삭제하면 이 기기를 쓸 수 있어요)</b>'+devs.map(function(d){return '<div><span>'+esc(d.name||'기기')+' · '+esc(d.at||'')+'</span><button type="button" data-s="'+esc(d.s)+'">삭제</button></div>'}).join('')+'</div>'}
@@ -496,7 +496,7 @@ var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
         if(j.ok){ls('gt_code',c.replace('-',''));ls('gt_enf','1');location.reload();return}
         if(j._s===409){lock('이 코드는 이미 기기 2대에서 사용 중이에요. 쓰지 않는 기기를 삭제해 주세요.',j.devs,c);box.setAttribute('data-c',c);return}
         if(j._s===429){box.querySelector('#gtM').textContent='시도가 너무 많아요. 잠시 뒤에 다시 해 주세요.';return}
-        box.querySelector('#gtM').textContent=j.e==='off'?'사용이 중지된 코드예요. 제작자에게 문의해 주세요.':'코드가 맞지 않아요. 다시 확인해 주세요.'
+        box.querySelector('#gtM').textContent=j.e==='off'?'사용이 중지된 코드예요. 개발자에게 문의해 주세요.':'코드가 맞지 않아요. 개발자에게 받은 코드를 다시 확인해 주세요.'
       }).catch(function(){box.querySelector('#gtM').textContent='서버에 연결하지 못했어요. 인터넷을 확인하고 다시 눌러 주세요.'})}
     box.querySelector('#gtB').addEventListener('click',go);
     inp.addEventListener('keydown',function(e){if(e.key==='Enter')go()});
@@ -506,7 +506,7 @@ var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
   function banner(){
     if(document.getElementById('gtBn'))return;
     var d=document.createElement('div');d.id='gtBn';d.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:9000;background:#ff9a3c;color:#4a2300;font-size:13px;font-weight:700;padding:9px 12px;text-align:center';
-    d.innerHTML='곧 승인 코드가 있어야 사용할 수 있어요. 코드를 받으셨나요? <u id="gtBt">코드 입력</u> · <u id="gtBx">닫기</u>';
+    d.innerHTML='무료 앱이지만 곧 개발자에게 받은 승인 코드가 있어야 사용할 수 있어요. 코드를 받으셨나요? <u id="gtBt">코드 입력</u> · <u id="gtBx">닫기</u>';
     document.body.appendChild(d);
     d.querySelector('#gtBx').onclick=function(){d.remove()};
     d.querySelector('#gtBt').onclick=function(){d.remove();lock('')};
@@ -520,7 +520,7 @@ var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
       if(!code()){lock('');return}
       return post('/g/check',{code:code(),dev:dev}).then(function(r){
         if(r.ok){unlock();return}
-        if(r._s===401){ls('gt_code',null);lock(r.e==='off'?'사용이 중지된 코드예요. 제작자에게 문의해 주세요.':'다시 코드를 입력해 주세요.')}
+        if(r._s===401){ls('gt_code',null);lock(r.e==='off'?'사용이 중지된 코드예요. 개발자에게 문의해 주세요.':'다시 코드를 입력해 주세요.')}
       })
     }).catch(function(){});
   }
