@@ -50,6 +50,12 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
 function api(act,b,pw){return fetch(G+'/a/'+act,{method:'POST',headers:{'Content-Type':'application/json','X-Admin':pw==null?PW:pw},body:JSON.stringify(b||{}),cache:'no-store'}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){j._s=r.status;return j})})}
 function msg(t,e){var m=$('mm');m.textContent=t;m.className='m'+(e?' e':'')}
 var DATA=null;
+/* 저장소(KV) 목록은 바뀐 값이 반영되기까지 최대 1분 정도 걸릴 수 있어서, 방금 바꾼 값은 2분 동안 화면에서 먼저 반영해 둡니다 */
+var OV={};try{OV=JSON.parse(sessionStorage.getItem('ad_ov')||'{}')}catch(e){}
+function ovSet(h,p){var o=OV[h]||{};for(var k in p)o[k]=p[k];o.t=Date.now();OV[h]=o;try{sessionStorage.setItem('ad_ov',JSON.stringify(OV))}catch(e){}}
+function ovApply(d){var now=Date.now();d.items.forEach(function(x){var o=OV[x.h];if(!o)return;if(now-o.t>120000){delete OV[x.h];return}
+ if(o.label!==undefined)x.label=o.label;if(o.off!==undefined)x.off=o.off;if(o.rm)x.devs=x.devs.filter(function(v){return o.rm.indexOf(v.s)<0})});
+ if(OV._enf&&now-OV._enf.t<120000)d.enforce=OV._enf.v}
 function render(){
   var d=DATA;$('enT').textContent=d.enforce?'켜짐 — 코드가 있어야 사용':'꺼짐 — 코드 없이도 열림';$('enB').textContent=d.enforce?'끄기':'켜기';
   var used=d.items.filter(function(x){return x.devs.length}).length;$('cnt').textContent='(전체 '+d.items.length+' · 사용 중 '+used+')';
@@ -59,7 +65,7 @@ function render(){
      +'<div class="row" style="margin-top:6px"><input class="lb" maxlength="30" placeholder="받은 사람 이름" value="'+esc(x.label)+'"><button class="s sv">저장</button><button class="s tg '+(x.off?'':'r')+'">'+(x.off?'해제':'차단')+'</button></div>'
      +x.devs.map(function(v){return '<div class="row mut" style="margin-top:4px"><span>📱 '+esc(v.name||'기기')+' · '+esc(v.at||'')+'</span><button class="s r dd" data-s="'+esc(v.s)+'">기기 삭제</button></div>'}).join('')+'</div>'}).join('')||'<div class="mut">등록된 코드가 없어요. 아래에서 만들거나 붙여넣으세요.</div>';
 }
-function load(){return api('list').then(function(j){if(j._s===401){return j}if(j.items){DATA=j;render()}return j})}
+function load(){return api('list').then(function(j){if(j._s===401){return j}if(j.items){ovApply(j);DATA=j;render()}return j})}
 $('lg').onclick=function(){
   var u=$('gu').value.trim().replace(/\/+$/,'');if(u){G=u;ls('ad_url',u)}
   if(!G){$('lm').textContent='서버 주소를 먼저 입력해 주세요 (아래 “서버 주소”).';return}
@@ -69,18 +75,18 @@ $('lg').onclick=function(){
     if(j._s===429){$('lm').textContent='시도가 너무 많아요. 10분 뒤에 다시 해 주세요.';return}
     if(!j.items){$('lm').textContent='서버 응답이 이상해요. 주소를 확인해 주세요.';return}
     PW=p;if($('sv').checked)ls('ad_pw',p);else sessionStorage.setItem('ad_pw',p);
-    DATA=j;$('login').style.display='none';$('main').style.display='block';render()
+    ovApply(j);DATA=j;$('login').style.display='none';$('main').style.display='block';render()
   }).catch(function(){$('lm').textContent='서버에 연결하지 못했어요.'})
 };
 $('lw').addEventListener('toggle',function(){$('lwT').textContent=$('lw').open?'접기 ▲':'펼치기 ▼'});
 $('list').onclick=function(ev){
   var b=ev.target.closest('button');if(!b)return;var c=b.closest('.card'),h=c.getAttribute('data-h');
   var x=DATA.items.filter(function(i){return i.h===h})[0];
-  if(b.classList.contains('sv'))api('set',{h:h,label:c.querySelector('.lb').value}).then(function(j){msg(j.ok?'저장했어요.':'저장 실패',!j.ok);load()});
-  else if(b.classList.contains('tg'))api('set',{h:h,off:!x.off}).then(function(j){msg(j.ok?(x.off?'차단을 풀었어요.':'차단했어요. 곧바로 사용이 막혀요.'):'실패',!j.ok);load()});
-  else if(b.classList.contains('dd')){if(confirm('이 기기를 삭제할까요? 그 기기는 다시 코드를 입력해야 해요.'))api('deldev',{h:h,s:b.getAttribute('data-s')}).then(function(j){msg(j.ok?'기기를 삭제했어요.':'실패',!j.ok);load()})}
+  if(b.classList.contains('sv')){var lv=c.querySelector('.lb').value;api('set',{h:h,label:lv}).then(function(j){if(j.ok){ovSet(h,{label:lv});x.label=lv}msg(j.ok?'저장했어요.':'저장 실패',!j.ok);if(j.ok)render();else load()})}
+  else if(b.classList.contains('tg')){var nf=!x.off;api('set',{h:h,off:nf}).then(function(j){if(j.ok){ovSet(h,{off:nf});x.off=nf}msg(j.ok?(nf?'차단했어요. 곧바로 사용이 막혀요.':'차단을 풀었어요.'):'실패',!j.ok);if(j.ok)render();else load()})}
+  else if(b.classList.contains('dd')){if(confirm('이 기기를 삭제할까요? 그 기기는 다시 코드를 입력해야 해요.')){var sd=b.getAttribute('data-s');api('deldev',{h:h,s:sd}).then(function(j){if(j.ok){var o=OV[h]||{};ovSet(h,{rm:(o.rm||[]).concat([sd])});x.devs=x.devs.filter(function(v){return v.s!==sd})}msg(j.ok?'기기를 삭제했어요.':'실패',!j.ok);if(j.ok)render();else load()})}}
 };
-$('enB').onclick=function(){var on=!DATA.enforce;if(on&&!confirm('승인 모드를 켜면 코드가 없는 사람은 사용할 수 없어요. 켤까요?'))return;api('enforce',{on:on}).then(function(){load()})};
+$('enB').onclick=function(){var on=!DATA.enforce;if(on&&!confirm('승인 모드를 켜면 코드가 없는 사람은 사용할 수 없어요. 켤까요?'))return;api('enforce',{on:on}).then(function(j){if(j.ok){OV._enf={v:on,t:Date.now()};DATA.enforce=on;render()}else load()})};
 async function batch(act,list,key){var add=0;for(var i=0;i<list.length;i+=30){var r=await api(act,key==='count'?{count:Math.min(30,list.length-i)}:{codes:list.slice(i,i+30)});if(r._s!==200)return {e:1,add:add};add+=r.added||0;if(r.codes)batch.out=(batch.out||[]).concat(r.codes)}return {add:add}}
 $('gen').onclick=async function(){
   var n=Math.max(1,Math.min(100,parseInt($('gn').value,10)||1));batch.out=[];
@@ -100,5 +106,5 @@ $('npB').onclick=function(){
     if(j.ok){PW=a;if(ls('ad_pw'))ls('ad_pw',a);else sessionStorage.setItem('ad_pw',a);$('np').value=$('np2').value='';msg('암호를 바꿨어요. 이전 암호는 더 이상 쓸 수 없어요.')}
     else msg(j.e==='same'?'현재 암호와 다른 암호를 써 주세요.':'암호 규칙에 맞지 않아요.',true)})
 };
-if(G&&PW){api('list').then(function(j){if(j.items){DATA=j;$('login').style.display='none';$('main').style.display='block';render()}else{ls('ad_pw',null);sessionStorage.removeItem('ad_pw')}}).catch(function(){})}
+if(G&&PW){api('list').then(function(j){if(j.items){ovApply(j);DATA=j;$('login').style.display='none';$('main').style.display='block';render()}else{ls('ad_pw',null);sessionStorage.removeItem('ad_pw')}}).catch(function(){})}
 </script></body></html>
