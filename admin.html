@@ -25,9 +25,10 @@ button{border:0;border-radius:10px;background:#ff9a3c;color:#4a2300;font-weight:
 <div id="main" style="display:none">
   <div class="card"><div class="row"><div><b>승인 모드</b><div class="mut" id="enT"></div></div><button id="enB"></button></div>
    <div class="mut" style="margin-top:6px">끄면 코드 없이 열려요(안내 문구만 표시). 모두 코드를 받은 뒤 켜세요.</div></div>
-  <h2>코드 <span id="cnt" class="mut"></span></h2>
-  <div class="mut">받은 사람 이름을 적어 두세요. 차단하면 즉시 사용이 막혀요.</div>
-  <div id="list"></div>
+  <details id="lw" class="card" style="padding:0">
+    <summary style="padding:12px;cursor:pointer;font-weight:800;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center"><span>📋 코드 목록 <span id="cnt" class="mut"></span></span><span class="mut" id="lwT">펼치기 ▼</span></summary>
+    <div style="padding:0 10px 10px"><div class="mut">받은 사람 이름을 적어 두세요. 차단하면 즉시 사용이 막혀요.</div><div id="list"></div></div>
+  </details>
   <h2>코드 추가</h2>
   <div class="card"><div class="row"><input id="gn" type="number" min="1" max="100" value="10"><button id="gen">새로 생성</button></div>
    <div class="mut" style="margin-top:6px">만든 코드는 이때 한 번만 보여요. 복사해 두세요.</div>
@@ -71,6 +72,7 @@ $('lg').onclick=function(){
     DATA=j;$('login').style.display='none';$('main').style.display='block';render()
   }).catch(function(){$('lm').textContent='서버에 연결하지 못했어요.'})
 };
+$('lw').addEventListener('toggle',function(){$('lwT').textContent=$('lw').open?'접기 ▲':'펼치기 ▼'});
 $('list').onclick=function(ev){
   var b=ev.target.closest('button');if(!b)return;var c=b.closest('.card'),h=c.getAttribute('data-h');
   var x=DATA.items.filter(function(i){return i.h===h})[0];
