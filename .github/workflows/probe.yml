@@ -1,0 +1,13 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          python3 scripts/fetch_quotes.py /tmp/q.json
+          python3 -c "
+          import json;j=json.load(open('/tmp/q.json'))
+          for k in ['NQF','US2Y','US10Y','SPRD','KFRGN','KINST','FFRGN','FINST','KBRD','QBRD']: print(k, j['items'].get(k))
+          print(j['errors'])"

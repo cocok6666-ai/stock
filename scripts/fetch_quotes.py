@@ -181,6 +181,45 @@ attempt("BRENT", lambda: naver(f"{A}/marketindex/energy/LCOcv1", "BRENT"))
 attempt("DUBAI", lambda: naver(f"{A}/marketindex/energy/DCBc1", "DUBAI"))
 attempt("GOLD", lambda: naver(f"{A}/marketindex/metals/GCcv1", "GOLD"))
 attempt("US10Y", lambda: naver(f"{A}/marketindex/bond/US10YT=RR", "US10Y", 3))
+attempt("US2Y", lambda: naver(f"{A}/marketindex/bond/US2YT=RR", "US2Y", 3))
+attempt("NQF", lambda: naver(f"{A}/futures/NQcv1/basic", "NQF"))
+
+
+def spread():
+    a, b = items["US10Y"], items["US2Y"]
+    sp = num(a["v"]) - num(b["v"])
+    ch = num(a["d"]) - num(b["d"])
+    items["SPRD"] = {"v": sgn(sp, 2) if sp < 0 else fmt(sp, 2), "p": sgn(ch, 3), "d": sgn(ch, 3), "t": a.get("t", "")}
+
+
+attempt("SPRD", spread)
+
+
+def invest_and_breadth():
+    """네이버 지수 통합정보: 투자자별 순매수(코스피·선물) + 상승/하락 종목 수(코스피·코스닥)."""
+    for code, fk, ik, bk in [("KOSPI", "KFRGN", "KINST", "KBRD"), ("FUT", "FFRGN", "FINST", None), ("KOSDAQ", None, None, "QBRD")]:
+        try:
+            j = get(f"{M}/index/{code}/integration")
+        except Exception as e:  # noqa
+            errors.append(f"{code} integration: {e}"[:200])
+            continue
+        deal = j.get("dealTrendInfo") or {}
+        bd = str(deal.get("bizdate") or "")
+        tl = f"{bd[4:6]}/{bd[6:8]} 기준" if len(bd) == 8 else ""
+        for key, fld in [(fk, "foreignValue"), (ik, "institutionalValue")]:
+            v = num(deal.get(fld))
+            if key and v is not None:
+                items[key] = {"v": sgn(v, 0), "p": sgn(v, 0), "d": "순매수" if v > 0 else "순매도" if v < 0 else "보합", "t": tl}
+        ud = j.get("upDownStockInfo") or {}
+        if bk and ud:
+            rise = (num(ud.get("upperCount")) or 0) + (num(ud.get("riseCount")) or 0)
+            fall = (num(ud.get("lowerCount")) or 0) + (num(ud.get("fallCount")) or 0)
+            st = num(ud.get("steadyCount")) or 0
+            if rise + fall > 0:
+                items[bk] = {"v": f"{rise:,.0f} / {fall:,.0f}", "p": sgn(rise - fall, 0), "d": f"보합 {st:,.0f}", "t": "상승 / 하락"}
+
+
+invest_and_breadth()
 for key, codes in [("NVDA", ["NVDA.O"]), ("SKHY", ["SKHY.O", "SKHY.K", "SKHY"]), ("MU", ["MU.O"]),
                    ("SNDK", ["SNDK.O"]), ("AVGO", ["AVGO.O"]), ("AMD", ["AMD.O"]), ("SOXL", ["SOXL.K"])]:
     attempt(key, *[(lambda c=c, k=key: naver(f"{A}/stock/{c}/basic", k)) for c in codes])
