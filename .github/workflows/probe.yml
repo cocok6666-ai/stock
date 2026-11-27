@@ -5,15 +5,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          H='User-Agent: Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/124.0 Mobile Safari/537.36'
-          t() { echo "== $1"; curl -s -m 20 -H "$H" -H 'Referer: https://m.stock.naver.com/' "$1" | head -c ${2:-500}; echo; }
-          t "https://stooq.com/q/l/?s=nq.f&f=sd2t2ohlcv&h&e=csv" 300
-          t "https://stooq.com/q/l/?s=es.f&f=sd2t2ohlcv&h&e=csv" 300
-          t "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=%40NQ.1&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1" 700
-          t "https://query2.finance.yahoo.com/v8/finance/chart/NQ%3DF?range=1d&interval=5m" 300
-          t "https://api.stock.naver.com/index/.NQ/basic" 300
-          t "https://api.stock.naver.com/marketindex/futures/NQcv1" 300
-          t "https://api.stock.naver.com/marketindex/index/NQcv1" 300
-          t "https://m.stock.naver.com/api/index/FUT/integration" 1200
-          t "https://m.stock.naver.com/api/index/KOSDAQ/integration" 200
-          t "https://api.stock.naver.com/marketindex/bond/US2YT=RR" 1500
+          H='User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36'
+          t() { echo "== $1"; curl -s -m 20 -H "$H" "$1" | head -c ${2:-500}; echo; }
+          t "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=NQ%3D%3D1&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1" 900
+          t "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=.IXIC&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1" 600
+          t "https://query1.finance.yahoo.com/v7/finance/spark?symbols=NQ%3DF&range=1d&interval=5m" 400
+          t "https://finance.yahoo.com/quote/NQ%3DF/" 200
+          echo "== tv"; curl -s -m 20 -H "$H" -H 'Content-Type: application/json' -d '{"symbols":{"tickers":["CME_MINI:NQ1!"]},"columns":["close","change","change_abs","update_mode"]}' "https://scanner.tradingview.com/futures/scan" | head -c 500; echo
+          t "https://www.google.com/finance/quote/NQ00:CME_EMINIS" 100
+          t "https://api.stock.naver.com/futures/NQcv1/basic" 300
+          t "https://api.stock.naver.com/worldfutures/NQcv1" 300
+          t "https://m.stock.naver.com/api/futures/worldfutures/NQcv1/basic" 300
+          t "https://api.stock.naver.com/marketindex/energy/CLcv1" 200
+          t "https://api.stock.naver.com/marketindex/metals/GCcv1" 150
