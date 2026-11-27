@@ -40,7 +40,7 @@ button{border:0;border-radius:10px;background:#ff9a3c;color:#4a2300;font-weight:
   <div class="mut" style="margin-top:14px">서버 사용량(요청 수)은 Cloudflare 대시보드 → Workers & Pages → kkaebi-naver 에서 볼 수 있어요.</div>
 </div>
 <script>
-var GATE_URL='';
+var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
 var $=function(i){return document.getElementById(i)};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
 var G=(ls('ad_url')||GATE_URL||'').replace(/\/+$/,''),PW=ls('ad_pw')||sessionStorage.getItem('ad_pw')||'';
