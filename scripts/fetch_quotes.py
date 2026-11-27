@@ -197,7 +197,7 @@ attempt("SPRD", spread)
 
 def invest_and_breadth():
     """네이버 지수 통합정보: 투자자별 순매수(코스피·선물) + 상승/하락 종목 수(코스피·코스닥)."""
-    for code, fk, ik, bk in [("KOSPI", "KFRGN", "KINST", "KBRD"), ("FUT", "FFRGN", "FINST", None), ("KOSDAQ", None, None, "QBRD")]:
+    for code, fk, ik, pk, bk in [("KOSPI", "KFRGN", "KINST", "KPER", "KBRD"), ("FUT", "FFRGN", "FINST", "FPER", None), ("KOSDAQ", None, None, None, "QBRD")]:
         try:
             j = get(f"{M}/index/{code}/integration")
         except Exception as e:  # noqa
@@ -206,7 +206,7 @@ def invest_and_breadth():
         deal = j.get("dealTrendInfo") or {}
         bd = str(deal.get("bizdate") or "")
         tl = f"{bd[4:6]}/{bd[6:8]} 기준" if len(bd) == 8 else ""
-        for key, fld in [(fk, "foreignValue"), (ik, "institutionalValue")]:
+        for key, fld in [(fk, "foreignValue"), (ik, "institutionalValue"), (pk, "personalValue")]:
             v = num(deal.get(fld))
             if key and v is not None:
                 items[key] = {"v": sgn(v, 0), "p": sgn(v, 0), "d": "순매수" if v > 0 else "순매도" if v < 0 else "보합", "t": tl}

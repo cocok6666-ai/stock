@@ -53,6 +53,12 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .gap{margin-top:10px;border-radius:12px;padding:11px 13px;font-size:13.5px;line-height:1.6;background:#16223a;border:1px solid var(--line)}
 .gap b{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:6px;font-size:12.5px}
 .gap.dn b{background:var(--dn);color:#06121f}.gap.up b{background:var(--up);color:#2a0709}.gap.flat b{background:var(--mut);color:#0b1220}
+.card.cev>h2{background:linear-gradient(90deg,#0f766e,#2dd4bf);color:#fff;border-bottom:0;text-shadow:0 1px 2px rgba(0,0,0,.35)}.card.cev>h2 small{color:rgba(255,255,255,.85)}
+.evl{padding:4px 12px 10px}.evr{display:flex;align-items:center;gap:10px;padding:8px 2px;border-top:1px solid var(--line)}.evr:first-child{border-top:0}
+.evd{flex:0 0 auto;width:96px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--mut)}.evr>div{flex:1;min-width:0}.evr b{font-size:13.5px;display:block}.evr small{display:block;font-size:11.5px;color:var(--mut);line-height:1.35}.evr small u{text-decoration:none;font-weight:700;color:var(--tx)}
+.evr em{font-style:normal;font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.08);color:var(--mut);white-space:nowrap}
+.evr.soon em{background:#dc2626;color:#fff}.evr.evf b{color:#fbbf24}.evr.evj b{color:#60a5fa}.evr.evc b{color:#f87171}.evr.evp b{color:#a78bfa}
+html[data-theme=light] .evr em{background:#eef1f7}html[data-theme=light] .evr.soon em{background:#dc2626}html[data-theme=light] .evr.evf b{color:#b45309}html[data-theme=light] .evr.evj b{color:#1d4ed8}html[data-theme=light] .evr.evc b{color:#b91c1c}html[data-theme=light] .evr.evp b{color:#6d28d9}
 .card.c1>h2{background:linear-gradient(90deg,#c2410c,#fb923c);color:#fff;border-bottom:0;text-shadow:0 1px 2px rgba(0,0,0,.35)}
 #pk-kr>h2{background:linear-gradient(90deg,#047857,#10b981);color:#fff;border-bottom:0;text-shadow:0 1px 2px rgba(0,0,0,.35)}
 #pk-us>h2{background:linear-gradient(90deg,#6d28d9,#a78bfa);color:#fff;border-bottom:0;text-shadow:0 1px 2px rgba(0,0,0,.35)}
@@ -574,11 +580,12 @@ function render(B){
     (grp.items||[]).forEach(function(it){
       if(it.ln)return;
       var c0=sign(it.p),c=(!it.pos&&(grp.inv||it.i))?(c0==='up'?'dn':c0==='dn'?'up':c0):c0,hv=String(it.v||'').trim(),has=hv||String(it.p||'').trim();
-      h+='<div class="tile"><div class="lb">'+nl(it.n)+'</div><div class="val '+(has?c:'flat')+'">'+(hv?esc(it.v)+(it.u?'<small class="cu2">'+esc(it.u)+'</small>':''):'—')+'</div><div class="chg '+c+'">'+(has?pct(it.p):'미확인')+'</div>'+(it.t?'<div class="tm">'+esc(it.t)+'</div>':'')+'</div>';
+      h+='<div class="tile"><div class="lb">'+nl(it.n)+'</div><div class="val '+(has?c:'flat')+'">'+(hv?esc(it.v)+(it.u?'<small class="cu2">'+esc(it.u)+'</small>':''):'—')+'</div><div class="chg '+c+'">'+(has?(it.rw?(/^[+\-−]|순매/.test(String(it.d||''))?arrow(c):'')+esc(String(it.d||'').replace(/^[+\-−]/,''))+(it.rs||''):pct(it.p)):'미확인')+'</div>'+(it.t?'<div class="tm">'+esc(it.t)+'</div>':'')+'</div>';
     });
     h+='</div></div>';
   });
   h+='</div>';
+  h+=schedBox();
   h+=pkCard('kr',B)+pkCard('us',B);
   h+='<div class="card c4"><h2><i>4</i>오늘의 시황 브리핑</h2><div class="memo">';
   if(WK){h+='<div class="fact" style="border:0"><i>'+DT.ic+'</i><p><b>'+DT.b+'</b>'+DT.p+'</p></div></div></div>';}else if(STALE){h+='<p class="empty" style="margin:0">'+STM+'</p>'+closeBox(true)+'</div></div>';}else{
@@ -598,8 +605,11 @@ function render(B){
 var QURL='https://raw.githubusercontent.com/cocok6666-ai/stock/data/quotes.json';
 var STRUCT={
  market:[
-  {g:'지수 · 선물',nf:1,items:[['코스피','KOSPI'],['코스닥','KOSDAQ'],['코스피 선물','K200F'],['코스피200 야간선물','K200NF'],['다우존스','DJI'],['나스닥','IXIC'],['S&P500','SPX'],['미국 반도체지수','SOX'],['VIX 공포지수','VIX','','inv']]},
-  {g:'유가 · 금 · 환율 · 금리',inv:1,items:[['WTI','WTI','USD/배럴'],['브렌트유','BRENT','USD/배럴'],['비트코인','BTC','USD','pos'],['국제 금','GOLD','USD'],['원/달러','USDKRW','원'],['미국 10년물','US10Y','%'],['미국 PPI','USPPI','% 전년비','line']]}
+  {g:'국내 지수 · 선물',nf:1,items:[['코스피','KOSPI'],['코스닥','KOSDAQ'],['코스피 선물','K200F'],['코스피200 야간선물','K200NF'],['코스피 상승/하락','KBRD','종목','pos raw'],['코스닥 상승/하락','QBRD','종목','pos raw']]},
+  {g:'국내 수급 · 순매수 (코스피 억원 / 선물 계약)',items:[['외국인 (코스피)','KFRGN','억','pos raw'],['기관 (코스피)','KINST','억','pos raw'],['개인 (코스피)','KPER','억','pos raw'],['외국인 (선물)','FFRGN','계약','pos raw'],['기관 (선물)','FINST','계약','pos raw'],['개인 (선물)','FPER','계약','pos raw']]},
+  {g:'미국 지수 · 선물',items:[['다우존스','DJI'],['나스닥','IXIC'],['S&P500','SPX'],['미국 반도체지수','SOX'],['나스닥 선물 (CME)','NQF'],['VIX 공포지수','VIX','','inv']]},
+  {g:'미국 금리',inv:1,items:[['미국 2년물','US2Y','%'],['미국 10년물','US10Y','%'],['장단기차 (10Y−2Y)','SPRD','%p','pos raw %p']]},
+  {g:'환율 · 원자재 · 코인',inv:1,items:[['원/달러','USDKRW','원'],['WTI','WTI','USD/배럴'],['브렌트유','BRENT','USD/배럴'],['두바이유','DUBAI','USD/배럴'],['국제 금','GOLD','USD'],['비트코인','BTC','USD','pos']]}
  ],
  kr:[['KODEX 200','ETF','069500'],['KODEX AI반도체TOP2플러스','ETF','395160'],['삼성전자','반도체','005930'],['SK하이닉스','반도체','000660']],
  us:[['엔비디아','NVDA'],['SK하이닉스(ADR)','SKHY'],['마이크론 테크놀로지','MU'],['샌디스크','SNDK'],['브로드컴','AVGO'],['에이엠디','AMD'],['미국 반도체 3배 ETF','SOXL']]
@@ -615,7 +625,7 @@ async function loadPpi(){
 }
 function build(){
   var B={date:BR.date,asof:BR.asof,headline:BR.headline,short:BR.short,gap:BR.gap,facts:BR.facts,semi:BR.semi,picks:BR.picks,sources:BR.sources};
-  B.market=STRUCT.market.map(function(g){return {g:g.g,nf:g.nf,inv:g.inv,items:g.items.map(function(a){var x=q(a[1]);return {n:a[0],v:x.v||'',p:x.p||'',t:x.t||'',u:a[2]||'',i:a[3]==='inv'?1:0,pos:a[3]==='pos'?1:0,ln:a[3]==='line'?1:0}})}});
+  B.market=STRUCT.market.map(function(g){return {g:g.g,nf:g.nf,inv:g.inv,items:g.items.map(function(a){var x=q(a[1]);return {n:a[0],v:x.v||'',p:x.p||'',t:x.t||'',u:a[2]||'',d:x.d||'',i:/\binv\b/.test(a[3]||'')?1:0,pos:/\bpos\b/.test(a[3]||'')?1:0,ln:/\bline\b/.test(a[3]||'')?1:0,rw:/\braw\b/.test(a[3]||'')?1:0,rs:/%p/.test(a[3]||'')?'%p':''}})}});
   B.kr=STRUCT.kr.map(function(a){var x=q(a[2]);return {n:a[0],s:(x.t?a[1]+' · '+x.t:a[1]),v:x.v||'—',p:x.p||'',d:x.d||'',x:x.x||''}});
   B.us=STRUCT.us.map(function(a){var x=q(a[1]);return {n:a[0],s:a[1]+(x.t?' · '+x.t:''),v:x.v||'—',p:x.p||'',d:x.d||''}});
   B.krAsof=Q&&Q.updated?'시세 '+Q.updated.slice(11,19)+' 갱신':'시세 없음';
@@ -626,6 +636,27 @@ function build(){
   B.nfBtn=nf?(nf.src==='수동입력'?'✎ 수동입력 수정':''):'＋ 야간선물 등락률 입력';
   if(nf)B.market.forEach(function(g){g.items.forEach(function(it){if(it.n==='코스피200 야간선물'){it.v=nf.close||'';it.p=nf.pct;it.t=(nf.src==='수동입력'?'수동입력':'마감 · 자동')}})});
   return B;
+}
+/* ---------- 경제지표 일정(미국 CPI·PPI·고용·FOMC) · 한국시간. 출처: BLS·연준 공표 일정 ---------- */
+var EVT=[
+ ['2026-12-04T22:30','고용지표','11월 고용보고서','j'],['2026-12-10T04:00','FOMC','금리 결정 · 기자회견 (12/9 현지)','f'],
+ ['2026-12-10T22:30','CPI','11월 소비자물가','c'],['2026-12-15T22:30','PPI','11월 생산자물가','p'],
+ ['2027-01-08T22:30','고용지표','12월 고용보고서','j'],['2027-01-13T22:30','CPI','12월 소비자물가','c'],['2027-01-14T22:30','PPI','12월 생산자물가','p'],
+ ['2027-01-28T04:00','FOMC','금리 결정 · 기자회견 (1/27 현지)','f'],
+ ['2027-02-05T22:30','고용지표','1월 고용보고서','j'],['2027-02-11T22:30','CPI','1월 소비자물가','c'],['2027-02-12T22:30','PPI','1월 생산자물가','p']
+];
+function schedBox(){
+  var now=Date.now(),tk=kst().d,WD='일월화수목금토';
+  var L=EVT.filter(function(e){return Date.parse(e[0]+':00+09:00')>now-3*3600000}).slice(0,6),h='<div class="card cev"><h2>📅 경제지표 일정<small>미국 · 한국시간</small></h2><div class="evl">';
+  if(!L.length)h+='<p class="empty" style="margin:0;padding:12px 14px">다음 발표 일정은 업데이트 예정입니다.</p>';
+  L.forEach(function(e){
+    var ed=e[0].slice(0,10),dd=Math.round((Date.parse(ed+'T00:00:00Z')-Date.parse(tk+'T00:00:00Z'))/864e5);
+    var wd=WD.charAt(new Date(ed+'T00:00:00Z').getUTCDay()),lb=dd<=0?'오늘':dd===1?'내일':'D-'+dd;
+    var sub=esc(e[2]);
+    if(e[3]==='p'&&PPIQ&&PPIQ.v)sub+=' <u>직전 전년비 '+esc(PPIQ.v)+'%</u>';
+    h+='<div class="evr ev'+e[3]+(dd<=1?' soon':'')+'"><span class="evd">'+ed.slice(5).replace('-','/')+'('+wd+') '+e[0].slice(11)+'</span><div><b>'+esc(e[1])+'</b><small>'+sub+'</small></div><em>'+lb+'</em></div>';
+  });
+  return h+'</div></div>';
 }
 /* ---------- 야간선물 마감값: night.json(자동수집) / 수동입력 팝업 ---------- */
 var NIGHT=null,nfShown=false,nfSign='';
