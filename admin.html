@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>관리자</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#14110d;color:#f4efe4;font:14px/1.5 -apple-system,"Noto Sans KR",sans-serif;padding:14px 14px 60px}
+h1{font-size:18px;margin:0 0 10px}h2{font-size:15px;margin:20px 0 8px}
+input,button,textarea{font:inherit}input,textarea{width:100%;background:#1f1a13;color:#f4efe4;border:1.5px solid #6b5d48;border-radius:10px;padding:10px}
+button{border:0;border-radius:10px;background:#ff9a3c;color:#4a2300;font-weight:800;padding:10px 14px}button.s{background:#3a3226;color:#f4efe4;padding:6px 10px;font-weight:700;font-size:12.5px}button.r{background:#5a2323;color:#ffd0d0}
+.card{background:#1f1a13;border:1px solid #3a3226;border-radius:12px;padding:10px 12px;margin:8px 0}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row>button{flex:none}
+.m{color:#9be39b;min-height:20px;font-size:13px}.m.e{color:#ff8a8a}.mut{color:#b9b0a0;font-size:12.5px}
+.tag{display:inline-block;padding:1px 8px;border-radius:9px;font-size:11.5px;font-weight:700}.on{background:#27472a;color:#aaf0ad}.off{background:#5a2323;color:#ffc0c0}.new{background:#3a3226;color:#cfc6b4}
+.code{font:700 17px/1.6 ui-monospace,monospace;letter-spacing:1px}
+</style></head><body>
+<h1>🔐 관리자</h1>
+<div id="login" class="card">
+  <div class="mut">관리자 암호를 입력하세요.</div>
+  <input id="pw" type="password" autocomplete="current-password" placeholder="관리자 암호" style="margin:8px 0">
+  <div class="row"><label class="mut" style="flex:1"><input id="sv" type="checkbox" style="width:auto"> 이 폰에 저장</label><button id="lg">들어가기</button></div>
+  <details style="margin-top:8px"><summary class="mut">서버 주소 (처음 한 번)</summary><input id="gu" type="url" placeholder="https://kkaebi-naver.○○○.workers.dev" style="margin-top:6px"></details>
+  <div class="m e" id="lm"></div>
+</div>
+<div id="main" style="display:none">
+  <div class="card"><div class="row"><div><b>승인 모드</b><div class="mut" id="enT"></div></div><button id="enB"></button></div>
+   <div class="mut" style="margin-top:6px">끄면 코드 없이 열려요(안내 문구만 표시). 모두 코드를 받은 뒤 켜세요.</div></div>
+  <h2>코드 <span id="cnt" class="mut"></span></h2>
+  <div class="mut">받은 사람 이름을 적어 두세요. 차단하면 즉시 사용이 막혀요.</div>
+  <div id="list"></div>
+  <h2>코드 추가</h2>
+  <div class="card"><div class="row"><input id="gn" type="number" min="1" max="100" value="10"><button id="gen">새로 생성</button></div>
+   <div class="mut" style="margin-top:6px">만든 코드는 이때 한 번만 보여요. 복사해 두세요.</div>
+   <textarea id="gout" rows="4" readonly style="display:none;margin-top:6px" class="code"></textarea></div>
+  <div class="card"><b>미리 만든 코드 붙여넣기 등록</b>
+   <textarea id="imp" rows="4" placeholder="코드를 줄마다 하나씩 붙여넣기" style="margin:6px 0"></textarea><button id="impB">등록</button></div>
+  <h2>관리자 암호 변경</h2>
+  <div class="card"><input id="np" type="password" autocomplete="new-password" placeholder="새 암호 (11자 이상, 영문·숫자·특수문자 모두)"><div class="row" style="margin-top:8px"><input id="np2" type="password" autocomplete="new-password" placeholder="새 암호 한 번 더"><button id="npB">변경</button></div></div>
+  <div class="m" id="mm"></div>
+  <div class="mut" style="margin-top:14px">서버 사용량(요청 수)은 Cloudflare 대시보드 → Workers & Pages → kkaebi-naver 에서 볼 수 있어요.</div>
+</div>
+<script>
+var GATE_URL='';
+var $=function(i){return document.getElementById(i)};
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
+var G=(ls('ad_url')||GATE_URL||'').replace(/\/+$/,''),PW=ls('ad_pw')||sessionStorage.getItem('ad_pw')||'';
+$('gu').value=G;
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function api(act,b,pw){return fetch(G+'/a/'+act,{method:'POST',headers:{'Content-Type':'application/json','X-Admin':pw==null?PW:pw},body:JSON.stringify(b||{}),cache:'no-store'}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){j._s=r.status;return j})})}
+function msg(t,e){var m=$('mm');m.textContent=t;m.className='m'+(e?' e':'')}
+var DATA=null;
+function render(){
+  var d=DATA;$('enT').textContent=d.enforce?'켜짐 — 코드가 있어야 사용':'꺼짐 — 코드 없이도 열림';$('enB').textContent=d.enforce?'끄기':'켜기';
+  var used=d.items.filter(function(x){return x.devs.length}).length;$('cnt').textContent='(전체 '+d.items.length+' · 사용 중 '+used+')';
+  $('list').innerHTML=d.items.map(function(x){
+    var st=x.off?'<span class="tag off">차단</span>':x.devs.length?'<span class="tag on">사용 중 '+x.devs.length+'/'+d.max+'</span>':'<span class="tag new">미사용</span>';
+    return '<div class="card" data-h="'+x.h+'"><div class="row"><b>#'+x.n+'</b>'+st+'<span class="mut" style="text-align:right">'+esc(x.used?'최근 '+x.used.slice(5):'')+'</span></div>'
+     +'<div class="row" style="margin-top:6px"><input class="lb" maxlength="30" placeholder="받은 사람 이름" value="'+esc(x.label)+'"><button class="s sv">저장</button><button class="s tg '+(x.off?'':'r')+'">'+(x.off?'해제':'차단')+'</button></div>'
+     +x.devs.map(function(v){return '<div class="row mut" style="margin-top:4px"><span>📱 '+esc(v.name||'기기')+' · '+esc(v.at||'')+'</span><button class="s r dd" data-s="'+esc(v.s)+'">기기 삭제</button></div>'}).join('')+'</div>'}).join('')||'<div class="mut">등록된 코드가 없어요. 아래에서 만들거나 붙여넣으세요.</div>';
+}
+function load(){return api('list').then(function(j){if(j._s===401){return j}if(j.items){DATA=j;render()}return j})}
+$('lg').onclick=function(){
+  var u=$('gu').value.trim().replace(/\/+$/,'');if(u){G=u;ls('ad_url',u)}
+  if(!G){$('lm').textContent='서버 주소를 먼저 입력해 주세요 (아래 “서버 주소”).';return}
+  var p=$('pw').value;if(!p)return;$('lm').textContent='확인 중…';
+  api('list',{},p).then(function(j){
+    if(j._s===401){$('lm').textContent='암호가 맞지 않아요.';return}
+    if(j._s===429){$('lm').textContent='시도가 너무 많아요. 10분 뒤에 다시 해 주세요.';return}
+    if(!j.items){$('lm').textContent='서버 응답이 이상해요. 주소를 확인해 주세요.';return}
+    PW=p;if($('sv').checked)ls('ad_pw',p);else sessionStorage.setItem('ad_pw',p);
+    DATA=j;$('login').style.display='none';$('main').style.display='block';render()
+  }).catch(function(){$('lm').textContent='서버에 연결하지 못했어요.'})
+};
+$('list').onclick=function(ev){
+  var b=ev.target.closest('button');if(!b)return;var c=b.closest('.card'),h=c.getAttribute('data-h');
+  var x=DATA.items.filter(function(i){return i.h===h})[0];
+  if(b.classList.contains('sv'))api('set',{h:h,label:c.querySelector('.lb').value}).then(function(j){msg(j.ok?'저장했어요.':'저장 실패',!j.ok);load()});
+  else if(b.classList.contains('tg'))api('set',{h:h,off:!x.off}).then(function(j){msg(j.ok?(x.off?'차단을 풀었어요.':'차단했어요. 곧바로 사용이 막혀요.'):'실패',!j.ok);load()});
+  else if(b.classList.contains('dd')){if(confirm('이 기기를 삭제할까요? 그 기기는 다시 코드를 입력해야 해요.'))api('deldev',{h:h,s:b.getAttribute('data-s')}).then(function(j){msg(j.ok?'기기를 삭제했어요.':'실패',!j.ok);load()})}
+};
+$('enB').onclick=function(){var on=!DATA.enforce;if(on&&!confirm('승인 모드를 켜면 코드가 없는 사람은 사용할 수 없어요. 켤까요?'))return;api('enforce',{on:on}).then(function(){load()})};
+async function batch(act,list,key){var add=0;for(var i=0;i<list.length;i+=30){var r=await api(act,key==='count'?{count:Math.min(30,list.length-i)}:{codes:list.slice(i,i+30)});if(r._s!==200)return {e:1,add:add};add+=r.added||0;if(r.codes)batch.out=(batch.out||[]).concat(r.codes)}return {add:add}}
+$('gen').onclick=async function(){
+  var n=Math.max(1,Math.min(100,parseInt($('gn').value,10)||1));batch.out=[];
+  var r=await batch('gen',new Array(n).fill(0),'count');
+  if(r.e){msg('생성 중 오류가 났어요. 목록을 확인해 주세요.',true)}else msg(r.add+'개 생성했어요. 아래 코드를 복사해 두세요.');
+  var t=$('gout');t.style.display='block';t.value=(batch.out||[]).join('\n');t.rows=Math.min(14,(batch.out||[]).length+1);load()
+};
+$('impB').onclick=async function(){
+  var list=$('imp').value.split(/[\s,]+/).filter(Boolean);if(!list.length)return;
+  var r=await batch('import',list,'codes');msg(r.e?'등록 중 오류가 났어요.':r.add+'개를 등록했어요.',r.e);if(!r.e)$('imp').value='';load()
+};
+$('npB').onclick=function(){
+  var a=$('np').value,b=$('np2').value;
+  if(a!==b){msg('두 암호가 달라요.',true);return}
+  if(a.length<11||!/[A-Za-z]/.test(a)||!/\d/.test(a)||!/[^A-Za-z0-9]/.test(a)){msg('암호는 11자 이상이고 영문·숫자·특수문자를 모두 포함해야 해요.',true);return}
+  api('pw',{new:a}).then(function(j){
+    if(j.ok){PW=a;if(ls('ad_pw'))ls('ad_pw',a);else sessionStorage.setItem('ad_pw',a);$('np').value=$('np2').value='';msg('암호를 바꿨어요. 이전 암호는 더 이상 쓸 수 없어요.')}
+    else msg(j.e==='same'?'현재 암호와 다른 암호를 써 주세요.':'암호 규칙에 맞지 않아요.',true)})
+};
+if(G&&PW){api('list').then(function(j){if(j.items){DATA=j;$('login').style.display='none';$('main').style.display='block';render()}else{ls('ad_pw',null);sessionStorage.removeItem('ad_pw')}}).catch(function(){})}
+</script></body></html>

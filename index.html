@@ -448,6 +448,87 @@ html[data-theme=light] #pk-kr{background:linear-gradient(180deg,rgba(64,160,130,
     <div class="sarl" style="margin:12px 0 4px"><button id="saSim" type="button" class="sast sasim">🎮 주식 거래 시뮬레이터 <small>5거래일 종가매매 · 종목당 1천만원 모의투자<br>종가매수 → 다음날 시가매도 · 재미로 해보기</small></button></div>
   </div>
 </div>
+<script>
+/* ---------- 승인 코드 (제작자가 허락한 사람만 사용) ----------
+   GATE_URL 이 비어 있으면 동작하지 않습니다. 서버가 "승인 필수" 상태일 때만 코드 입력이 나옵니다. */
+var GATE_URL='';
+(function(){
+  if(!GATE_URL)return;
+  var G=GATE_URL.replace(/\/+$/,''),RAWD='https://raw.githubusercontent.com/cocok6666-ai/stock/data/';
+  var MAINF=['stocks.json','stocks_us.json','stats.json','brief.json','brief_status.json','night.json','ppi.json','close.json','live.json'];
+  function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
+  var dev=ls('gt_dev');if(!dev||!/^[0-9a-f]{32}$/.test(dev)){dev='';var a=new Uint8Array(16);(window.crypto||window.msCrypto).getRandomValues(a);for(var i=0;i<16;i++)dev+=('0'+a[i].toString(16)).slice(-2);ls('gt_dev',dev)}
+  var ENF=ls('gt_enf')==='1';
+  var of=window.fetch.bind(window);
+  function code(){return ls('gt_code')||''}
+  function hdr(h){h=new Headers(h||{});var c=code();if(c){h.set('X-Code',c);h.set('X-Dev',dev)}return h}
+  window.fetch=function(u,o){
+    try{
+      var s=typeof u==='string'?u:(u&&u.url)||'';
+      if(s.indexOf(G)===0){if(code())return of(u,Object.assign({},o,{headers:hdr(o&&o.headers)}))}
+      else if(ENF){
+        if(s.indexOf(RAWD)===0){var f=s.slice(RAWD.length).split('?')[0];if(/^(quotes|rt|q\d{1,3})\.json$/.test(f))return of(G+'/d/data/'+f,Object.assign({},o,{headers:hdr(o&&o.headers)}))}
+        else if(!/^[a-z]+:/i.test(s)){var n=s.split('?')[0].replace(/^\.\//,'');if(MAINF.indexOf(n)>-1)return of(G+'/d/main/'+n,Object.assign({},o,{headers:hdr(o&&o.headers)}))}
+      }
+    }catch(e){}
+    return of(u,o);
+  };
+  var box=null;
+  function devName(){var u=navigator.userAgent,t=/iPhone|iPad/.test(u)?'아이폰':/Android/.test(u)?'안드로이드':/Windows|Mac|Linux/.test(u)?'PC':'기기';var d=new Date(Date.now()+9*36e5);return t+' '+(d.getUTCMonth()+1)+'/'+d.getUTCDate()}
+  function fm(v){v=String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);return v.length>4?v.slice(0,4)+'-'+v.slice(4):v}
+  function post(p,b){var ac=new AbortController(),t=setTimeout(function(){ac.abort()},10000);return of(G+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b),signal:ac.signal,cache:'no-store'}).then(function(r){clearTimeout(t);return r.json().catch(function(){return {}}).then(function(j){j._s=r.status;return j})})}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function lock(msg,devs,tryCode){
+    if(!box){
+      var st=document.createElement('style');st.textContent='#gtL{position:fixed;inset:0;z-index:99999;background:#14110d;color:#f4efe4;display:flex;align-items:center;justify-content:center;padding:24px;font-family:inherit}#gtL .c{width:100%;max-width:340px;text-align:center}#gtL h2{margin:0 0 6px;font-size:20px}#gtL p{margin:0 0 14px;color:#b9b0a0;font-size:13px;line-height:1.5}#gtL input{width:100%;box-sizing:border-box;height:52px;border-radius:14px;border:1.5px solid #6b5d48;background:#1f1a13;color:#f4efe4;font-size:22px;letter-spacing:3px;text-align:center;text-transform:uppercase}#gtL button.go{width:100%;height:52px;margin-top:12px;border:0;border-radius:14px;background:#ff9a3c;color:#4a2300;font-size:16px;font-weight:800}#gtL .m{min-height:20px;margin-top:10px;font-size:13px;color:#ff8a8a}#gtL .dv{margin-top:8px;text-align:left;font-size:13px}#gtL .dv div{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #3a3226}#gtL .dv button{height:30px;padding:0 10px;border-radius:15px;border:1px solid #ff8a8a;background:transparent;color:#ff8a8a;font-weight:700}';
+      document.head.appendChild(st);
+      box=document.createElement('div');box.id='gtL';document.body.appendChild(box);
+    }
+    var h='<div class="c"><h2>🔒 승인된 분만 사용할 수 있어요</h2><p>제작자에게 받은 승인 코드를 입력해 주세요.<br>코드는 기기 2대까지 사용할 수 있어요.</p>'
+     +'<input id="gtI" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="XXXX-XXXX" value="'+esc(tryCode||'')+'">'
+     +'<button class="go" id="gtB" type="button">확인</button><div class="m" id="gtM">'+esc(msg||'')+'</div>';
+    if(devs){h+='<div class="dv"><b>이 코드를 쓰는 기기 (하나를 삭제하면 이 기기를 쓸 수 있어요)</b>'+devs.map(function(d){return '<div><span>'+esc(d.name||'기기')+' · '+esc(d.at||'')+'</span><button type="button" data-s="'+esc(d.s)+'">삭제</button></div>'}).join('')+'</div>'}
+    box.innerHTML=h+'</div>';
+    var inp=box.querySelector('#gtI');inp.addEventListener('input',function(){var p=inp.selectionStart;inp.value=fm(inp.value)});
+    function go(){var c=fm(inp.value);if(c.length<9){box.querySelector('#gtM').textContent='코드 8자리를 입력해 주세요.';return}
+      box.querySelector('#gtM').textContent='확인 중…';
+      post('/g/login',{code:c,dev:dev,name:devName()}).then(function(j){
+        if(j.ok){ls('gt_code',c.replace('-',''));ls('gt_enf','1');location.reload();return}
+        if(j._s===409){lock('이 코드는 이미 기기 2대에서 사용 중이에요. 쓰지 않는 기기를 삭제해 주세요.',j.devs,c);box.setAttribute('data-c',c);return}
+        if(j._s===429){box.querySelector('#gtM').textContent='시도가 너무 많아요. 잠시 뒤에 다시 해 주세요.';return}
+        box.querySelector('#gtM').textContent=j.e==='off'?'사용이 중지된 코드예요. 제작자에게 문의해 주세요.':'코드가 맞지 않아요. 다시 확인해 주세요.'
+      }).catch(function(){box.querySelector('#gtM').textContent='서버에 연결하지 못했어요. 인터넷을 확인하고 다시 눌러 주세요.'})}
+    box.querySelector('#gtB').addEventListener('click',go);
+    inp.addEventListener('keydown',function(e){if(e.key==='Enter')go()});
+    Array.prototype.forEach.call(box.querySelectorAll('.dv button'),function(b){b.addEventListener('click',function(){var c=fm(inp.value);post('/g/rm',{code:c,dev:dev,s:b.getAttribute('data-s')}).then(function(){go()})})});
+  }
+  function unlock(){if(box){box.remove();box=null}}
+  function banner(){
+    if(document.getElementById('gtBn'))return;
+    var d=document.createElement('div');d.id='gtBn';d.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:9000;background:#ff9a3c;color:#4a2300;font-size:13px;font-weight:700;padding:9px 12px;text-align:center';
+    d.innerHTML='곧 승인 코드가 있어야 사용할 수 있어요. 코드를 받으셨나요? <u id="gtBt">코드 입력</u> · <u id="gtBx">닫기</u>';
+    document.body.appendChild(d);
+    d.querySelector('#gtBx').onclick=function(){d.remove()};
+    d.querySelector('#gtBt').onclick=function(){d.remove();lock('')};
+  }
+  function start(){
+    if(ENF&&!code())lock('');
+    var ac=new AbortController(),t=setTimeout(function(){ac.abort()},7000);
+    of(G+'/g/status',{cache:'no-store',signal:ac.signal}).then(function(r){clearTimeout(t);return r.json()}).then(function(j){
+      ENF=!!j.enforce;ls('gt_enf',ENF?'1':'0');
+      if(!ENF){unlock();if(!code())banner();return}
+      if(!code()){lock('');return}
+      return post('/g/check',{code:code(),dev:dev}).then(function(r){
+        if(r.ok){unlock();return}
+        if(r._s===401){ls('gt_code',null);lock(r.e==='off'?'사용이 중지된 코드예요. 제작자에게 문의해 주세요.':'다시 코드를 입력해 주세요.')}
+      })
+    }).catch(function(){});
+  }
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){var l=+ls('gt_chk')||0;if(Date.now()-l>10*60*1000){ls('gt_chk',String(Date.now()));start()}}});
+  ls('gt_chk',String(Date.now()));
+  if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
+})();
+</script>
 <script src="research.js?v=6"></script>
 <script>
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
