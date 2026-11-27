@@ -126,10 +126,8 @@ text-shadow:0 1px 2px rgba(90,45,0,.35)}
 .sah h3{margin:0;font-size:16px}
 #saT{font-size:23px;font-weight:900;letter-spacing:-.5px;white-space:nowrap}
 .sab .sah{flex-wrap:wrap;gap:6px 8px}
-.sab .sah #saCfg{flex:1 1 130px;min-width:0;display:flex;gap:6px;align-items:center}
-.sab .sah #saCfg input{flex:1;min-width:0;height:34px;font-size:12.5px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--tx);padding:0 9px}
-.sab .sah #saCfg button{height:34px;padding:0 11px;border-radius:10px;border:0;background:var(--acc);color:#fff;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap}
-.sab .sah #saWm{flex:1 1 100%;order:5;margin:0}
+.sab .sah #saCfg{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:800;color:#1f8a4c;white-space:nowrap}
+.sab .sah #saCfg.bad{color:#c2261f}
 .sax{width:auto;height:34px;padding:0 12px !important;white-space:nowrap;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:13px;font-weight:700;cursor:pointer;padding:0}
 .ar.u{color:#ff2330;text-shadow:0 0 8px rgba(255,35,48,.55)}.ar.d{color:#2a72ff;text-shadow:0 0 8px rgba(42,114,255,.55)}.ar.off{opacity:.2;text-shadow:none}
 .svh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
@@ -432,7 +430,7 @@ html[data-theme=light] #pk-kr{background:linear-gradient(180deg,rgba(64,160,130,
 <button class="pgdn" id="pgDn" type="button" aria-label="아래로 이동">아래에 더 있어요 <i>⌄</i></button>
 <div class="sam" id="sam" role="dialog" aria-modal="true" aria-labelledby="saT">
   <div class="sab">
-    <div class="sah"><h3 id="saT">📊 종목분석</h3><div id="saCfg" style="display:none"></div><button class="sax" id="saX" type="button" aria-label="닫기">창닫기</button><div class="sacf" id="saWm" style="display:none"></div></div>
+    <div class="sah"><h3 id="saT">📊 종목분석</h3><span id="saCfg" aria-live="polite"></span><button class="sax" id="saX" type="button" aria-label="닫기">창닫기</button></div>
     <div class="sar"><input id="saI" type="text" placeholder="예: 삼성전자 또는 005930" autocomplete="off" enterkeyhint="search" aria-label="종목명 또는 종목코드"><button id="saGo" type="button">분석</button></div>
     <div class="sarl" style="display:flex;gap:8px"><button id="saPick" type="button" class="sapk kr"><i>₩</i>국내주식 찾기</button><button id="saPickUs" type="button" class="sapk us"><i>$</i>미국주식 찾기</button></div>
     <div class="sarl"><button id="saStat" type="button" class="sast">📊 전체 종목 분석 자료 보기 <b class="stgo">›</b><span class="sd" id="stPub"></span><span class="tapf" aria-hidden="true">👆</span></button></div>
@@ -1088,7 +1086,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden&&BR)
 var SA_DEFAULT_WORKER='https://kkaebi-naver.cocok6666.workers.dev';
 var saTok=0;
 function saEl(i){return document.getElementById(i)}
-function saWorker(){return String(lsGet('sa_worker')||SA_DEFAULT_WORKER||'').trim().replace(/\/+$/,'')}
+function saWorker(){return String(SA_DEFAULT_WORKER||lsGet('sa_worker')||'').trim().replace(/\/+$/,'')}
 function saN(s){if(s==null)return NaN;var m=String(s).replace(/[,\s%+]/g,'').replace('−','-').match(/-?\d+(?:\.\d+)?/);return m?parseFloat(m[0]):NaN}
 function saF(n,d){return isFinite(n)?n.toLocaleString('ko-KR',{maximumFractionDigits:d==null?0:d}):'—'}
 function saSp(x,d){return isFinite(x)?(x>0?'+':'')+x.toFixed(d==null?2:d):'—'}
@@ -1291,7 +1289,7 @@ async function saGo(){
   var q=saEl('saI').value.trim(),o=saEl('saO');
   if(!q){o.innerHTML='<div class="sas sae">종목명 또는 6자리 종목코드를 입력하세요.</div>';return}
   lsSet('sa_last',q);
-  if(!saWorker()){o.innerHTML='<div class="sas sae">분석 서버 주소가 아직 설정되지 않았습니다. 맨 위 제목 옆 입력칸에 Worker 주소를 한 번 저장해 주세요.<br><a href="https://search.naver.com/search.naver?query='+encodeURIComponent(q+' 주가')+'" target="_blank" rel="noopener" style="text-decoration:underline">그동안은 네이버에서 검색</a></div>';saCfgRender();return}
+  if(!saWorker()){o.innerHTML='<div class="sas sae">분석 서버에 연결되어 있지 않습니다. 잠시 뒤 다시 시도해 주세요.<br><a href="https://search.naver.com/search.naver?query='+encodeURIComponent(q+' 주가')+'" target="_blank" rel="noopener" style="text-decoration:underline">그동안은 네이버에서 검색</a></div>';saCfgRender();return}
   var my=++saTok;saEl('saGo').disabled=true;
   o.innerHTML='<div class="sas">⏳ 종목을 찾는 중…</div>';
   try{
@@ -1303,21 +1301,18 @@ async function saGo(){
   }catch(e){if(my===saTok)o.innerHTML='<div class="sas sae">'+esc(saErr(e))+'</div>'}
   finally{if(my===saTok)saEl('saGo').disabled=false}
 }
-function saCfgRender(msg,edit){
-  var w=saWorker(),el=saEl('saCfg'),m=saEl('saWm');
-  if(w&&!edit){el.innerHTML='';el.style.display='none';m.style.display='none';m.textContent='';return}
-  el.style.display='flex';
-  el.innerHTML='<input id="saW" type="url" inputmode="url" autocomplete="off" placeholder="분석 서버 주소 https://…workers.dev" value="'+esc(w)+'"><button id="saWs" type="button">저장</button>';
-  m.style.display='block';m.textContent=msg||'처음 한 번만 분석 서버(Worker) 주소를 입력해 주세요. 만드는 방법은 저장소 README의 “종목분석 서버”를 보세요.';
-}
-async function saSave(){
-  var v=saEl('saW').value.trim().replace(/\/+$/,''),m=saEl('saWm');
-  if(!/^https:\/\/[^\s/]+(\/[^\s]*)?$/.test(v)){m.textContent='https:// 로 시작하는 Worker 주소를 입력하세요.';m.style.display='block';return}
-  lsSet('sa_worker',v);m.textContent='연결 확인 중…';
-  try{var r=await fetch(v+'/',{cache:'no-store'}),t=await r.text();
-    if(r.ok&&/naver-proxy/.test(t)){saCfgRender();return}
-    saCfgRender('저장했지만 연결 확인에 실패했습니다 (HTTP '+r.status+'). 주소가 맞는지 확인하세요.',true);
-  }catch(e){saCfgRender('저장했지만 서버에 연결하지 못했습니다. 주소를 확인하세요.',true)}
+var SAOK=0;
+function saCfgRender(){
+  var el=saEl('saCfg'),w=saWorker();
+  if(!w){el.className='bad';el.textContent='⚠️ 분석 서버 미설정';return}
+  var now=Date.now();
+  if(SAOK&&now-SAOK<600000){el.className='';el.textContent='🔗 분석 서버 연결됨';return}
+  el.className='';el.textContent='🔗 분석 서버 확인 중…';
+  var ac=new AbortController(),tm=setTimeout(function(){ac.abort()},8000);
+  fetch(w+'/',{cache:'no-store',signal:ac.signal}).then(function(r){return r.text().then(function(t){return r.ok&&/naver-proxy/.test(t)})}).catch(function(){return false}).then(function(ok){
+    clearTimeout(tm);
+    if(ok){SAOK=Date.now();el.className='';el.textContent='🔗 분석 서버 연결됨'}else{SAOK=0;el.className='bad';el.textContent='⚠️ 분석 서버 연결 안 됨'}
+  });
 }
 function saOpen(){
   saEl('sam').classList.add('on');saCfgRender();
@@ -1367,8 +1362,6 @@ function saClose(){saEl('sam').classList.remove('on')}
   saEl('saX').addEventListener('click',saClose);
   saEl('saGo').addEventListener('click',saGo);
   saEl('saI').addEventListener('keydown',function(ev){if(ev.key==='Enter')saGo()});
-  saEl('saCfg').addEventListener('click',function(ev){var t=ev.target;if(!t||!t.closest)return;
-    if(t.closest('#saWs'))saSave();else if(t.closest('#saChg'))saCfgRender('',true)});
   saEl('saO').addEventListener('click',function(ev){var b=ev.target&&ev.target.closest&&ev.target.closest('[data-rt]');if(!b)return;
     var k=b.getAttribute('data-rt'),o=saEl('saO'),bs=o.querySelectorAll('[data-rt]'),ps=o.querySelectorAll('[data-rp]'),i;
     for(i=0;i<bs.length;i++)bs[i].classList.toggle('on',bs[i]===b);
@@ -1484,7 +1477,7 @@ function pkClose(){document.getElementById('pkm').classList.remove('on');PKC=nul
   document.getElementById('saPick').addEventListener('click',function(){pkPick('kr',function(it){saEl('saI').value=it.name;if(!saWorker()){saGo();return}var my=++saTok;saRun(it.code,it.name,my)})});
   document.getElementById('saPickUs').addEventListener('click',function(){pkPick('us',function(it){
     var rc=it.code||(it.sym+'.O');saEl('saI').value=it.name;
-    if(!saWorker()){saEl('saO').innerHTML='<div class="sas sae">분석 서버 주소가 아직 설정되지 않았습니다. 맨 위 제목 옆 입력칸에 Worker 주소를 한 번 저장해 주세요.</div>';saCfgRender();return}
+    if(!saWorker()){saEl('saO').innerHTML='<div class="sas sae">분석 서버에 연결되어 있지 않습니다. 잠시 뒤 다시 시도해 주세요.</div>';saCfgRender();return}
     var my=++saTok;saRun(rc,it.name,my,true)})});
 })();
 
@@ -1549,7 +1542,7 @@ function stPick(id,name){
   stClose();
   var us=STM==='us';
   SA_TAB=STK;saOpen();saEl('saI').value=name;
-  if(!saWorker()){SA_TAB=0;if(!us)saGo();else{saEl('saO').innerHTML='<div class="sas sae">분석 서버 주소가 아직 설정되지 않았습니다. 맨 위 제목 옆 입력칸에 Worker 주소를 한 번 저장해 주세요.</div>';saCfgRender()}return}
+  if(!saWorker()){SA_TAB=0;if(!us)saGo();else{saEl('saO').innerHTML='<div class="sas sae">분석 서버에 연결되어 있지 않습니다. 잠시 뒤 다시 시도해 주세요.</div>';saCfgRender()}return}
   var my=++saTok;
   if(us)saRun(id,name,my,true);else saRun(id,name,my);
 }
