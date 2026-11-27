@@ -93,8 +93,16 @@ async function authOK(request, env, ctx) {
   if (!rec || rec.off || !rec.devs.some((d) => d.id === dev)) return false;
   const today = kstDay();
   if (rec.used !== today) {
-    rec.used = today;
-    ctx.waitUntil(putRec(env, key, rec));
+    // 캐시된 옛 기록을 덮어쓰면 관리자가 방금 바꾼 이름·차단이 사라지므로, 최신 기록을 다시 읽어 날짜만 바꾼다
+    ctx.waitUntil(
+      (async () => {
+        const fresh = await env.GATE.get(key, { type: 'json' });
+        if (fresh && fresh.used !== today) {
+          fresh.used = today;
+          await putRec(env, key, fresh);
+        }
+      })()
+    );
   }
   return true;
 }
