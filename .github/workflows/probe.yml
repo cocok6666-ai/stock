@@ -1,0 +1,20 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          H='User-Agent: Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/124.0 Mobile Safari/537.36'
+          t() { echo "== $1"; curl -s -m 20 -H "$H" -H 'Referer: https://m.stock.naver.com/' "$1" | head -c ${2:-500}; echo; }
+          t "https://api.stock.naver.com/marketindex/bond/US2YT=RR" 400
+          t "https://api.stock.naver.com/marketindex/bond/US10YT=RR" 300
+          t "https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?range=1d&interval=5m" 600
+          t "https://query1.finance.yahoo.com/v8/finance/chart/ES%3DF?range=1d&interval=1d" 300
+          t "https://m.stock.naver.com/api/index/KOSPI/basic" 800
+          t "https://m.stock.naver.com/api/index/KOSPI/integration" 1500
+          t "https://api.stock.naver.com/index/KOSPI/integration" 600
+          echo "== sise_index html"; curl -s -m 20 -H "$H" "https://finance.naver.com/sise/sise_index.naver?code=KOSPI" | iconv -f euc-kr -t utf-8 | tr -d '\n\t' | grep -o '투자자별 매매동향.\{0,900\}' | head -c 1200; echo
+          echo "== updown"; curl -s -m 20 -H "$H" "https://finance.naver.com/sise/sise_index.naver?code=KOSPI" | iconv -f euc-kr -t utf-8 | tr -d '\n\t' | grep -o '상승.\{0,400\}' | head -c 800; echo
+          t "https://finance.naver.com/sise/investorDealTrendDay.naver?bizdate=20261127&sosok=01" 300
+          echo "== sise_main"; curl -s -m 20 -H "$H" "https://finance.naver.com/sise/" | iconv -f euc-kr -t utf-8 | tr -d '\n\t' | grep -o '투자자별 매매동향.\{0,1200\}' | head -c 1500; echo
