@@ -1590,7 +1590,7 @@ function stClose(){saEl('stm').classList.remove('on')}
 
 
 /* ---------- 5거래일 종가매매 시뮬레이터 (재미용 · 국내주식) ---------- */
-var SIMK='sim_v1',SIM=null,SIMSEL=[null,null,null,null,null],SIMBUSY=false,SIMBUSYAT=0,SIMMSG='';
+var SIMK='sim_v1',SIM=null,SIMSEL=[null,null,null,null,null],SIMBUSY=false,SIMBUSYAT=0,SIMMSG='',SIMARK='sim_arch_v1',SIMVIEW='',SIMRST=false,SIMDEL='';
 var SIM_INV=10000000;
 var SIM_SELL=[['open','시가 09:00'],['0930','09:30'],['1000','10:00'],['1030','10:30'],['1100','11:00'],['1300','13:00'],['1500','15:00'],['close','종가']];
 var SIMSELL='open',SIMAUTO=false;
@@ -1602,6 +1602,17 @@ function simSellOptHtml(){
 }
 function simLoad(){try{var o=JSON.parse(lsGet(SIMK)||'null');if(o&&Array.isArray(o.days))return o}catch(e){}return {v:1,days:[]}}
 function simSave(){lsSet(SIMK,JSON.stringify(SIM))}
+/* 저장된 과거 기록 (이 폰 안에만 저장) */
+function simArchLoad(){try{var o=JSON.parse(lsGet(SIMARK)||'null');if(o&&Array.isArray(o.runs))return o}catch(e){}return {v:1,runs:[]}}
+function simArchPut(o){try{localStorage.setItem(SIMARK,JSON.stringify(o));return true}catch(e){return false}}
+function simArchAdd(days){
+  var A=simArchLoad(),js=JSON.stringify(days);
+  if(A.runs.some(function(r){return JSON.stringify(r.days)===js}))return 'dup';
+  var k=kst();A.runs.unshift({id:Date.now(),at:k.d+' '+k.hm,days:JSON.parse(js)});
+  if(A.runs.length>30)A.runs.length=30;
+  return simArchPut(A)?'ok':'fail';
+}
+function simRunSum(days){var inv=0,pnl=0,n=0;days.forEach(function(d){if(d.res){n++;inv+=d.res.inv;pnl+=d.res.pnl}});return {n:n,inv:inv,pnl:pnl,pct:inv?pnl/inv*100:0}}
 function F(n){return Math.round(n).toLocaleString('ko-KR')}
 function W(n){return Math.round(n).toLocaleString('ko-KR')+'원'}
 function WS(n){return (n>0?'+':n<0?'-':'')+Math.abs(Math.round(n)).toLocaleString('ko-KR')+'원'}
@@ -1627,9 +1638,9 @@ function simInfoBox(){
   +'<li>종목 가격은 네이버 금융 공개 자료이며 오류·지연이 있을 수 있습니다. 기록은 이 폰의 앱 안에만 저장됩니다.</li>'
   +'</ul></div></details>';
 }
-function simSumHtml(){
+function simSumHtml(days){
   var inv=0,pnl=0,win=0,lose=0,n=0;
-  SIM.days.forEach(function(d){if(d.res){n++;inv+=d.res.inv;pnl+=d.res.pnl;if(d.res.pnl>0)win++;else if(d.res.pnl<0)lose++}});
+  (days||SIM.days).forEach(function(d){if(d.res){n++;inv+=d.res.inv;pnl+=d.res.pnl;if(d.res.pnl>0)win++;else if(d.res.pnl<0)lose++}});
   if(!n)return '';
   return '<div class="sisum"><div class="r"><span>정산 완료 '+n+'/5일</span><span>이익일 '+win+' · 손실일 '+lose+'</span></div>'
    +'<div class="r"><span>누적 손익</span><span class="big '+cc(pnl)+'" style="color:'+(pnl>0?'#ff6b73':pnl<0?'#7aa7ff':'#f4efe4')+'">'+WS(pnl)+'</span></div>'
@@ -1646,7 +1657,7 @@ function simAnalysis(res){
   s+=' <span style="color:var(--mut)">※ 선택한 매도 시각 기준이라, 다른 시각(장중 고가·저가·종가)에 팔았다면 결과는 전혀 달라질 수 있습니다.</span>';
   return s;
 }
-function simDayHtml(d,i){
+function simDayHtml(d,i,ro){
   var ttl=(i+1)+'일차 · '+d.date.slice(5).replace('-','/')+' 선정 · 매도 '+simSellLbl(d.sell||'open');
   var b='';
   b+=d.picks.map(function(p){return esc(p.n)+(p.lv?' '+STARS(p.lv):'')}).join(' · ');
@@ -1658,7 +1669,7 @@ function simDayHtml(d,i){
      +'<div class="sian">'+simAnalysis(d.res)+'</div>';
   }else{
     b+='<div style="margin-top:6px;color:var(--mut)">정산 대기 중 — 다음 거래일 매도 시각('+simSellLbl(d.sell||'open')+')이 지난 뒤 정산할 수 있습니다.</div>'
-     +'<button class="sibtn alt" type="button" data-sim="settle" data-i="'+i+'"'+(SIMBUSY?' disabled':'')+'>'+(SIMBUSY?'확인 중…':'정산 확인')+'</button>';
+     +(ro?'':'<button class="sibtn alt" type="button" data-sim="settle" data-i="'+i+'"'+(SIMBUSY?' disabled':'')+'>'+(SIMBUSY?'확인 중…':'정산 확인')+'</button>');
   }
   return '<div class="sid"><h5><span>'+ttl+'</span><small>'+(d.res?'정산 완료':'대기')+'</small></h5><div class="bd">'+b+'</div></div>';
 }
@@ -1682,9 +1693,29 @@ function simSelHtml(){
   if(SIMMSG)h+='<div class="simsg">'+SIMMSG+'</div>';
   return h+'</div></div>';
 }
+function simViewHtml(){
+  var A=simArchLoad(),h='<div style="margin:10px 12px"><button class="sibtn alt" type="button" data-sim="aback" style="height:40px;font-size:13px">← 시뮬레이터로 돌아가기</button></div>';
+  if(SIMVIEW){
+    var r=A.runs.filter(function(x){return String(x.id)===SIMVIEW})[0];
+    if(!r){SIMVIEW=null;return simViewHtml()}
+    h+='<div class="simsg" style="background:rgba(255,154,60,.15)">📂 저장된 기록 · '+esc(r.at)+' 저장 (보기 전용)</div>'+simSumHtml(r.days);
+    r.days.forEach(function(d,i){h+=simDayHtml(d,i,true)});
+    return h+'<div style="margin:12px"><button class="sibtn alt" type="button" data-sim="alist" style="height:40px;font-size:13px">← 저장된 기록 목록</button></div>';
+  }
+  h+='<div class="sid"><h5><span>📂 저장된 과거 기록</span><small>'+A.runs.length+'건</small></h5><div class="bd">';
+  if(!A.runs.length)h+='<div class="simsg">저장된 기록이 없어요. “기록 모두 지우고 처음부터”를 누를 때 저장할 수 있어요.</div>';
+  A.runs.forEach(function(r){
+    var m=simRunSum(r.days),d0=r.days[0]?r.days[0].date.slice(5).replace('-','/'):'',d1=r.days.length?r.days[r.days.length-1].date.slice(5).replace('-','/'):'';
+    h+='<div class="sid" style="margin:8px 0"><h5><span>'+d0+(d1&&d1!==d0?' ~ '+d1:'')+' · '+r.days.length+'일</span><small>'+esc(r.at)+' 저장</small></h5><div class="bd">'
+     +'<div style="display:flex;justify-content:space-between;font-size:13px"><span>정산 '+m.n+'/'+r.days.length+'일</span><b class="'+cc(m.pnl)+'">'+(m.n?WS(m.pnl)+' ('+PCT(m.pct)+')':'정산 전')+'</b></div>'
+     +'<div style="display:flex;gap:8px;margin-top:8px"><button class="sibtn" type="button" data-sim="aopen" data-id="'+r.id+'" style="flex:1;height:38px;font-size:13px">열어보기</button>'
+     +'<button class="sibtn alt" type="button" data-sim="adel" data-id="'+r.id+'" style="flex:none;width:96px;height:38px;font-size:13px'+(SIMDEL===String(r.id)?';color:#c2261f':'')+'">'+(SIMDEL===String(r.id)?'정말 삭제':'삭제')+'</button></div></div></div>'});
+  return h+'</div></div>';
+}
 function simRender(){
   var B=saEl('siB');
   if(!SIM)SIM=simLoad();
+  if(SIMVIEW!==''||SIMVIEW===null){B.innerHTML=simViewHtml();return}
   var h=simInfoBox()+(SIMBUSY?'<div class="simsg" style="background:rgba(80,140,255,.14)">⏳ 정산 자료를 확인하는 중입니다 (최대 20초). 화면은 그대로 사용할 수 있어요.</div>':'')+simSumHtml();
   SIM.days.forEach(function(d,i){h+=simDayHtml(d,i)});
   var allDone=SIM.days.length>=5&&SIM.days.every(function(d){return d.res});
@@ -1695,7 +1726,15 @@ function simRender(){
      +'5거래일 동안 총 '+W(inv)+'을 투자해 '+SIM.days.filter(function(d){return d.res.pnl>0}).length+'일 이익, '+SIM.days.filter(function(d){return d.res.pnl<0}).length+'일 손실. '
      +'같은 종목도 매도 시점(시가·장중·종가)에 따라 결과가 완전히 달라질 수 있으니 재미로만 참고하세요.</div></div></div>';
   }
-  if(SIM.days.length){h+='<div style="margin:12px"><button class="sibtn alt" type="button" data-sim="reset" style="height:40px;font-size:13px">기록 모두 지우고 처음부터</button></div>'}
+  var NA=simArchLoad().runs.length;
+  h+='<div style="margin:12px"><button class="sibtn alt" type="button" data-sim="arch" style="height:40px;font-size:13px">📂 저장된 과거 기록 보기 ('+NA+')</button></div>';
+  if(SIM.days.length){
+    if(SIMRST)h+='<div class="sid" style="margin:12px"><h5><span>기록을 지우기 전에</span></h5><div class="bd"><div style="font-size:13px;line-height:1.5">지금 기록을 <b>이 폰에 저장</b>해 둘까요?<br>저장하면 나중에 “저장된 과거 기록 보기”에서 다시 볼 수 있어요.</div>'
+      +'<button class="sibtn go" type="button" data-sim="rsave" style="margin-top:10px">💾 저장하고 지우기</button>'
+      +'<button class="sibtn alt" type="button" data-sim="rnosave" style="margin-top:8px;color:#c2261f">🗑 저장하지 않고 지우기</button>'
+      +'<button class="sibtn alt" type="button" data-sim="rcancel" style="margin-top:8px">취소</button></div></div>';
+    else h+='<div style="margin:12px"><button class="sibtn alt" type="button" data-sim="reset" style="height:40px;font-size:13px">기록 모두 지우고 처음부터</button></div>';
+  }
   B.innerHTML=h;
 }
 async function simSettleDay(i){
@@ -1760,7 +1799,7 @@ function simConfirm(picks,mode){
   var B=saEl('siB');setTimeout(function(){B.scrollTop=B.scrollHeight},50);
 }
 function simOpen(){
-  SIM=simLoad();saEl('sim').classList.add('on');saEl('siB').innerHTML='<div class="stg2">⏳ 불러오는 중…</div>';
+  SIM=simLoad();SIMVIEW='';SIMRST=false;SIMDEL='';saEl('sim').classList.add('on');saEl('siB').innerHTML='<div class="stg2">⏳ 불러오는 중…</div>';
   stLoad().then(function(){simRender();simSettleAll()});
 }
 (function(){
@@ -1777,10 +1816,18 @@ function simOpen(){
     else if(a==='sell'){SIMSELL=b.getAttribute('data-k')||'open';simRender()}
     else if(a==='ok'){if(SIMSEL.every(function(x){return x}))simConfirm(SIMSEL,SIMAUTO?'auto':'manual');SIMAUTO=false}
     else if(a==='settle'){simSettleAll(i)}
-    else if(a==='reset'){
-      if(b.getAttribute('data-c')==='1'){SIM={v:1,days:[]};simSave();SIMSEL=[null,null,null,null,null];SIMMSG='';simRender()}
-      else{b.setAttribute('data-c','1');b.textContent='정말 지울까요? 한 번 더 누르면 모두 삭제됩니다';b.style.color='#c2261f'}
-    }
+    else if(a==='reset'){SIMRST=true;simRender();var BB=saEl('siB');setTimeout(function(){BB.scrollTop=BB.scrollHeight},30)}
+    else if(a==='rcancel'){SIMRST=false;simRender()}
+    else if(a==='rsave'||a==='rnosave'){
+      if(a==='rsave'){var st=simArchAdd(SIM.days);if(st==='fail'){SIMMSG='저장 공간이 부족해 저장하지 못했어요. 지우지 않았습니다. 오래된 저장 기록을 삭제한 뒤 다시 시도해 주세요.';SIMRST=false;simRender();return}}
+      SIM={v:1,days:[]};simSave();SIMSEL=[null,null,null,null,null];SIMRST=false;
+      SIMMSG=a==='rsave'?'기록을 저장하고 새로 시작했어요. “저장된 과거 기록 보기”에서 볼 수 있어요.':'';simRender();saEl('siB').scrollTop=0}
+    else if(a==='arch'){SIMVIEW='';SIMVIEW=null;SIMDEL='';simRender();saEl('siB').scrollTop=0}
+    else if(a==='alist'){SIMVIEW=null;simRender();saEl('siB').scrollTop=0}
+    else if(a==='aopen'){SIMVIEW=b.getAttribute('data-id');simRender();saEl('siB').scrollTop=0}
+    else if(a==='aback'){SIMVIEW='';SIMDEL='';simRender();saEl('siB').scrollTop=0}
+    else if(a==='adel'){var id=b.getAttribute('data-id');
+      if(SIMDEL===id){var A=simArchLoad();A.runs=A.runs.filter(function(r){return String(r.id)!==id});simArchPut(A);SIMDEL=''}else SIMDEL=id;simRender()}
   });
 })();
 
