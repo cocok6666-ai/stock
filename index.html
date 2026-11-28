@@ -496,13 +496,13 @@ var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
     var h='<div class="c"><h2>🔒 승인된 분만 사용할 수 있어요</h2><p>앱 사용은 <b style=\"color:#f4efe4\">무료</b>이지만, <b style=\"color:#f4efe4\">앱 개발자의 사용 승인</b>이 있어야 합니다.<br>승인 코드가 없으면 <b style=\"color:#f4efe4\">개발자에게 승인 코드를 요청</b>하신 뒤, <b style=\"color:#f4efe4\">이름과 받은 코드</b>를 입력해 주세요.<br><span style=\"font-size:12px\">(코드 1개로 기기 2대까지 사용)</span></p>'
      +'<input id="gtN" type="text" autocomplete="name" maxlength="20" placeholder="이름 (실명 또는 별명)" value="'+esc(ls('gt_name')||'')+'" style="font-size:17px;letter-spacing:0;text-transform:none;margin-bottom:10px">'
      +'<input id="gtI" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="XXXX-XXXX" value="'+esc(tryCode||'')+'">'
-     +'<div style="margin-top:12px">'+mySel()+'</div><button class="go" id="gtB" type="button" style="margin-top:4px">확인</button><div class="m" id="gtM">'+esc(msg||'')+'</div>';
+     +'<button class="go" id="gtB" type="button">확인</button><div class="m" id="gtM">'+esc(msg||'')+'</div>';
     if(devs){h+='<div class="dv"><b>이 코드를 쓰는 기기 (하나를 삭제하면 이 기기를 쓸 수 있어요)</b>'+devs.map(function(d){return '<div><span>'+esc(d.name||'기기')+' · '+esc(d.at||'')+'</span><button type="button" data-s="'+esc(d.s)+'">삭제</button></div>'}).join('')+'</div>'}
     box.innerHTML=h+'</div>';
     var inp=box.querySelector('#gtI');inp.addEventListener('input',function(){var p=inp.selectionStart;inp.value=fm(inp.value)});
     function go(){var nm=box.querySelector('#gtN').value.replace(/\s+/g,' ').trim();if(!nm){box.querySelector('#gtM').textContent='이름을 입력해 주세요.';return}
       var c=fm(inp.value);if(c.length<9){box.querySelector('#gtM').textContent='코드 8자리를 입력해 주세요.';return}
-      ls('gt_name',nm);mySave(box);box.querySelector('#gtM').textContent='확인 중…';
+      ls('gt_name',nm);box.querySelector('#gtM').textContent='확인 중…';
       post('/g/login',{code:c,dev:dev,name:devName(),user:nm}).then(function(j){
         if(j.ok){ls('gt_code',c.replace('-',''));ls('gt_enf','1');location.reload();return}
         if(j._s===400){box.querySelector('#gtM').textContent='이름을 입력해 주세요.';return}
@@ -514,32 +514,6 @@ var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
     inp.addEventListener('keydown',function(e){if(e.key==='Enter')go()});
     Array.prototype.forEach.call(box.querySelectorAll('.dv button'),function(b){b.addEventListener('click',function(){var c=fm(inp.value);post('/g/rm',{code:c,dev:dev,s:b.getAttribute('data-s')}).then(function(){go()})})});
   }
-  var APPS=[['','네이버 (기본)'],['toss','토스증권'],['kiwoom','키움 영웅문 (준비 중)'],['samsung','삼성증권 mPOP (준비 중)'],['mirae','미래에셋 M-STOCK (준비 중)'],['nh','NH 나무증권 (준비 중)'],['kb','KB M-able (준비 중)'],['kis','한국투자 (준비 중)'],['shinhan','신한 SOL증권 (준비 중)']];
-  function defPhone(){var u=navigator.userAgent;return /iPhone|iPad/.test(u)?'ios':/Android/.test(u)?'android':''}
-  function mySel(){var ph=ls('my_phone')||defPhone(),ap=ls('my_app')||'',css='width:100%;box-sizing:border-box;height:44px;border-radius:12px;border:1.5px solid #6b5d48;background:#1f1a13;color:#f4efe4;font-size:15px;padding:0 10px;margin-bottom:8px';
-    return '<div style="text-align:left;font-size:12.5px;color:#b9b0a0;margin:2px 0 4px">내 폰 · 종목 이름을 눌렀을 때 열 증권앱 (선택)</div>'
-     +'<select id="myPh" style="'+css+'"><option value="">폰 종류 선택</option><option value="android"'+(ph==='android'?' selected':'')+'>안드로이드</option><option value="ios"'+(ph==='ios'?' selected':'')+'>아이폰</option></select>'
-     +'<select id="myAp" style="'+css+'">'+APPS.map(function(a){return '<option value="'+a[0]+'"'+(ap===a[0]?' selected':'')+'>'+a[1]+'</option>'}).join('')+'</select>'}
-  function mySave(root){var a=root.querySelector('#myAp'),b=root.querySelector('#myPh');if(a)ls('my_app',a.value);if(b)ls('my_phone',b.value)}
-  window.kbMy=function(){
-    var o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:24px';
-    o.innerHTML='<div style="width:100%;max-width:340px;background:#1f1a13;color:#f4efe4;border-radius:18px;padding:18px;border:1px solid #6b5d48"><h3 style="margin:0 0 8px;font-size:17px">⚙ 내 폰 · 증권앱 설정</h3>'+mySel()
-      +'<p style="margin:2px 0 12px;font-size:12px;color:#b9b0a0;line-height:1.5">등록하지 않으면 종목 이름은 네이버로 열려요. 지금은 <b>토스증권</b>만 앱 실행이 가능하고, 나머지는 준비되는 대로 지원해요(그때까지 네이버로 열려요).</p>'
-      +'<div style="display:flex;gap:8px"><button type="button" id="myX" style="flex:1;height:44px;border-radius:12px;border:1px solid #6b5d48;background:transparent;color:#f4efe4">닫기</button><button type="button" id="myS" style="flex:1;height:44px;border:0;border-radius:12px;background:#ff9a3c;color:#4a2300;font-weight:800">저장</button></div></div>';
-    document.body.appendChild(o);
-    o.querySelector('#myX').onclick=function(){o.remove()};
-    o.querySelector('#myS').onclick=function(){mySave(o);o.remove()};
-  };
-  document.addEventListener('click',function(e){
-    var t=e.target;
-    if(t&&t.id==='myCfg'){window.kbMy();return}
-    var a=t&&t.closest&&t.closest('a[href*="search.naver.com/search.naver"]');
-    if(!a||ls('my_app')!=='toss')return;
-    e.preventDefault();var url=a.href,gone=false,f=function(){if(document.hidden)gone=true};
-    document.addEventListener('visibilitychange',f);
-    location.href='supertoss://';
-    setTimeout(function(){document.removeEventListener('visibilitychange',f);if(!gone&&!document.hidden)window.open(url,'_blank')},1600);
-  },true);
   function unlock(){if(box){box.remove();box=null}}
   function banner(){
     if(document.getElementById('gtBn'))return;
@@ -623,7 +597,7 @@ function render(B){
   (B.sources||[]).forEach(function(s){if(/^https?:\/\//.test(s.u||''))MB+='· <a href="'+esc(s.u)+'" target="_blank" rel="noopener">'+esc(s.t||s.u)+'</a><br>'});
   MB+='</div>';
   h+=bsec('m','🌅 아침 브리핑'+((/\d{1,2}:\d{2}/.exec(B.asof||'')||[''])[0]?' · '+/\d{1,2}:\d{2}/.exec(B.asof)[0]:''),MB)+closeBox(false)+'</div></div>';}
-  h+='<div class="note">종목명을 누르면 네이버에서 열립니다.<br>참고용 정보이며 투자 판단의 근거 자료가 아닙니다. 투자 책임은 본인에게 있습니다.<br><u id="myCfg" style="cursor:pointer">⚙ 내 폰 · 증권앱 설정</u></div>';
+  h+='<div class="note">종목명을 누르면 네이버에서 열립니다.<br>참고용 정보이며 투자 판단의 근거 자료가 아닙니다. 투자 책임은 본인에게 있습니다.</div>';
   document.getElementById('app').innerHTML=h;
 }
 /* ---------- 시세: GitHub Actions가 5분마다 저장한 quotes.json을 읽음 ---------- */
