@@ -584,8 +584,7 @@ function render(B){
     });
     h+='</div></div>';
   });
-  h+='</div>';
-  h+=schedBox();
+  h+=schedBox((B.market||[]).length)+'</div>';
   h+=pkCard('kr',B)+pkCard('us',B);
   h+='<div class="card c4"><h2><i>4</i>오늘의 시황 브리핑</h2><div class="memo">';
   if(WK){h+='<div class="fact" style="border:0"><i>'+DT.ic+'</i><p><b>'+DT.b+'</b>'+DT.p+'</p></div></div></div>';}else if(STALE){h+='<p class="empty" style="margin:0">'+STM+'</p>'+closeBox(true)+'</div></div>';}else{
@@ -655,10 +654,10 @@ function evPrev(t){
   if(t==='f')return {v:'3.75~4.00%',u:'동결',s:'10/28 결정',m:'기준금리'};
   return null;
 }
-function schedBox(){
+function schedBox(gi){
   var now=Date.now(),tk=kst().d,WD='일월화수목금토',seen={};
   var L=EVT.filter(function(e){return Date.parse(e[0]+':00+09:00')>now-3*3600000}).filter(function(e){if(seen[e[3]])return false;seen[e[3]]=1;return true}).slice(0,4);
-  var h='<div class="card c1"><h2>📅 경제지표 일정<small>미국 · 한국시간</small></h2><div class="mg mg1"><div class="sec"><span>다음 발표 · 직전 발표 수치</span></div><div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">';
+  var h='<div class="mg mg'+(gi%2)+'"><div class="sec"><span>경제지표 일정 · 미국 (한국시간 · 직전 발표 수치)</span></div><div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">';
   if(!L.length)h+='<p class="empty" style="margin:0;grid-column:1/-1">다음 발표 일정은 업데이트 예정입니다.</p>';
   L.forEach(function(e){
     var ed=e[0].slice(0,10),dd=Math.round((Date.parse(ed+'T00:00:00Z')-Date.parse(tk+'T00:00:00Z'))/864e5);
@@ -668,7 +667,7 @@ function schedBox(){
       +'<div class="chg flat" style="font-weight:600">'+(pv&&pv.s?esc(pv.s):'&nbsp;')+'</div>'
       +'<div class="tm"><span style="'+(dd<=1?'color:#ff5a62;font-weight:800':'font-weight:700')+'">'+lb+'</span>'+(pv&&pv.m?' · 직전 '+esc(pv.m):'')+'</div></div>';
   });
-  return h+'</div></div></div>';
+  return h+'</div></div>';
 }
 /* ---------- 야간선물 마감값: night.json(자동수집) / 수동입력 팝업 ---------- */
 var NIGHT=null,nfShown=false,nfSign='';
