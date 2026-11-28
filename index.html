@@ -378,7 +378,7 @@ html[data-theme=light] #pk-kr{background:linear-gradient(180deg,rgba(64,160,130,
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 </head>
 <body>
-<header><div class="hd"><div class="logo" id="logo">M</div><div class="ttl"><b id="ttl">주식딸랑이</b></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간 갱신</span></button><button class="rb" id="unBtn" type="button" aria-label="사용자 이름 입력"><span class="ic" style="font-size:15px">👤</span><span class="lb2 un2">사용자<br>등록</span></button></div><div class="stat" id="stat"><span id="stTx"></span><em id="visN" class="visn" title="오늘 접속한 기기 수"></em></div></header>
+<header><div class="hd"><div class="logo" id="logo">M</div><div class="ttl"><b id="ttl">주식딸랑이</b></div><button class="rb" id="refBtn" type="button"><span class="ic" id="refIc">⚡</span><span class="lb2">실시간 갱신</span></button><button class="rb" id="unBtn" type="button" aria-label="사용자 이름 입력"><span class="ic" style="font-size:15px">👤</span><span class="lb2 un2">사용자<br>등록</span></button></div><div class="stat" id="stat"><span id="stTx"></span><em id="verN" class="visn" style="margin-right:8px"></em><em id="visN" class="visn" title="오늘 접속한 기기 수"></em></div></header>
 <div class="wrap" id="app"></div>
 <div class="nfm" id="nfm" role="dialog" aria-modal="true" aria-labelledby="nfT">
   <div class="nfb">
@@ -959,6 +959,20 @@ function unApply(){
   document.getElementById('unCx').addEventListener('click',unClose);
   document.getElementById('unI').addEventListener('keydown',function(ev){if(ev.key==='Enter')unApply()});
   applyName();
+})();
+
+
+/* ---------- 앱 버전 표시: 이 화면이 최신인지 ver.json 과 비교 ---------- */
+var APP_VER='2026-11-28.4';
+(function(){
+  var el=document.getElementById('verN');if(!el)return;
+  el.textContent='v'+APP_VER;
+  el.addEventListener('click',function(){if(el.getAttribute('data-old'))location.href=location.pathname+'?v='+Date.now()});
+  fetch('ver.json?_='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){
+    if(!j||!j.v)return;
+    if(j.v===APP_VER){el.innerHTML='✔ 최신 v'+APP_VER;el.style.color='#4ade80'}
+    else{el.innerHTML='⟳ 새 버전 v'+j.v+' · 눌러서 새로고침';el.setAttribute('data-old','1');el.style.color='#fbbf24';el.style.cursor='pointer'}
+  }).catch(function(){});
 })();
 
 /* ---------- 내 종목 5칸 (국내/미국): 입력 → 저장 → 종목변경 ---------- */
