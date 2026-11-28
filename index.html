@@ -963,15 +963,15 @@ function unApply(){
 
 
 /* ---------- 앱 버전 표시: 이 화면이 최신인지 ver.json 과 비교 ---------- */
-var APP_VER='2026-11-28.6';
+var APP_VER='2026-11-28.7',VF=function(v){return String(v).replace(/\.(\d+)$/,' v$1')};
 (function(){
   var el=document.getElementById('verN');if(!el)return;
-  el.textContent='v'+APP_VER;
+  el.textContent=VF(APP_VER);
   el.addEventListener('click',function(){if(el.getAttribute('data-old'))location.href=location.pathname+'?v='+Date.now()});
   fetch('ver.json?_='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){
     if(!j||!j.v)return;
-    if(j.v===APP_VER){el.innerHTML='✔ 최신 v'+APP_VER;el.style.color='#4ade80'}
-    else{el.innerHTML='⟳ 새 버전 v'+j.v+' · 눌러서 새로고침';el.setAttribute('data-old','1');el.style.color='#fbbf24';el.style.cursor='pointer'}
+    if(j.v===APP_VER){el.innerHTML='✔ 최신 '+VF(APP_VER);el.style.color='#4ade80'}
+    else{el.innerHTML='⟳ 새 버전 '+VF(j.v)+' · 눌러서 새로고침';el.setAttribute('data-old','1');el.style.color='#fbbf24';el.style.cursor='pointer'}
   }).catch(function(){});
 })();
 
