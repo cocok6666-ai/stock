@@ -28,7 +28,9 @@ def prev(k):
 try:
     nsa, sa = series("CUUR0000SA0"), series("CUSR0000SA0")
     y, m = max(nsa)
-    c = {"year": y, "month": m, "yoy": round((nsa[(y, m)] / nsa[(y - 1, m)] - 1) * 100, 1)}
+    c = {"year": y, "month": m}
+    if (y - 1, m) in nsa:  # 2025-10 CPI는 셧다운으로 미발표 → 전년비 없을 수 있음
+        c["yoy"] = round((nsa[(y, m)] / nsa[(y - 1, m)] - 1) * 100, 1)
     if (y, m) in sa and prev((y, m)) in sa:
         c["mom"] = round((sa[(y, m)] / sa[prev((y, m))] - 1) * 100, 1)
     out["cpi"] = c
@@ -47,8 +49,8 @@ except Exception as e:  # noqa
 
 try:
     def fred(sid):
-        req = urllib.request.Request("https://fred.stlouisfed.org/graph/fredgraph.csv?id=" + sid, headers={"User-Agent": "Mozilla/5.0"})
-        rows = [l.split(",") for l in urllib.request.urlopen(req, timeout=30).read().decode().strip().splitlines()[1:]]
+        req = urllib.request.Request("https://fred.stlouisfed.org/graph/fredgraph.csv?cosd=2026-01-01&id=" + sid, headers={"User-Agent": "Mozilla/5.0"})
+        rows = [l.split(",") for l in urllib.request.urlopen(req, timeout=60).read().decode().strip().splitlines()[1:]]
         rows = [r for r in rows if len(r) == 2 and r[1] not in (".", "")]
         return float(rows[-1][1]), rows[-1][0]
     hi, d1 = fred("DFEDTARU")
