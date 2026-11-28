@@ -62,7 +62,7 @@ button{border:0;border-radius:10px;background:#ff9a3c;color:#4a2300;font-weight:
   <div class="mut" style="margin-top:14px">서버 사용량(요청 수)은 Cloudflare 대시보드 → Workers & Pages → kkaebi-naver 에서 볼 수 있어요.</div>
 </div>
 <script>
-var ADMIN_VER='2026-11-28.3',NEED_SRV='2026-11-28.3';
+var ADMIN_VER='2026-11-28.4',NEED_SRV='2026-11-28.3',VF=function(v){return String(v).replace(/\.(\d+)$/,' v$1')};
 var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
 var $=function(i){return document.getElementById(i)};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
@@ -151,13 +151,13 @@ $('npB').onclick=function(){
 };
 if(G&&PW){api('list').then(function(j){if(j.items){ovApply(j);DATA=j;$('login').style.display='none';$('main').style.display='block';render()}else{ls('ad_pw',null);sessionStorage.removeItem('ad_pw')}}).catch(function(){})}
 function verShow(){
-  $('ver').innerHTML='화면 <b>v'+ADMIN_VER+'</b> · 서버 확인 중…';
+  $('ver').innerHTML='화면 <b>'+VF(ADMIN_VER)+'</b> · 서버 확인 중…';
   api('ping').then(function(j){
     var sv=j&&j.v;
-    $('ver').innerHTML='화면 <b>v'+ADMIN_VER+'</b> · 서버 '+(sv===NEED_SRV?'<b style="color:#4ade80">v'+sv+' ✔ 최신</b>':'<b style="color:#ff8a8a">'+(sv?'v'+esc(sv):'구버전')+' ✘ 새 서버 코드로 다시 Deploy 필요</b>')
-  }).catch(function(){$('ver').innerHTML='화면 <b>v'+ADMIN_VER+'</b>'})
+    $('ver').innerHTML='화면 <b>'+VF(ADMIN_VER)+'</b> · 서버 '+(sv===NEED_SRV?'<b style="color:#4ade80">'+VF(sv)+' ✔ 최신</b>':'<b style="color:#ff8a8a">'+(sv?esc(VF(sv)):'구버전')+' ✘ 새 서버 코드로 다시 Deploy 필요</b>')
+  }).catch(function(){$('ver').innerHTML='화면 <b>'+VF(ADMIN_VER)+'</b>'})
 }
 $('lg').addEventListener('click',function(){setTimeout(verShow,1500)});
 if(G&&PW)setTimeout(verShow,1200);
-$('ver').innerHTML='화면 <b>v'+ADMIN_VER+'</b>';
+$('ver').innerHTML='화면 <b>'+VF(ADMIN_VER)+'</b>';
 </script></body></html>
