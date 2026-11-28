@@ -34,6 +34,7 @@ button{border:0;border-radius:10px;background:#ff9a3c;color:#4a2300;font-weight:
 .code{font:700 17px/1.6 ui-monospace,monospace;letter-spacing:1px}
 </style></head><body>
 <h1>🔐 관리자</h1>
+<div id="ver" style="font-size:12px;margin:-6px 0 10px;color:#9aa3b5"></div>
 <div id="login" class="card">
   <div class="mut">관리자 암호를 입력하세요.</div>
   <input id="pw" type="password" autocomplete="current-password" placeholder="관리자 암호" style="margin:8px 0">
@@ -61,6 +62,7 @@ button{border:0;border-radius:10px;background:#ff9a3c;color:#4a2300;font-weight:
   <div class="mut" style="margin-top:14px">서버 사용량(요청 수)은 Cloudflare 대시보드 → Workers & Pages → kkaebi-naver 에서 볼 수 있어요.</div>
 </div>
 <script>
+var ADMIN_VER='2026-11-28.2',NEED_SRV='2026-11-28.2';
 var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
 var $=function(i){return document.getElementById(i)};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
@@ -147,4 +149,14 @@ $('npB').onclick=function(){
     else msg(j.e==='same'?'현재 암호와 다른 암호를 써 주세요.':'암호 규칙에 맞지 않아요.',true)})
 };
 if(G&&PW){api('list').then(function(j){if(j.items){ovApply(j);DATA=j;$('login').style.display='none';$('main').style.display='block';render()}else{ls('ad_pw',null);sessionStorage.removeItem('ad_pw')}}).catch(function(){})}
+function verShow(){
+  $('ver').innerHTML='화면 <b>v'+ADMIN_VER+'</b> · 서버 확인 중…';
+  api('ping').then(function(j){
+    var sv=j&&j.v;
+    $('ver').innerHTML='화면 <b>v'+ADMIN_VER+'</b> · 서버 '+(sv===NEED_SRV?'<b style="color:#4ade80">v'+sv+' ✔ 최신</b>':'<b style="color:#ff8a8a">'+(sv?'v'+esc(sv):'구버전')+' ✘ 새 서버 코드로 다시 Deploy 필요</b>')
+  }).catch(function(){$('ver').innerHTML='화면 <b>v'+ADMIN_VER+'</b>'})
+}
+$('lg').addEventListener('click',function(){setTimeout(verShow,1500)});
+if(G&&PW)setTimeout(verShow,1200);
+$('ver').innerHTML='화면 <b>v'+ADMIN_VER+'</b>';
 </script></body></html>

@@ -9,6 +9,7 @@ const RAW = 'https://raw.githubusercontent.com/cocok6666-ai/stock/';
 const MAIN_FILES = ['stocks.json', 'stocks_us.json', 'stats.json', 'brief.json', 'brief_status.json', 'night.json', 'ppi.json', 'close.json', 'live.json'];
 const DATA_FILES = /^(quotes|rt|q\d{1,3})\.json$/;
 const MAX_DEV = 2;
+const VER = '2026-11-28.2'; // 관리자 화면에서 서버 코드가 최신인지 확인하는 표시
 const ALPHA = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 const enc = new TextEncoder();
 
@@ -248,7 +249,7 @@ async function admin(request, env, c, path, ip) {
     const rec = key ? await env.GATE.get(key, { type: 'json' }) : null;
     return rec ? J({ ok: 1, h: key.slice(2), n: rec.n }, 200, c) : J({ e: 'none' }, 404, c);
   }
-  if (act === 'ping') return J({ ok: 1 }, 200, c);
+  if (act === 'ping') return J({ ok: 1, v: VER }, 200, c);
   return J({ e: 'unknown' }, 404, c);
 }
 
