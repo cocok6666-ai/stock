@@ -1,0 +1,16 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          W=https://kkaebi-naver.cocok6666.workers.dev
+          O='Origin: https://cocok6666-ai.github.io'
+          echo "ROOT: $(curl -s -m 20 $W/)"
+          echo "STATUS: $(curl -s -m 20 -H "$O" $W/g/status)"
+          echo "ADMIN-BADPW: $(curl -s -m 20 -H "$O" -H 'X-Admin: wrong' -H 'Content-Type: application/json' -d '{}' $W/a/ping)"
+          echo "FIND-NOAUTH: $(curl -s -m 20 -H "$O" -H 'X-Admin: wrong' -d '{"code":"AAAAAAAA"}' $W/a/find)"
+          echo "LOGIN-BAD: $(curl -s -m 20 -H "$O" -H 'Content-Type: application/json' -d '{"code":"23456789","dev":"0123456789abcdef","user":"t"}' $W/g/login)"
+          echo "DATA: $(curl -s -m 20 -o /dev/null -w '%{http_code}' -H "$O" $W/d/data/quotes.json)"
+          echo "PROXY: $(curl -s -m 20 -o /dev/null -w '%{http_code}' -H "$O" "$W/?u=https%3A%2F%2Fm.stock.naver.com%2Fapi%2Findex%2FKOSPI%2Fbasic")"
