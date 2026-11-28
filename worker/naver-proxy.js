@@ -125,7 +125,7 @@ async function body(request) {
   }
 }
 
-async function listCodes(env) {
+async function listCodes(env, light) {
   const out = [];
   let cursor;
   do {
@@ -133,6 +133,17 @@ async function listCodes(env) {
     for (const k of r.keys) out.push({ h: k.name.slice(2), ...(k.metadata || { n: 0, devs: [] }) });
     cursor = r.list_complete ? null : r.cursor;
   } while (cursor);
+  // KV 목록(list)이 방금 쓴 코드를 늦게 보여주거나 놓칠 수 있어, 별도 색인(cfg:idx)에 적어 둔 코드를 직접 읽어 보충한다
+  if (light) return out;
+  try {
+    const idx = (await env.GATE.get('cfg:idx', { type: 'json' })) || {};
+    const have = new Set(out.map((x) => x.h));
+    const miss = Object.keys(idx).filter((h) => !have.has(h)).slice(0, 40);
+    for (const h of miss) {
+      const rec = await env.GATE.get('c:' + h, { type: 'json' });
+      if (rec) out.push({ h, n: rec.n, label: rec.label || '', off: !!rec.off, used: rec.used || '', created: rec.created || '', devs: (rec.devs || []).map((d) => ({ s: d.id.slice(0, 6), name: d.name, at: d.at })) });
+    }
+  } catch (e) {}
   return out.sort((x, y) => (x.n || 0) - (y.n || 0));
 }
 
@@ -149,20 +160,37 @@ async function admin(request, env, c, path, ip) {
     const items = await listCodes(env);
     return J({ enforce: await enforced(env), max: MAX_DEV, items }, 200, c);
   }
-  async function add(codes, start) {
-    const items = await listCodes(env);
-    const have = new Set(items.map((x) => x.h));
+  async function add(codes, start, fresh) {
+    const items = await listCodes(env, true);
+    const have = new Map(items.map((x) => [x.h, x.n]));
     const p = await pepper(env, true);
+    const idx = (await env.GATE.get('cfg:idx', { type: 'json' })) || {};
+    for (const h of Object.keys(idx)) if (!have.has(h)) have.set(h, idx[h]);
     // 번호는 기존 최대 번호 다음부터. (같은 키를 연속으로 쓰면 1초 제한에 걸리므로 별도 카운터 키는 쓰지 않음)
-    let n = Math.max(0, (parseInt(start, 10) || 1) - 1, ...items.map((x) => x.n || 0));
+    let n = Math.max(0, (parseInt(start, 10) || 1) - 1, ...[...have.values()].map((v) => v || 0));
     let added = 0;
+    let dirty = false;
     for (const code of codes) {
       const h = await hmac(p, 'code|' + code);
-      if (have.has(h)) continue;
+      if (!fresh && !have.has(h)) {
+        // 목록에 안 보여도 이미 저장돼 있을 수 있다 → 있으면 덮어쓰지 않는다(기기·이름 기록 보존)
+        const ex = await env.GATE.get('c:' + h, { type: 'json' });
+        if (ex) have.set(h, ex.n);
+      }
+      if (have.has(h)) {
+        if (idx[h] !== have.get(h)) {
+          idx[h] = have.get(h);
+          dirty = true;
+        }
+        continue;
+      }
       n++;
       await putRec(env, 'c:' + h, { n, label: '', off: false, created: kstDay(), used: '', devs: [] });
+      idx[h] = n;
+      dirty = true;
       added++;
     }
+    if (dirty) await env.GATE.put('cfg:idx', JSON.stringify(idx));
     return { added, last: n };
   }
   if (act === 'gen') {
@@ -172,16 +200,16 @@ async function admin(request, env, c, path, ip) {
       const x = newCode();
       if (!codes.includes(x)) codes.push(x);
     }
-    const r = await add(codes, b.start);
+    const r = await add(codes, b.start, true);
     return J({ added: r.added, last: r.last, codes: codes.map(fmt) }, 200, c);
   }
   if (act === 'import') {
-    const codes = [...new Set((Array.isArray(b.codes) ? b.codes : []).map(normCode).filter(Boolean))].slice(0, 30);
+    const codes = [...new Set((Array.isArray(b.codes) ? b.codes : []).map(normCode).filter(Boolean))].slice(0, 16);
     const r = await add(codes, b.start);
     return J({ added: r.added, last: r.last, total: codes.length }, 200, c);
   }
   if (act === 'check') {
-    const codes = [...new Set((Array.isArray(b.codes) ? b.codes : []).map(normCode).filter(Boolean))].slice(0, 30);
+    const codes = [...new Set((Array.isArray(b.codes) ? b.codes : []).map(normCode).filter(Boolean))].slice(0, 16);
     const p = await pepper(env, true);
     const missing = [];
     for (const code of codes) {
@@ -248,7 +276,7 @@ async function gate(request, env, ctx, c, path, ip) {
   }
   if (path === '/g/login' || path === '/g/check') {
     const has = rec.devs.some((d) => d.id === dev);
-    const uname = String(b.user || '').replace(/[\u0000-\u001f<>"]/g, '').trim().slice(0, 20);
+    const uname = String(b.user || '').replace(/[\u0000-\u001f<>"]/g, '').trim().slice(0, 16);
     if (!has) {
       if (path === '/g/check') return J({ e: 'nodev' }, 401, c);
       if (!uname) return J({ e: 'name' }, 400, c);

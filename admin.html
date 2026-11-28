@@ -116,9 +116,9 @@ $('list').onclick=function(ev){
 };
 $('enB').onclick=function(){var on=!DATA.enforce;if(on&&!confirm('승인 모드를 켜면 코드가 없는 사람은 사용할 수 없어요. 켤까요?'))return;api('enforce',{on:on}).then(function(j){if(j.ok){OV._enf={v:on,t:Date.now()};DATA.enforce=on;render()}else load()})};
 var LASTN=0;
-async function batch(act,list,key){var add=0;for(var i=0;i<list.length;i+=30){var body=key==='count'?{count:Math.min(30,list.length-i)}:{codes:list.slice(i,i+30)};body.start=LASTN+1;var r=await api(act,body);if(r._s!==200)return {e:1,add:add};add+=r.added||0;if(r.last)LASTN=Math.max(LASTN,r.last);if(r.codes)batch.out=(batch.out||[]).concat(r.codes)}return {add:add}}
+async function batch(act,list,key){var add=0;for(var i=0;i<list.length;i+=(key==='count'?30:16)){var body=key==='count'?{count:Math.min(30,list.length-i)}:{codes:list.slice(i,i+16)};body.start=LASTN+1;var r=await api(act,body);if(r._s!==200)return {e:1,add:add};add+=r.added||0;if(r.last)LASTN=Math.max(LASTN,r.last);if(r.codes)batch.out=(batch.out||[]).concat(r.codes)}return {add:add}}
 function pickCodes(txt){var seen={},out=[];(txt.toUpperCase().match(/[A-Z0-9]{4}-?[A-Z0-9]{4}/g)||[]).forEach(function(c){var k=c.replace('-','');if(/^[A-Z0-9]{8}$/.test(k)&&!seen[k]){seen[k]=1;out.push(k)}});return out}
-async function verifyCodes(list){var miss=[];for(var i=0;i<list.length;i+=30){var r=await api('check',{codes:list.slice(i,i+30)});if(r._s!==200)return null;miss=miss.concat(r.missing||[])}return miss}
+async function verifyCodes(list){var miss=[];for(var i=0;i<list.length;i+=16){var r=await api('check',{codes:list.slice(i,i+16)});if(r._s!==200)return null;miss=miss.concat(r.missing||[])}return miss}
 function regCount(){var n=DATA?DATA.items.length:0;$('regCnt').textContent='현재 등록된 코드: '+n+'개'}
 $('gen').onclick=async function(){
   var n=Math.max(1,Math.min(100,parseInt($('gn').value,10)||1));batch.out=[];
