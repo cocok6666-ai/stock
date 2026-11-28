@@ -524,12 +524,28 @@ var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
     d.querySelector('#gtBx').onclick=function(){d.remove()};
     d.querySelector('#gtBt').onclick=function(){d.remove();lock('')};
   }
+  /* 임시 공지: 승인 모드 시작 전(그리고 안내 시각 전)까지, 코드 없는 사용자에게만 앱을 열 때마다 표시. 승인 모드를 켜면 자동으로 사라진다 */
+  var NOTICE_END=Date.parse('2026-12-01T13:00:00+09:00');
+  function notice(){
+    if(document.getElementById('gtPop')||Date.now()>=NOTICE_END){banner();return}
+    var o=document.createElement('div');o.id='gtPop';o.style.cssText='position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:22px';
+    o.innerHTML='<div style="width:100%;max-width:340px;background:#fffdf8;color:#2a2418;border:3px solid #f08a24;border-radius:22px;padding:20px 18px 16px;box-shadow:0 10px 40px rgba(0,0,0,.45);font-family:inherit">'
+      +'<div style="font-size:12px;font-weight:800;color:#fff;background:#f08a24;display:inline-block;padding:3px 10px;border-radius:99px">📢 사용 승인 안내</div>'
+      +'<h3 style="margin:10px 0 8px;font-size:19px;line-height:1.35"><span style="color:#e06a00">12월 1일(화) 오후 1시</span>부터<br>승인 코드가 있어야 사용할 수 있어요</h3>'
+      +'<p style="margin:0 0 12px;font-size:13.5px;line-height:1.6;color:#5b5240">앱 사용은 <b style="color:#2a2418">무료</b>입니다. 다만 분석서버를 효율적으로 운영하기 위해 <b style="color:#2a2418">개발자에게 사용 승인을 받은 분만</b> 쓸 수 있도록 운영 방식을 바꿉니다.<br><br>아직 코드를 못 받으셨다면 <b style="color:#2a2418">개발자에게 승인 코드를 요청</b>해 주세요. 이미 받으셨다면 지금 입력해 두세요.</p>'
+      +'<button type="button" id="gtPi" style="width:100%;height:46px;border:0;border-radius:13px;background:#f08a24;color:#fff;font-size:15px;font-weight:800">승인 코드 입력하기</button>'
+      +'<button type="button" id="gtPx" style="width:100%;height:42px;margin-top:8px;border:1.5px solid #e4d6bd;border-radius:13px;background:#fff;color:#6b6150;font-size:14px;font-weight:700">확인</button></div>';
+    document.body.appendChild(o);
+    o.querySelector('#gtPx').onclick=function(){o.remove();banner()};
+    o.querySelector('#gtPi').onclick=function(){o.remove();lock('')};
+  }
   function start(){
     if(ENF&&!code())lock('');
     var ac=new AbortController(),t=setTimeout(function(){ac.abort()},7000);
     of(G+'/g/status',{cache:'no-store',signal:ac.signal}).then(function(r){clearTimeout(t);return r.json()}).then(function(j){
       ENF=!!j.enforce;ls('gt_enf',ENF?'1':'0');
-      if(!ENF){unlock();if(!code())banner();return}
+      if(!ENF){unlock();if(!code())notice();return}
+      var pp=document.getElementById('gtPop');if(pp)pp.remove();var bb=document.getElementById('gtBn');if(bb)bb.remove();
       if(!code()){lock('');return}
       return post('/g/check',{code:code(),dev:dev}).then(function(r){
         if(r.ok){unlock();return}
@@ -963,7 +979,7 @@ function unApply(){
 
 
 /* ---------- 앱 버전 표시: 이 화면이 최신인지 ver.json 과 비교 ---------- */
-var APP_VER='2026-11-28.7',VF=function(v){return String(v).replace(/\.(\d+)$/,' v$1')};
+var APP_VER='2026-11-28.8',VF=function(v){return String(v).replace(/\.(\d+)$/,' v$1')};
 (function(){
   var el=document.getElementById('verN');if(!el)return;
   el.textContent=VF(APP_VER);
