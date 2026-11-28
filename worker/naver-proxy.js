@@ -9,7 +9,7 @@ const RAW = 'https://raw.githubusercontent.com/cocok6666-ai/stock/';
 const MAIN_FILES = ['stocks.json', 'stocks_us.json', 'stats.json', 'brief.json', 'brief_status.json', 'night.json', 'ppi.json', 'close.json', 'live.json'];
 const DATA_FILES = /^(quotes|rt|q\d{1,3})\.json$/;
 const MAX_DEV = 2;
-const VER = '2026-11-28.2'; // 관리자 화면에서 서버 코드가 최신인지 확인하는 표시
+const VER = '2026-11-28.3'; // 관리자 화면에서 서버 코드가 최신인지 확인하는 표시
 const ALPHA = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 const enc = new TextEncoder();
 
@@ -161,7 +161,7 @@ async function admin(request, env, c, path, ip) {
     const items = await listCodes(env);
     return J({ enforce: await enforced(env), max: MAX_DEV, items }, 200, c);
   }
-  async function add(codes, start, fresh) {
+  async function add(codes, start, fresh, nums) {
     const items = await listCodes(env, true);
     const have = new Map(items.map((x) => [x.h, x.n]));
     const p = await pepper(env, true);
@@ -170,29 +170,40 @@ async function admin(request, env, c, path, ip) {
     // 번호는 기존 최대 번호 다음부터. (같은 키를 연속으로 쓰면 1초 제한에 걸리므로 별도 카운터 키는 쓰지 않음)
     let n = Math.max(0, (parseInt(start, 10) || 1) - 1, ...[...have.values()].map((v) => v || 0));
     let added = 0;
+    let fixed = 0;
     let dirty = false;
-    for (const code of codes) {
+    for (let i = 0; i < codes.length; i++) {
+      const code = codes[i];
+      const want = Array.isArray(nums) && Number.isInteger(nums[i]) && nums[i] >= 1 && nums[i] <= 9999 ? nums[i] : 0; // 파일에 적힌 번호(001…)
       const h = await hmac(p, 'code|' + code);
-      if (!fresh && !have.has(h)) {
+      let ex = null;
+      if (!fresh && (!have.has(h) || (want && have.get(h) !== want))) {
         // 목록에 안 보여도 이미 저장돼 있을 수 있다 → 있으면 덮어쓰지 않는다(기기·이름 기록 보존)
-        const ex = await env.GATE.get('c:' + h, { type: 'json' });
+        ex = await env.GATE.get('c:' + h, { type: 'json' });
         if (ex) have.set(h, ex.n);
       }
       if (have.has(h)) {
+        if (ex && want && ex.n !== want) {
+          ex.n = want; // 번호만 파일 번호에 맞춘다(다른 기록은 그대로)
+          await putRec(env, 'c:' + h, ex);
+          have.set(h, want);
+          fixed++;
+        }
         if (idx[h] !== have.get(h)) {
           idx[h] = have.get(h);
           dirty = true;
         }
         continue;
       }
-      n++;
-      await putRec(env, 'c:' + h, { n, label: '', off: false, created: kstDay(), used: '', devs: [] });
-      idx[h] = n;
+      const num = want || ++n;
+      if (num > n) n = num;
+      await putRec(env, 'c:' + h, { n: num, label: '', off: false, created: kstDay(), used: '', devs: [] });
+      idx[h] = num;
       dirty = true;
       added++;
     }
     if (dirty) await env.GATE.put('cfg:idx', JSON.stringify(idx));
-    return { added, last: n };
+    return { added, fixed, last: n };
   }
   if (act === 'gen') {
     const cnt = Math.max(1, Math.min(30, parseInt(b.count, 10) || 1));
@@ -205,9 +216,21 @@ async function admin(request, env, c, path, ip) {
     return J({ added: r.added, last: r.last, codes: codes.map(fmt) }, 200, c);
   }
   if (act === 'import') {
-    const codes = [...new Set((Array.isArray(b.codes) ? b.codes : []).map(normCode).filter(Boolean))].slice(0, 16);
-    const r = await add(codes, b.start);
-    return J({ added: r.added, last: r.last, total: codes.length }, 200, c);
+    const raw = (Array.isArray(b.codes) ? b.codes : []).map(normCode);
+    const nums0 = Array.isArray(b.nums) ? b.nums.map((x) => parseInt(x, 10)) : [];
+    const seen = new Set();
+    const codes = [];
+    const nums = [];
+    raw.forEach((cd, i) => {
+      if (cd && !seen.has(cd)) {
+        seen.add(cd);
+        codes.push(cd);
+        nums.push(nums0[i]);
+      }
+    });
+    codes.splice(16);
+    const r = await add(codes, b.start, false, nums);
+    return J({ added: r.added, fixed: r.fixed, last: r.last, total: codes.length }, 200, c);
   }
   if (act === 'check') {
     const codes = [...new Set((Array.isArray(b.codes) ? b.codes : []).map(normCode).filter(Boolean))].slice(0, 16);

@@ -62,7 +62,7 @@ button{border:0;border-radius:10px;background:#ff9a3c;color:#4a2300;font-weight:
   <div class="mut" style="margin-top:14px">서버 사용량(요청 수)은 Cloudflare 대시보드 → Workers & Pages → kkaebi-naver 에서 볼 수 있어요.</div>
 </div>
 <script>
-var ADMIN_VER='2026-11-28.2',NEED_SRV='2026-11-28.2';
+var ADMIN_VER='2026-11-28.3',NEED_SRV='2026-11-28.3';
 var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
 var $=function(i){return document.getElementById(i)};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
@@ -80,7 +80,7 @@ function ovApply(d){var now=Date.now();d.items.forEach(function(x){var o=OV[x.h]
  if(OV._enf&&now-OV._enf.t<120000)d.enforce=OV._enf.v}
 function render(){
   var d=DATA;$('enT').textContent=d.enforce?'켜짐 — 코드가 있어야 사용':'꺼짐 — 코드 없이도 열림';$('enB').textContent=d.enforce?'끄기':'켜기';
-  var used=d.items.filter(function(x){return x.devs.length}).length;regCount();$('cnt').innerHTML='(전체 '+d.items.length+' · <b>사용 중 '+used+'</b>)';
+  var used=d.items.filter(function(x){return x.devs.length}).length;regCount();var ns={},dup=0;d.items.forEach(function(x){if(ns[x.n])dup++;ns[x.n]=1});$('cnt').innerHTML='(전체 '+d.items.length+' · <b>사용 중 '+used+'</b>'+(dup?' · <span style="color:#ff8a8a">번호 겹침 '+dup+'</span>':'')+')';
   $('list').innerHTML=d.items.map(function(x){
     var st=x.off?'<span class="tag off">차단</span>':x.devs.length?'<span class="tag on">사용 중 '+x.devs.length+'/'+d.max+'</span>':'<span class="tag new">미사용</span>';
     return '<div class="card '+(x.off?'blk':x.devs.length?'act':'idle')+'" data-h="'+x.h+'"><div class="row"><b>#'+x.n+'</b>'+st+'<span class="mut" style="text-align:right">'+esc(x.used?'최근 '+x.used.slice(5):'')+'</span></div>'
@@ -118,8 +118,9 @@ $('list').onclick=function(ev){
 };
 $('enB').onclick=function(){var on=!DATA.enforce;if(on&&!confirm('승인 모드를 켜면 코드가 없는 사람은 사용할 수 없어요. 켤까요?'))return;api('enforce',{on:on}).then(function(j){if(j.ok){OV._enf={v:on,t:Date.now()};DATA.enforce=on;render()}else load()})};
 var LASTN=0;
-async function batch(act,list,key){var add=0;for(var i=0;i<list.length;i+=(key==='count'?30:16)){var body=key==='count'?{count:Math.min(30,list.length-i)}:{codes:list.slice(i,i+16)};body.start=LASTN+1;var r=await api(act,body);if(r._s!==200)return {e:1,add:add};add+=r.added||0;if(r.last)LASTN=Math.max(LASTN,r.last);if(r.codes)batch.out=(batch.out||[]).concat(r.codes)}return {add:add}}
-function pickCodes(txt){var seen={},out=[];(txt.toUpperCase().match(/[A-Z0-9]{4}-?[A-Z0-9]{4}/g)||[]).forEach(function(c){var k=c.replace('-','');if(/^[A-Z0-9]{8}$/.test(k)&&!seen[k]){seen[k]=1;out.push(k)}});return out}
+async function batch(act,list,key){var add=0;for(var i=0;i<list.length;i+=(key==='count'?30:16)){var body=key==='count'?{count:Math.min(30,list.length-i)}:{codes:list.slice(i,i+16),nums:list.slice(i,i+16).map(function(c){return NUMS[c]||0})};body.start=LASTN+1;var r=await api(act,body);if(r._s!==200)return {e:1,add:add};add+=r.added||0;if(r.last)LASTN=Math.max(LASTN,r.last);if(r.codes)batch.out=(batch.out||[]).concat(r.codes)}return {add:add}}
+var NUMS={};
+function pickCodes(txt){var seen={},out=[];NUMS={};txt.toUpperCase().split(/\r?\n/).forEach(function(ln){var m=ln.match(/^\s*(\d{1,4})\s*[.):\-]?\s+([A-Z0-9]{4}-?[A-Z0-9]{4})\b/),hit=ln.match(/[A-Z0-9]{4}-?[A-Z0-9]{4}/g)||[];hit.forEach(function(c){var k=c.replace('-','');if(/^[A-Z0-9]{8}$/.test(k)&&!seen[k]){seen[k]=1;out.push(k);if(m&&m[2].replace('-','')===k)NUMS[k]=parseInt(m[1],10)}})});return out}
 async function verifyCodes(list){var miss=[];for(var i=0;i<list.length;i+=16){var r=await api('check',{codes:list.slice(i,i+16)});if(r._s!==200)return null;miss=miss.concat(r.missing||[])}return miss}
 function regCount(){var n=DATA?DATA.items.length:0;$('regCnt').textContent='현재 등록된 코드: '+n+'개'}
 $('gen').onclick=async function(){
