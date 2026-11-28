@@ -616,11 +616,11 @@ var STRUCT={
 };
 var BR=null,Q=null,busy=false;
 function hhmm(){return new Date().toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',hour12:false})}
-var PPIQ=null;
+var PPIQ=null,PPIM=0;
 function q(k){if(k==='USPPI')return PPIQ||{};return (Q&&Q.items&&Q.items[k])||{}}
 async function loadPpi(){
   try{var r=await fetch('ppi.json?_='+Math.floor(Date.now()/3600000),{cache:'no-store'});if(!r.ok)throw 0;var j=await r.json();
-    if(j&&isFinite(j.yoy))PPIQ={v:j.yoy.toFixed(1),p:isFinite(j.mom)?(j.mom>0?'+':j.mom<0?'-':'')+Math.abs(j.mom).toFixed(1):'',t:'전월대비'};
+    if(j&&j.month)PPIM=j.month;if(j&&isFinite(j.yoy))PPIQ={v:j.yoy.toFixed(1),p:isFinite(j.mom)?(j.mom>0?'+':j.mom<0?'-':'')+Math.abs(j.mom).toFixed(1):'',t:'전월대비'};
   }catch(e){}
 }
 function build(){
@@ -645,18 +645,30 @@ var EVT=[
  ['2027-01-28T04:00','FOMC','금리 결정 · 기자회견 (1/27 현지)','f'],
  ['2027-02-05T22:30','고용지표','1월 고용보고서','j'],['2027-02-11T22:30','CPI','1월 소비자물가','c'],['2027-02-12T22:30','PPI','1월 생산자물가','p']
 ];
+var ECON=null;
+async function loadEcon(){try{var r=await fetch('econ.json?_='+Math.floor(Date.now()/3600000),{cache:'no-store'});ECON=r.ok?await r.json():null}catch(e){ECON=null}}
+function evPrev(t){
+  var E=ECON||{},mm=function(o){return o&&o.month?o.month+'월분':''};
+  if(t==='j'){var j=E.jobs;if(!j||!isFinite(j.chg))return null;return {v:(j.chg>0?'+':j.chg<0?'-':'')+(Math.abs(j.chg)/10).toFixed(1)+'만명',s:isFinite(j.ur)?'실업률 '+j.ur.toFixed(1)+'%':'',m:mm(j)}}
+  if(t==='c'){var c=E.cpi;if(!c)return null;if(isFinite(c.yoy))return {v:(c.yoy>0?'+':'')+c.yoy.toFixed(1)+'%',u:'전년비',s:isFinite(c.mom)?'전월비 '+(c.mom>0?'+':'')+c.mom.toFixed(1)+'%':'',m:mm(c)};if(isFinite(c.mom))return {v:(c.mom>0?'+':'')+c.mom.toFixed(1)+'%',u:'전월비',s:'',m:mm(c)};return null}
+  if(t==='p'){if(!PPIQ||!PPIQ.v)return null;return {v:(parseFloat(PPIQ.v)>0?'+':'')+PPIQ.v+'%',u:'전년비',s:PPIQ.p?'전월비 '+PPIQ.p+'%':'',m:(PPIM?PPIM+'월분':'')}}
+  if(t==='f')return {v:'3.75~4.00%',u:'동결',s:'10/28 결정',m:'기준금리'};
+  return null;
+}
 function schedBox(){
-  var now=Date.now(),tk=kst().d,WD='일월화수목금토';
-  var L=EVT.filter(function(e){return Date.parse(e[0]+':00+09:00')>now-3*3600000}).slice(0,6),h='<div class="card cev"><h2>📅 경제지표 일정<small>미국 · 한국시간</small></h2><div class="evl">';
-  if(!L.length)h+='<p class="empty" style="margin:0;padding:12px 14px">다음 발표 일정은 업데이트 예정입니다.</p>';
+  var now=Date.now(),tk=kst().d,WD='일월화수목금토',seen={};
+  var L=EVT.filter(function(e){return Date.parse(e[0]+':00+09:00')>now-3*3600000}).filter(function(e){if(seen[e[3]])return false;seen[e[3]]=1;return true}).slice(0,4);
+  var h='<div class="card c1"><h2>📅 경제지표 일정<small>미국 · 한국시간</small></h2><div class="mg mg1"><div class="sec"><span>다음 발표 · 직전 발표 수치</span></div><div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">';
+  if(!L.length)h+='<p class="empty" style="margin:0;grid-column:1/-1">다음 발표 일정은 업데이트 예정입니다.</p>';
   L.forEach(function(e){
     var ed=e[0].slice(0,10),dd=Math.round((Date.parse(ed+'T00:00:00Z')-Date.parse(tk+'T00:00:00Z'))/864e5);
-    var wd=WD.charAt(new Date(ed+'T00:00:00Z').getUTCDay()),lb=dd<=0?'오늘':dd===1?'내일':'D-'+dd;
-    var sub=esc(e[2]);
-    if(e[3]==='p'&&PPIQ&&PPIQ.v)sub+=' <u>직전 전년비 '+esc(PPIQ.v)+'%</u>';
-    h+='<div class="evr ev'+e[3]+(dd<=1?' soon':'')+'"><span class="evd">'+ed.slice(5).replace('-','/')+'('+wd+') '+e[0].slice(11)+'</span><div><b>'+esc(e[1])+'</b><small>'+sub+'</small></div><em>'+lb+'</em></div>';
+    var wd=WD.charAt(new Date(ed+'T00:00:00Z').getUTCDay()),lb=dd<=0?'오늘':dd===1?'내일':'D-'+dd,pv=evPrev(e[3]);
+    h+='<div class="tile"><div class="lb"><b>'+esc(e[1])+'</b> · '+ed.slice(5).replace('-','/')+'('+wd+') '+e[0].slice(11)+'</div>'
+      +'<div class="val flat">'+(pv?esc(pv.v)+(pv.u?'<small class="cu2">'+esc(pv.u)+'</small>':''):'—')+'</div>'
+      +'<div class="chg flat" style="font-weight:600">'+(pv&&pv.s?esc(pv.s):'&nbsp;')+'</div>'
+      +'<div class="tm"><span style="'+(dd<=1?'color:#ff5a62;font-weight:800':'font-weight:700')+'">'+lb+'</span>'+(pv&&pv.m?' · 직전 '+esc(pv.m):'')+'</div></div>';
   });
-  return h+'</div></div>';
+  return h+'</div></div></div>';
 }
 /* ---------- 야간선물 마감값: night.json(자동수집) / 수동입력 팝업 ---------- */
 var NIGHT=null,nfShown=false,nfSign='';
@@ -1111,7 +1123,7 @@ async function pkRefresh(force){
   app.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target&&ev.target.classList&&ev.target.classList.contains('pki')){var c=ev.target.closest('.card'),s=c&&c.querySelector('.pksave');if(s)s.click()}});
 })();
 document.getElementById('refBtn').addEventListener('click',function(){loadQ(true)});
-(async function(){await loadBrief();loadLive();loadClose();loadBS();setInterval(function(){Promise.all([loadLive(),loadClose(),loadBS()]).then(paint)},300000);await loadNight();await loadPpi();await loadQ(false);setInterval(function(){loadNight().then(function(){loadQ(false)})},20000)})();
+(async function(){await loadBrief();loadLive();loadClose();loadBS();setInterval(function(){Promise.all([loadLive(),loadClose(),loadBS()]).then(paint)},300000);await loadNight();await loadPpi();await loadEcon();await loadQ(false);setInterval(function(){loadNight().then(function(){loadQ(false)})},20000)})();
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&BR)loadNight().then(function(){loadQ(false)})});
 /* ---------- 종목분석: Cloudflare Worker(네이버 조회 프록시) 경유 ---------- */
 var SA_DEFAULT_WORKER='https://kkaebi-naver.cocok6666.workers.dev';
