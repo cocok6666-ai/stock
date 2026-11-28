@@ -397,8 +397,8 @@ html[data-theme=light] #pk-kr{background:linear-gradient(180deg,rgba(64,160,130,
 <div class="nfm" id="unm" role="dialog" aria-modal="true" aria-labelledby="unT">
   <div class="nfb">
     <h3 id="unT">사용자 이름</h3>
-    <p>한글 3자를 입력하세요. 첫 글자는 큰 원형 로고에, 뒤 두 글자는 제목(“○○주식딸랑이”)에 쓰입니다.<br>예: 홍길동 → 로고 “홍”, 제목 “길동주식딸랑이”</p>
-    <input class="unin" id="unI" type="text" maxlength="3" autocomplete="off" placeholder="홍길동" aria-label="사용자 이름 한글 3자">
+    <p>한글 4자 이내로 입력하세요. 첫 글자는 큰 원형 로고에, 나머지 글자는 제목(“○○주식딸랑이”)에 쓰입니다.<br>예: 홍길동 → 로고 “홍”, 제목 “길동주식딸랑이”</p>
+    <input class="unin" id="unI" type="text" maxlength="4" autocomplete="off" placeholder="홍길동" aria-label="사용자 이름 한글 4자 이내">
     <div class="unmsg" id="unE"></div>
     <div class="nfa"><button class="ok" id="unOk" type="button">적용</button><button id="unCx" type="button">닫기</button></div>
   </div>
@@ -494,15 +494,16 @@ var GATE_URL='https://kkaebi-naver.cocok6666.workers.dev';
       box=document.createElement('div');box.id='gtL';document.body.appendChild(box);
     }
     var h='<div class="c"><h2>🔒 승인된 분만 사용할 수 있어요</h2><p>앱 사용은 <b style=\"color:#f4efe4\">무료</b>이지만, <b style=\"color:#f4efe4\">앱 개발자의 사용 승인</b>이 있어야 합니다.<br>승인 코드가 없으면 <b style=\"color:#f4efe4\">개발자에게 승인 코드를 요청</b>하신 뒤, <b style=\"color:#f4efe4\">이름과 받은 코드</b>를 입력해 주세요.<br><span style=\"font-size:12px\">(코드 1개로 기기 2대까지 사용)</span></p>'
-     +'<input id="gtN" type="text" autocomplete="name" maxlength="20" placeholder="이름 (실명 또는 별명)" value="'+esc(ls('gt_name')||'')+'" style="font-size:17px;letter-spacing:0;text-transform:none;margin-bottom:10px">'
+     +'<input id="gtN" type="text" autocomplete="name" maxlength="4" placeholder="이름 (한글 4자 이내)" value="'+esc(ls('gt_name')||'')+'" style="font-size:17px;letter-spacing:0;text-transform:none;margin-bottom:10px">'
      +'<input id="gtI" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="XXXX-XXXX" value="'+esc(tryCode||'')+'">'
      +'<button class="go" id="gtB" type="button">확인</button><div class="m" id="gtM">'+esc(msg||'')+'</div>';
     if(devs){h+='<div class="dv"><b>이 코드를 쓰는 기기 (하나를 삭제하면 이 기기를 쓸 수 있어요)</b>'+devs.map(function(d){return '<div><span>'+esc(d.name||'기기')+' · '+esc(d.at||'')+'</span><button type="button" data-s="'+esc(d.s)+'">삭제</button></div>'}).join('')+'</div>'}
     box.innerHTML=h+'</div>';
     var inp=box.querySelector('#gtI');inp.addEventListener('input',function(){var p=inp.selectionStart;inp.value=fm(inp.value)});
-    function go(){var nm=box.querySelector('#gtN').value.replace(/\s+/g,' ').trim();if(!nm){box.querySelector('#gtM').textContent='이름을 입력해 주세요.';return}
+    function go(){var nm=box.querySelector('#gtN').value.replace(/\s+/g,'').trim();if(!nm){box.querySelector('#gtM').textContent='이름을 입력해 주세요.';return}
+      if(!/^[가-힣]{1,4}$/.test(nm)){box.querySelector('#gtM').textContent='이름은 한글 4글자 이내로 입력해 주세요. (예: 홍길동)';return}
       var c=fm(inp.value);if(c.length<9){box.querySelector('#gtM').textContent='코드 8자리를 입력해 주세요.';return}
-      ls('gt_name',nm);box.querySelector('#gtM').textContent='확인 중…';
+      ls('gt_name',nm);ls('user_name',nm);box.querySelector('#gtM').textContent='확인 중…';
       post('/g/login',{code:c,dev:dev,name:devName(),user:nm}).then(function(j){
         if(j.ok){ls('gt_code',c.replace('-',''));ls('gt_enf','1');location.reload();return}
         if(j._s===400){box.querySelector('#gtM').textContent='이름을 입력해 주세요.';return}
@@ -935,9 +936,9 @@ async function loadBrief(){
   catch(e){BR={date:'',asof:'',headline:'브리핑을 불러오지 못했습니다',gap:null,facts:[],semi:'',picks:[],sources:[]}}
 }
 
-/* ---------- 사용자 이름: 첫 글자=로고, 뒤 두 글자=제목 ---------- */
-function userName(){var n=lsGet('user_name')||'';return /^[가-힣]{3}$/.test(n)?n:''}
-function titleText(){var n=userName();return n?n.slice(1)+'주식딸랑이':'주식딸랑이'}
+/* ---------- 사용자 이름(한글 4자 이내): 첫 글자=로고, 나머지=제목 ---------- */
+function userName(){var n=lsGet('user_name')||'';if(/^[가-힣]{1,4}$/.test(n))return n;n=lsGet('gt_name')||'';return /^[가-힣]{1,4}$/.test(n)?n:''}
+function titleText(){var n=userName();return n.length>1?n.slice(1)+'주식딸랑이':'주식딸랑이'}
 function applyName(){
   var n=userName();
   document.getElementById('logo').textContent=n?n.charAt(0):'M';
@@ -949,7 +950,7 @@ function unOpen(){var e=document.getElementById('unI');e.value=userName();docume
 function unClose(){document.getElementById('unm').classList.remove('on')}
 function unApply(){
   var v=document.getElementById('unI').value.trim();
-  if(!/^[가-힣]{3}$/.test(v)){document.getElementById('unE').textContent='한글 3자를 입력하세요 (예: 홍길동)';return}
+  if(!/^[가-힣]{1,4}$/.test(v)){document.getElementById('unE').textContent='한글 4자 이내로 입력하세요 (예: 홍길동)';return}
   lsSet('user_name',v);applyName();unClose();
 }
 (function(){
